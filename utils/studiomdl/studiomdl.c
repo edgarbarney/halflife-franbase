@@ -24,11 +24,12 @@
 #include <sys/stat.h>
 #include <math.h>
 
-#include "archtypes.h"
+#include "steam/steamtypes.h"
 #include "cmdlib.h"
 #include "lbmlib.h"
 #include "scriplib.h"
 #include "mathlib.h"
+#define Vector vec3_t
 #define EXTERN
 #include "../../engine/studio.h"
 #include "studiomdl.h"

@@ -19,11 +19,12 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#include "archtypes.h"
+#include "steam/steamtypes.h"
 #include "cmdlib.h"
 #include "lbmlib.h"
 #include "scriplib.h"
 #include "mathlib.h"
+#define Vector vec3_t
 #include "..\..\engine\studio.h"
 #include "studiomdl.h"
 

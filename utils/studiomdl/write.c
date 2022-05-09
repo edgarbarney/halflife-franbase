@@ -23,11 +23,12 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#include "archtypes.h"
+#include "steam/steamtypes.h"
 #include "cmdlib.h"
 #include "lbmlib.h"
 #include "scriplib.h"
 #include "mathlib.h"
+#define Vector vec3_t
 #include "..\..\engine\studio.h"
 #include "studiomdl.h"
 
@@ -388,7 +389,7 @@ void WriteModel( )
 	vec3_t			*pnorm;
 	mstudiomesh_t	*pmesh;
 	s_trianglevert_t *psrctri;
-	int				cur;
+	byte*			cur;
 	int				total_tris = 0;
 	int				total_strips = 0;
 
@@ -410,7 +411,7 @@ void WriteModel( )
 	}
 	ALIGN( pData );
 
-	cur = (int)pData;
+	cur = pData;
 	for (i = 0; i < nummodels; i++) 
 	{
 		int normmap[MAXSTUDIOVERTS];
@@ -478,7 +479,7 @@ void WriteModel( )
 			VectorCopy( model[i]->normal[normimap[j]].org, pnorm[j] );
 		}
 		printf("vertices  %6d bytes (%d vertices, %d normals)\n", pData - cur, model[i]->numverts, model[i]->numnorms);
-		cur = (int)pData;
+		cur = pData;
 
 		// save mesh info
 		pmesh = (mstudiomesh_t *)pData;
@@ -515,7 +516,7 @@ void WriteModel( )
 			total_strips += numcommandnodes;
 		}
 		printf("mesh      %6d bytes (%d tris, %d strips)\n", pData - cur, total_tris, total_strips);
-		cur = (int)pData;
+		cur = pData;
 	}	
 }
 
