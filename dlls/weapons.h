@@ -16,6 +16,7 @@
 #pragma once
 
 #include "effects.h"
+#include "weaponinfo.h"
 
 class CBasePlayer;
 
@@ -243,6 +244,12 @@ public:
 	virtual bool UpdateClientData(CBasePlayer* pPlayer) { return false; }
 
 	virtual CBasePlayerItem* GetWeaponPtr() { return NULL; }
+
+	virtual void GetWeaponData(weapon_data_t& data) {}
+
+	virtual void SetWeaponData(const weapon_data_t& data) {}
+
+	virtual void DecrementTimers() {}
 
 	static inline ItemInfo ItemInfoArray[MAX_WEAPONS];
 	static inline AmmoInfo AmmoInfoArray[MAX_AMMO_SLOTS];
@@ -568,7 +575,6 @@ public:
 	void Precache() override;
 	int iItemSlot() override { return 2; }
 	bool GetItemInfo(ItemInfo* p) override;
-	bool AddToPlayer(CBasePlayer* pPlayer) override;
 	void PrimaryAttack() override;
 	void SecondaryAttack() override;
 	bool Deploy() override;
@@ -608,7 +614,6 @@ public:
 	void Precache() override;
 	int iItemSlot() override { return 3; }
 	bool GetItemInfo(ItemInfo* p) override;
-	bool AddToPlayer(CBasePlayer* pPlayer) override;
 
 	void PrimaryAttack() override;
 	void SecondaryAttack() override;
@@ -660,7 +665,6 @@ public:
 	void FireSniperBolt();
 	void PrimaryAttack() override;
 	void SecondaryAttack() override;
-	bool AddToPlayer(CBasePlayer* pPlayer) override;
 	bool Deploy() override;
 	void Holster() override;
 	void Reload() override;
@@ -708,7 +712,6 @@ public:
 	void Precache() override;
 	int iItemSlot() override { return 3; }
 	bool GetItemInfo(ItemInfo* p) override;
-	bool AddToPlayer(CBasePlayer* pPlayer) override;
 
 	void PrimaryAttack() override;
 	void SecondaryAttack() override;
@@ -777,7 +780,6 @@ public:
 	void Reload() override;
 	int iItemSlot() override { return 4; }
 	bool GetItemInfo(ItemInfo* p) override;
-	bool AddToPlayer(CBasePlayer* pPlayer) override;
 
 	bool Deploy() override;
 	bool CanHolster() override;
@@ -854,7 +856,6 @@ public:
 	void Precache() override;
 	int iItemSlot() override { return 4; }
 	bool GetItemInfo(ItemInfo* p) override;
-	bool AddToPlayer(CBasePlayer* pPlayer) override;
 
 	bool Deploy() override;
 	void Holster() override;
@@ -883,6 +884,9 @@ public:
 		return false;
 #endif
 	}
+
+private:
+	void SendStopEvent(bool sendToHost);
 
 private:
 	unsigned short m_usGaussFire;
@@ -936,7 +940,6 @@ public:
 	void Precache() override;
 	int iItemSlot() override { return 4; }
 	bool GetItemInfo(ItemInfo* p) override;
-	bool AddToPlayer(CBasePlayer* pPlayer) override;
 
 	bool Deploy() override;
 	void Holster() override;

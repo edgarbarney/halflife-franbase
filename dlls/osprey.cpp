@@ -156,7 +156,8 @@ void COsprey::Spawn()
 
 	//ALERT(at_console, "Osprey origin %f %f %f\n", pev->origin.x, pev->origin.y, pev->origin.z);
 
-	pev->flags |= FL_MONSTER;
+	//Set FL_FLY so the Osprey model is interpolated.
+	pev->flags |= FL_MONSTER | FL_FLY;
 	pev->takedamage = DAMAGE_YES;
 	m_flRightHealth = 200;
 	m_flLeftHealth = 200;

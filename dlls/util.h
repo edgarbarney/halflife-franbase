@@ -591,16 +591,36 @@ float UTIL_WeaponTimeBase();
 
 CBaseEntity* UTIL_FindEntityForward(CBaseEntity* pMe);
 
-inline bool UTIL_IsServer()
+int GetStdLightStyle(int iStyle); //LRC- declared here so it can be used by everything that
+								  // needs to deal with the standard lightstyles.
+// LRC- for aliases and groups
+CBaseEntity* UTIL_FollowReference(CBaseEntity* pStartEntity, const char* szName);
+
+constexpr bool UTIL_IsServer()
 {
-#ifndef CLIENT_DLL
+#ifdef CLIENT_DLL
 	return false;
 #else
 	return true;
 #endif
 }
 
-int GetStdLightStyle(int iStyle); //LRC- declared here so it can be used by everything that
-								  // needs to deal with the standard lightstyles.
-// LRC- for aliases and groups
-CBaseEntity* UTIL_FollowReference(CBaseEntity* pStartEntity, const char* szName);
+/**
+*	@brief Helper type to run a function when the helper is destroyed.
+*	Useful for running cleanup on scope exit and function return.
+*/
+template<typename Func>
+struct CallOnDestroy
+{
+	const Func Function;
+
+	explicit CallOnDestroy(Func&& function)
+		: Function(function)
+	{
+	}
+
+	~CallOnDestroy()
+	{
+		Function();
+	}
+};
