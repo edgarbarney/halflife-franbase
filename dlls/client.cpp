@@ -1228,6 +1228,7 @@ int AddToFullPack(struct entity_state_s* state, int e, edict_t* ent, edict_t* ho
 
 	// This non-player entity is being moved by the game .dll and not the physics simulation system
 	//  make sure that we interpolate it's position on the client if it moves
+	/*
 	if (0 == player &&
 		0 != ent->v.animtime &&
 		ent->v.velocity[0] == 0 &&
@@ -1235,6 +1236,16 @@ int AddToFullPack(struct entity_state_s* state, int e, edict_t* ent, edict_t* ho
 		ent->v.velocity[2] == 0)
 	{
 		state->eflags |= EFLAG_SLERP;
+	}
+	*/
+
+	if ((ent->v.flags & FL_FLY) != 0)
+	{
+		state->eflags |= EFLAG_SLERP;
+	}
+	else
+	{
+		state->eflags &= ~EFLAG_SLERP;
 	}
 
 	state->scale = ent->v.scale;
@@ -1871,28 +1882,7 @@ GetHullBounds
 */
 int GetHullBounds(int hullnumber, float* mins, float* maxs)
 {
-	int iret = 0;
-
-	switch (hullnumber)
-	{
-	case 0: // Normal player
-		memcpy(mins, &VEC_HULL_MIN, sizeof(VEC_HULL_MIN));
-		memcpy(maxs, &VEC_HULL_MAX, sizeof(VEC_HULL_MAX));
-		iret = 1;
-		break;
-	case 1: // Crouched player
-		memcpy(mins, &VEC_DUCK_HULL_MIN, sizeof(VEC_DUCK_HULL_MIN));
-		memcpy(maxs, &VEC_DUCK_HULL_MAX, sizeof(VEC_DUCK_HULL_MAX));
-		iret = 1;
-		break;
-	case 2: // Point based hull
-		memcpy(mins, &g_vecZero, sizeof(g_vecZero));
-		memcpy(maxs, &g_vecZero, sizeof(g_vecZero));
-		iret = 1;
-		break;
-	}
-
-	return iret;
+	return static_cast<int>(PM_GetHullBounds(hullnumber, mins, maxs));
 }
 
 /*
