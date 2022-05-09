@@ -21,6 +21,7 @@
 */
 
 #include <limits>
+#include <algorithm>
 
 #include "extdll.h"
 #include "util.h"
@@ -3510,6 +3511,15 @@ void CBasePlayer::ForceClientDllUpdate()
 {
 	m_iClientHealth = -1;
 	m_iClientBattery = -1;
+	m_iClientHideHUD = -1;
+	m_iClientFOV = -1;
+	m_ClientWeaponBits = 0;
+
+	for (int i = 0; i < MAX_AMMO_SLOTS; ++i)
+	{
+		m_rgAmmoLast[i] = 0;
+	}
+
 	m_iTrain |= TRAIN_NEW; // Force new train message.
 	m_fWeapon = false;	   // Force weapon send
 	m_fKnownItem = false;  // Force weaponinit messages.
@@ -4142,7 +4152,7 @@ void CBasePlayer::UpdateClientData()
 
 	if (pev->health != m_iClientHealth)
 	{
-		int iHealth = clamp(pev->health, 0, std::numeric_limits<short>::max()); // make sure that no negative health values are sent
+		int iHealth = std::clamp<float>(pev->health, 0.f, (float)(std::numeric_limits<short>::max())); // make sure that no negative health values are sent
 		if (pev->health > 0.0f && pev->health <= 1.0f)
 			iHealth = 1;
 
