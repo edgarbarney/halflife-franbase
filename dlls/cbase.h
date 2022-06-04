@@ -238,6 +238,11 @@ public:
 	//LRC - aliases
 	virtual bool IsAlias() { return false; }
 
+	/**
+	*	@brief Entity flags sent to the client in ::AddToFullPack
+	*/
+	byte m_EFlags = 0;
+
 	virtual ~CBaseEntity() {}
 
 	// initialization functions
