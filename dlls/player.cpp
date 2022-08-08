@@ -130,6 +130,10 @@ TYPEDESCRIPTION CBasePlayer::m_playerSaveData[] =
 		DEFINE_FIELD(CBasePlayer, viewFlags, FIELD_INTEGER),
 		DEFINE_FIELD(CBasePlayer, viewNeedsUpdate, FIELD_INTEGER),
 
+		DEFINE_FIELD(CBasePlayer, m_SndLast, FIELD_EHANDLE),
+		DEFINE_FIELD(CBasePlayer, m_SndRoomtype, FIELD_INTEGER),
+		DEFINE_FIELD(CBasePlayer, m_flSndRange, FIELD_FLOAT),
+
 		//AJH
 		DEFINE_FIELD(CBasePlayer, m_pItemCamera, FIELD_CLASSPTR),		// Pointer to the first item_camera a player has
 		DEFINE_ARRAY(CBasePlayer, m_rgItems, FIELD_INTEGER, MAX_ITEMS), // The inventory status array
@@ -156,31 +160,28 @@ TYPEDESCRIPTION CBasePlayer::m_playerSaveData[] =
 		//	DEFINE_FIELD( CBasePlayer, m_vecFogColor, FIELD_VECTOR ),
 
 		//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
-		DEFINE_FIELD(CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER), // only used in multiplayer games //AJH Not true anymore, used in g-conts modified camera code as it can draw the hud.
-																		 //DEFINE_FIELD( CBasePlayer, m_flStopExtraSoundTime, FIELD_TIME ),
-																		 //DEFINE_FIELD( CBasePlayer, m_fKnownItem, FIELD_BOOLEAN ), // reset to zero on load
-																		 //DEFINE_FIELD( CBasePlayer, m_iPlayerSound, FIELD_INTEGER ),	// Don't restore, set in Precache()
-																		 //DEFINE_FIELD( CBasePlayer, m_pentSndLast, FIELD_EDICT ),	// Don't restore, client needs reset
-																		 //DEFINE_FIELD( CBasePlayer, m_flSndRoomtype, FIELD_FLOAT ),	// Don't restore, client needs reset
-																		 //DEFINE_FIELD( CBasePlayer, m_flSndRange, FIELD_FLOAT ),	// Don't restore, client needs reset
-																		 //DEFINE_FIELD( CBasePlayer, m_fNewAmmo, FIELD_INTEGER ), // Don't restore, client needs reset
-																		 //DEFINE_FIELD( CBasePlayer, m_flgeigerRange, FIELD_FLOAT ),	// Don't restore, reset in Precache()
-																		 //DEFINE_FIELD( CBasePlayer, m_flgeigerDelay, FIELD_FLOAT ),	// Don't restore, reset in Precache()
-																		 //DEFINE_FIELD( CBasePlayer, m_igeigerRangePrev, FIELD_FLOAT ),	// Don't restore, reset in Precache()
-																		 //DEFINE_FIELD( CBasePlayer, m_iStepLeft, FIELD_INTEGER ), // Don't need to restore
-																		 //DEFINE_ARRAY( CBasePlayer, m_szTextureName, FIELD_CHARACTER, CBTEXTURENAMEMAX ), // Don't need to restore
-																		 //DEFINE_FIELD( CBasePlayer, m_chTextureType, FIELD_CHARACTER ), // Don't need to restore
-																		 //DEFINE_FIELD( CBasePlayer, m_fNoPlayerSound, FIELD_BOOLEAN ), // Don't need to restore, debug
-																		 //DEFINE_FIELD( CBasePlayer, m_iUpdateTime, FIELD_INTEGER ), // Don't need to restore
-																		 //DEFINE_FIELD( CBasePlayer, m_iClientHealth, FIELD_INTEGER ), // Don't restore, client needs reset
-																		 //DEFINE_FIELD( CBasePlayer, m_iClientBattery, FIELD_INTEGER ), // Don't restore, client needs reset
-																		 //DEFINE_FIELD( CBasePlayer, m_iClientHideHUD, FIELD_INTEGER ), // Don't restore, client needs reset
-																		 //DEFINE_FIELD( CBasePlayer, m_fWeapon, FIELD_BOOLEAN ),  // Don't restore, client needs reset
-																		 //DEFINE_FIELD( CBasePlayer, m_nCustomSprayFrames, FIELD_INTEGER ), // Don't restore, depends on server message after spawning and only matters in multiplayer
-																		 //DEFINE_FIELD( CBasePlayer, m_vecAutoAim, FIELD_VECTOR ), // Don't save/restore - this is recomputed
-																		 //DEFINE_ARRAY( CBasePlayer, m_rgAmmoLast, FIELD_INTEGER, MAX_AMMO_SLOTS ), // Don't need to restore
-																		 //DEFINE_FIELD( CBasePlayer, m_fOnTarget, FIELD_BOOLEAN ), // Don't need to restore
-																		 //DEFINE_FIELD( CBasePlayer, m_nCustomSprayFrames, FIELD_INTEGER ), // Don't need to restore
+		DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
+		//DEFINE_FIELD( CBasePlayer, m_flStopExtraSoundTime, FIELD_TIME ),
+		//DEFINE_FIELD( CBasePlayer, m_fKnownItem, FIELD_BOOLEAN ), // reset to zero on load
+		//DEFINE_FIELD( CBasePlayer, m_iPlayerSound, FIELD_INTEGER ),	// Don't restore, set in Precache()
+		//DEFINE_FIELD( CBasePlayer, m_fNewAmmo, FIELD_INTEGER ), // Don't restore, client needs reset
+		//DEFINE_FIELD( CBasePlayer, m_flgeigerRange, FIELD_FLOAT ),	// Don't restore, reset in Precache()
+		//DEFINE_FIELD( CBasePlayer, m_flgeigerDelay, FIELD_FLOAT ),	// Don't restore, reset in Precache()
+		//DEFINE_FIELD( CBasePlayer, m_igeigerRangePrev, FIELD_FLOAT ),	// Don't restore, reset in Precache()
+		//DEFINE_FIELD( CBasePlayer, m_iStepLeft, FIELD_INTEGER ), // Don't need to restore
+		//DEFINE_ARRAY( CBasePlayer, m_szTextureName, FIELD_CHARACTER, CBTEXTURENAMEMAX ), // Don't need to restore
+		//DEFINE_FIELD( CBasePlayer, m_chTextureType, FIELD_CHARACTER ), // Don't need to restore
+		//DEFINE_FIELD( CBasePlayer, m_fNoPlayerSound, FIELD_BOOLEAN ), // Don't need to restore, debug
+		//DEFINE_FIELD( CBasePlayer, m_iUpdateTime, FIELD_INTEGER ), // Don't need to restore
+		//DEFINE_FIELD( CBasePlayer, m_iClientHealth, FIELD_INTEGER ), // Don't restore, client needs reset
+		//DEFINE_FIELD( CBasePlayer, m_iClientBattery, FIELD_INTEGER ), // Don't restore, client needs reset
+		//DEFINE_FIELD( CBasePlayer, m_iClientHideHUD, FIELD_INTEGER ), // Don't restore, client needs reset
+		//DEFINE_FIELD( CBasePlayer, m_fWeapon, FIELD_BOOLEAN ),  // Don't restore, client needs reset
+		//DEFINE_FIELD( CBasePlayer, m_nCustomSprayFrames, FIELD_INTEGER ), // Don't restore, depends on server message after spawning and only matters in multiplayer
+		//DEFINE_FIELD( CBasePlayer, m_vecAutoAim, FIELD_VECTOR ), // Don't save/restore - this is recomputed
+		//DEFINE_ARRAY( CBasePlayer, m_rgAmmoLast, FIELD_INTEGER, MAX_AMMO_SLOTS ), // Don't need to restore
+		//DEFINE_FIELD( CBasePlayer, m_fOnTarget, FIELD_BOOLEAN ), // Don't need to restore
+		//DEFINE_FIELD( CBasePlayer, m_nCustomSprayFrames, FIELD_INTEGER ), // Don't need to restore
 
 };
 
@@ -2836,9 +2837,7 @@ pt_end:
 
 			while (pPlayerItem)
 			{
-				CBasePlayerWeapon* gun;
-
-				gun = (CBasePlayerWeapon*)pPlayerItem->GetWeaponPtr();
+				CBasePlayerWeapon* gun = pPlayerItem->GetWeaponPtr();
 
 				if (gun && gun->UseDecrement())
 				{
@@ -3024,8 +3023,7 @@ void CBasePlayer::Spawn()
 		{
 			//Done spawning; reset.
 			m_bIsSpawning = false;
-		}
-	};
+		}};
 
 	//	ALERT(at_console, "PLAYER spawns at time %f\n", gpGlobals->time);
 
@@ -3071,6 +3069,7 @@ void CBasePlayer::Spawn()
 
 	m_iFOV = 0;		   // init field of view.
 	m_iClientFOV = -1; // make sure fov reset is sent
+	m_ClientSndRoomtype = -1;
 
 	m_flNextDecalTime = 0; // let this player decal as soon as he spawns.
 
@@ -3223,6 +3222,15 @@ bool CBasePlayer::Restore(CRestore& restore)
 
 	pev->fixangle = 1; // turn this way immediately
 
+	m_iClientFOV = -1; // Make sure the client gets the right FOV value.
+	m_ClientSndRoomtype = -1;
+
+	// Reset room type on level change.
+	if (!FStrEq(restore.GetData().szCurrentMapName, STRING(gpGlobals->mapname)))
+	{
+		m_SndRoomtype = 0;
+	}
+
 	// Copied from spawn() for now
 	m_bloodColor = BLOOD_COLOR_RED;
 
@@ -3366,7 +3374,9 @@ void CBasePlayer::SelectItem(const char* pstr)
 
 	if (m_pActiveItem)
 	{
+		m_pActiveItem->m_ForceSendAnimations = true;
 		m_pActiveItem->Deploy();
+		m_pActiveItem->m_ForceSendAnimations = false;
 		m_pActiveItem->UpdateItemInfo();
 	}
 }
@@ -3500,24 +3510,57 @@ void CBloodSplat::Spray()
 
 //==============================================
 
-
-
-void CBasePlayer::GiveNamedItem(const char* pszName)
+static edict_t* GiveNamedItem_Common(entvars_t* pev, const char* pszName)
 {
-	edict_t* pent;
-
 	int istr = MAKE_STRING(pszName);
 
-	pent = CREATE_NAMED_ENTITY(istr);
+	edict_t* pent = CREATE_NAMED_ENTITY(istr);
 	if (FNullEnt(pent))
 	{
-		ALERT(at_debug, "NULL Ent in GiveNamedItem!\n");
-		return;
+		ALERT(at_console, "NULL Ent in GiveNamedItem!\n");
+		return nullptr;
 	}
 	VARS(pent)->origin = pev->origin;
 	pent->v.spawnflags |= SF_NORESPAWN;
 
 	DispatchSpawn(pent);
+
+	return pent;
+}
+
+void CBasePlayer::GiveNamedItem(const char* szName)
+{
+	auto pent = GiveNamedItem_Common(pev, szName);
+
+	if (!pent)
+	{
+		return;
+	}
+
+	DispatchTouch(pent, ENT(pev));
+}
+
+void CBasePlayer::GiveNamedItem(const char* szName, int defaultAmmo)
+{
+	auto pent = GiveNamedItem_Common(pev, szName);
+
+	if (!pent)
+	{
+		return;
+	}
+
+	auto entity = CBaseEntity::Instance(pent);
+
+	if (!entity)
+	{
+		return;
+	}
+
+	if (auto weapon = dynamic_cast<CBasePlayerWeapon*>(entity); weapon)
+	{
+		weapon->m_iDefaultAmmo = defaultAmmo;
+	}
+
 	DispatchTouch(pent, ENT(pev));
 }
 
@@ -3579,6 +3622,7 @@ void CBasePlayer::ForceClientDllUpdate()
 	m_iClientHideHUD = -1;
 	m_iClientFOV = -1;
 	m_ClientWeaponBits = 0;
+	m_ClientSndRoomtype = -1;
 
 	for (int i = 0; i < MAX_AMMO_SLOTS; ++i)
 	{
@@ -3950,13 +3994,40 @@ bool CBasePlayer::AddPlayerItem(CBasePlayerItem* pItem)
 	}
 
 
-	if (pItem->AddToPlayer(this))
+	if (pItem->CanAddToPlayer(this))
 	{
+		pItem->AddToPlayer(this);
+
 		g_pGameRules->PlayerGotWeapon(this, pItem);
 		pItem->CheckRespawn();
 
+		// Add to the list before extracting ammo so weapon ownership checks work properly.
 		pItem->m_pNext = m_rgpPlayerItems[pItem->iItemSlot()];
 		m_rgpPlayerItems[pItem->iItemSlot()] = pItem;
+
+		if (auto weapon = pItem->GetWeaponPtr(); weapon)
+		{
+			weapon->ExtractAmmo(weapon);
+
+			//Immediately update the ammo HUD so weapon pickup isn't sometimes red because the HUD doesn't know about regenerating/free ammo yet.
+			if (-1 != weapon->m_iPrimaryAmmoType)
+			{
+				SendSingleAmmoUpdate(CBasePlayer::GetAmmoIndex(weapon->pszAmmo1()));
+			}
+
+			if (-1 != weapon->m_iSecondaryAmmoType)
+			{
+				SendSingleAmmoUpdate(CBasePlayer::GetAmmoIndex(weapon->pszAmmo2()));
+			}
+
+			//Don't show weapon pickup if we're spawning or if it's an exhaustible weapon (will show ammo pickup instead).
+			if (!m_bIsSpawning && (weapon->iFlags() & ITEM_FLAG_EXHAUSTIBLE) == 0)
+			{
+				MESSAGE_BEGIN(MSG_ONE, gmsgWeapPickup, NULL, pev);
+				WRITE_BYTE(weapon->m_iId);
+				MESSAGE_END();
+			}
+		}
 
 		// should we switch to this item?
 		if (g_pGameRules->FShouldSwitchWeapon(this, pItem))
@@ -4041,6 +4112,15 @@ int CBasePlayer::GiveAmmo(int iCount, const char* szName, int iMax)
 	int iAdd = V_min(iCount, iMax - m_rgAmmo[i]);
 	if (iAdd < 1)
 		return i;
+
+	// If this is an exhaustible weapon make sure the player has it.
+	if (const auto& ammoType = CBasePlayerItem::AmmoInfoArray[i]; ammoType.WeaponName != nullptr)
+	{
+		if (!HasNamedPlayerItem(ammoType.WeaponName))
+		{
+			GiveNamedItem(ammoType.WeaponName, 0);
+		}
+	}
 
 	m_rgAmmo[i] += iAdd;
 
@@ -4638,6 +4718,16 @@ void CBasePlayer::UpdateClientData()
 		m_flNextSBarUpdateTime = gpGlobals->time + 0.2;
 	}
 
+	// Send new room type to client.
+	if (m_ClientSndRoomtype != m_SndRoomtype)
+	{
+		m_ClientSndRoomtype = m_SndRoomtype;
+
+		MESSAGE_BEGIN(MSG_ONE, SVC_ROOMTYPE, nullptr, edict());
+		WRITE_SHORT((short)m_SndRoomtype); // sequence number
+		MESSAGE_END();
+	}
+
 	//Handled anything that needs resetting
 	m_bRestored = false;
 }
@@ -5126,8 +5216,10 @@ bool CBasePlayer::SwitchWeapon(CBasePlayerItem* pWeapon)
 
 	if (m_pActiveItem) // XWider: QueueItem sets it if we have no current weapopn
 	{
+		m_pActiveItem->m_ForceSendAnimations = true;
 		m_pActiveItem->Deploy();
 		m_pActiveItem->UpdateItemInfo();
+		m_pActiveItem->m_ForceSendAnimations = false;
 	}
 #else
 	m_pActiveItem = pWeapon;
