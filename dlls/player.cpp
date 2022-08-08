@@ -111,14 +111,15 @@ TYPEDESCRIPTION CBasePlayer::m_playerSaveData[] =
 		DEFINE_FIELD(CBasePlayer, m_iHideHUD, FIELD_INTEGER),
 		DEFINE_FIELD(CBasePlayer, m_iFOV, FIELD_INTEGER),
 
+		DEFINE_FIELD(CBasePlayer, m_SndLast, FIELD_EHANDLE),
+		DEFINE_FIELD(CBasePlayer, m_SndRoomtype, FIELD_INTEGER),
+		DEFINE_FIELD(CBasePlayer, m_flSndRange, FIELD_FLOAT),
+
 		//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
 		//DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
 		//DEFINE_FIELD( CBasePlayer, m_flStopExtraSoundTime, FIELD_TIME ),
 		//DEFINE_FIELD( CBasePlayer, m_fKnownItem, FIELD_BOOLEAN ), // reset to zero on load
 		//DEFINE_FIELD( CBasePlayer, m_iPlayerSound, FIELD_INTEGER ),	// Don't restore, set in Precache()
-		//DEFINE_FIELD( CBasePlayer, m_pentSndLast, FIELD_EDICT ),	// Don't restore, client needs reset
-		//DEFINE_FIELD( CBasePlayer, m_flSndRoomtype, FIELD_FLOAT ),	// Don't restore, client needs reset
-		//DEFINE_FIELD( CBasePlayer, m_flSndRange, FIELD_FLOAT ),	// Don't restore, client needs reset
 		//DEFINE_FIELD( CBasePlayer, m_fNewAmmo, FIELD_INTEGER ), // Don't restore, client needs reset
 		//DEFINE_FIELD( CBasePlayer, m_flgeigerRange, FIELD_FLOAT ),	// Don't restore, reset in Precache()
 		//DEFINE_FIELD( CBasePlayer, m_flgeigerDelay, FIELD_FLOAT ),	// Don't restore, reset in Precache()
@@ -1782,7 +1783,7 @@ void CBasePlayer::PreThink()
 			SET_VIEW(edict(), viewEntity->edict());
 		}
 	}
-	
+
 	// in the event that the player JUST spawned, and the level node graph
 	// was loaded, fix all of the node graph pointers before the game starts.
 
@@ -2595,9 +2596,7 @@ pt_end:
 
 			while (pPlayerItem)
 			{
-				CBasePlayerWeapon* gun;
-
-				gun = (CBasePlayerWeapon*)pPlayerItem->GetWeaponPtr();
+				CBasePlayerWeapon* gun = pPlayerItem->GetWeaponPtr();
 
 				if (gun && gun->UseDecrement())
 				{
@@ -2780,8 +2779,7 @@ void CBasePlayer::Spawn()
 		{
 			//Done spawning; reset.
 			m_bIsSpawning = false;
-		}
-	};
+		}};
 
 	pev->classname = MAKE_STRING("player");
 	pev->health = 100;
@@ -2810,6 +2808,7 @@ void CBasePlayer::Spawn()
 
 	m_iFOV = 0;		   // init field of view.
 	m_iClientFOV = -1; // make sure fov reset is sent
+	m_ClientSndRoomtype = -1;
 
 	m_flNextDecalTime = 0; // let this player decal as soon as he spawns.
 
@@ -2942,6 +2941,15 @@ bool CBasePlayer::Restore(CRestore& restore)
 	pev->angles = pev->v_angle;
 
 	pev->fixangle = 1; // turn this way immediately
+
+	m_iClientFOV = -1; // Make sure the client gets the right FOV value.
+	m_ClientSndRoomtype = -1;
+
+	// Reset room type on level change.
+	if (!FStrEq(restore.GetData().szCurrentMapName, STRING(gpGlobals->mapname)))
+	{
+		m_SndRoomtype = 0;
+	}
 
 	// Copied from spawn() for now
 	m_bloodColor = BLOOD_COLOR_RED;
@@ -3080,7 +3088,9 @@ void CBasePlayer::SelectItem(const char* pstr)
 
 	if (m_pActiveItem)
 	{
+		m_pActiveItem->m_ForceSendAnimations = true;
 		m_pActiveItem->Deploy();
+		m_pActiveItem->m_ForceSendAnimations = false;
 		m_pActiveItem->UpdateItemInfo();
 	}
 }
@@ -3214,24 +3224,57 @@ void CBloodSplat::Spray()
 
 //==============================================
 
-
-
-void CBasePlayer::GiveNamedItem(const char* pszName)
+static edict_t* GiveNamedItem_Common(entvars_t* pev, const char* pszName)
 {
-	edict_t* pent;
-
 	int istr = MAKE_STRING(pszName);
 
-	pent = CREATE_NAMED_ENTITY(istr);
+	edict_t* pent = CREATE_NAMED_ENTITY(istr);
 	if (FNullEnt(pent))
 	{
 		ALERT(at_console, "NULL Ent in GiveNamedItem!\n");
-		return;
+		return nullptr;
 	}
 	VARS(pent)->origin = pev->origin;
 	pent->v.spawnflags |= SF_NORESPAWN;
 
 	DispatchSpawn(pent);
+
+	return pent;
+}
+
+void CBasePlayer::GiveNamedItem(const char* szName)
+{
+	auto pent = GiveNamedItem_Common(pev, szName);
+
+	if (!pent)
+	{
+		return;
+	}
+
+	DispatchTouch(pent, ENT(pev));
+}
+
+void CBasePlayer::GiveNamedItem(const char* szName, int defaultAmmo)
+{
+	auto pent = GiveNamedItem_Common(pev, szName);
+
+	if (!pent)
+	{
+		return;
+	}
+
+	auto entity = CBaseEntity::Instance(pent);
+
+	if (!entity)
+	{
+		return;
+	}
+
+	if (auto weapon = dynamic_cast<CBasePlayerWeapon*>(entity); weapon)
+	{
+		weapon->m_iDefaultAmmo = defaultAmmo;
+	}
+
 	DispatchTouch(pent, ENT(pev));
 }
 
@@ -3290,6 +3333,7 @@ void CBasePlayer::ForceClientDllUpdate()
 	m_iClientHideHUD = -1;
 	m_iClientFOV = -1;
 	m_ClientWeaponBits = 0;
+	m_ClientSndRoomtype = -1;
 
 	for (int i = 0; i < MAX_AMMO_SLOTS; ++i)
 	{
@@ -3599,13 +3643,40 @@ bool CBasePlayer::AddPlayerItem(CBasePlayerItem* pItem)
 	}
 
 
-	if (pItem->AddToPlayer(this))
+	if (pItem->CanAddToPlayer(this))
 	{
+		pItem->AddToPlayer(this);
+
 		g_pGameRules->PlayerGotWeapon(this, pItem);
 		pItem->CheckRespawn();
 
+		// Add to the list before extracting ammo so weapon ownership checks work properly.
 		pItem->m_pNext = m_rgpPlayerItems[pItem->iItemSlot()];
 		m_rgpPlayerItems[pItem->iItemSlot()] = pItem;
+
+		if (auto weapon = pItem->GetWeaponPtr(); weapon)
+		{
+			weapon->ExtractAmmo(weapon);
+
+			//Immediately update the ammo HUD so weapon pickup isn't sometimes red because the HUD doesn't know about regenerating/free ammo yet.
+			if (-1 != weapon->m_iPrimaryAmmoType)
+			{
+				SendSingleAmmoUpdate(CBasePlayer::GetAmmoIndex(weapon->pszAmmo1()));
+			}
+
+			if (-1 != weapon->m_iSecondaryAmmoType)
+			{
+				SendSingleAmmoUpdate(CBasePlayer::GetAmmoIndex(weapon->pszAmmo2()));
+			}
+
+			//Don't show weapon pickup if we're spawning or if it's an exhaustible weapon (will show ammo pickup instead).
+			if (!m_bIsSpawning && (weapon->iFlags() & ITEM_FLAG_EXHAUSTIBLE) == 0)
+			{
+				MESSAGE_BEGIN(MSG_ONE, gmsgWeapPickup, NULL, pev);
+				WRITE_BYTE(weapon->m_iId);
+				MESSAGE_END();
+			}
+		}
 
 		// should we switch to this item?
 		if (g_pGameRules->FShouldSwitchWeapon(this, pItem))
@@ -3690,6 +3761,15 @@ int CBasePlayer::GiveAmmo(int iCount, const char* szName, int iMax)
 	int iAdd = V_min(iCount, iMax - m_rgAmmo[i]);
 	if (iAdd < 1)
 		return i;
+
+	// If this is an exhaustible weapon make sure the player has it.
+	if (const auto& ammoType = CBasePlayerItem::AmmoInfoArray[i]; ammoType.WeaponName != nullptr)
+	{
+		if (!HasNamedPlayerItem(ammoType.WeaponName))
+		{
+			GiveNamedItem(ammoType.WeaponName, 0);
+		}
+	}
 
 	m_rgAmmo[i] += iAdd;
 
@@ -4116,6 +4196,16 @@ void CBasePlayer::UpdateClientData()
 	{
 		UpdateStatusBar();
 		m_flNextSBarUpdateTime = gpGlobals->time + 0.2;
+	}
+
+	// Send new room type to client.
+	if (m_ClientSndRoomtype != m_SndRoomtype)
+	{
+		m_ClientSndRoomtype = m_SndRoomtype;
+
+		MESSAGE_BEGIN(MSG_ONE, SVC_ROOMTYPE, nullptr, edict());
+		WRITE_SHORT((short)m_SndRoomtype); // sequence number
+		MESSAGE_END();
 	}
 
 	//Handled anything that needs resetting
@@ -4603,7 +4693,9 @@ bool CBasePlayer::SwitchWeapon(CBasePlayerItem* pWeapon)
 
 	if (pWeapon)
 	{
+		pWeapon->m_ForceSendAnimations = true;
 		pWeapon->Deploy();
+		pWeapon->m_ForceSendAnimations = false;
 	}
 
 	return true;
