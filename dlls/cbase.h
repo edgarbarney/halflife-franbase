@@ -395,23 +395,9 @@ public:
 	bool IsDormant();
 	bool IsLockedByMaster() { return false; }
 
-	static CBaseEntity* Instance(edict_t* pent)
-	{
-		if (!pent)
-			pent = ENT(0);
-		CBaseEntity* pEnt = (CBaseEntity*)GET_PRIVATE(pent);
-		return pEnt;
-	}
+	static CBaseEntity* Instance(edict_t* pent);
 
-	static CBaseEntity* Instance(entvars_t* pev)
-	{
-		if (!pev)
-			return Instance(ENT(0));
-
-		return Instance(ENT(pev));
-	}
-
-	static CBaseEntity* Instance(int eoffset) { return Instance(ENT(eoffset)); }
+	static CBaseEntity* Instance(entvars_t* pev);
 
 	CBaseMonster* GetMonsterPointer(entvars_t* pevMonster)
 	{
@@ -958,13 +944,33 @@ public:
 class CWorld : public CBaseEntity
 {
 public:
+	CWorld();
+	~CWorld();
+
 	void Spawn() override;
 	void Precache() override;
 	bool KeyValue(KeyValueData* pkvd) override;
 
 	CBaseAlias* m_pFirstAlias;
+	
+	static inline CWorld* Instance = nullptr;
 };
 
-extern CWorld* g_pWorld;
-
 inline DLL_GLOBAL edict_t* g_pBodyQueueHead = nullptr;
+
+inline CBaseEntity* CBaseEntity::Instance(edict_t* pent)
+{
+	if (!pent)
+		return CWorld::Instance;
+	return (CBaseEntity*)GET_PRIVATE(pent);
+}
+
+inline CBaseEntity* CBaseEntity::Instance(entvars_t* pev)
+{
+	if (!pev)
+		return CWorld::Instance;
+
+	return Instance(ENT(pev));
+}
+
+extern CWorld* g_pWorld;
