@@ -1373,7 +1373,7 @@ void V_GetInEyePos(int target, float* origin, float* angles)
 		VectorCopy(vJumpAngles, angles);
 		VectorCopy(vJumpOrigin, origin);
 		return;
-	};
+	}
 
 
 	cl_entity_t* ent = gEngfuncs.GetEntityByIndex(target);
