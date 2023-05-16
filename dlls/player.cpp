@@ -1247,7 +1247,7 @@ void CBasePlayer::WaterMove()
 				pev->dmg += 1;
 				if (pev->dmg > 5)
 					pev->dmg = 5;
-				TakeDamage(CWorld::Instance->pev, CWorld::Instance->pev, pev->dmg, DMG_DROWN);
+				TakeDamage(CWorld::World->pev, CWorld::World->pev, pev->dmg, DMG_DROWN);
 				pev->pain_finished = gpGlobals->time + 1;
 
 				// track drowning damage, give it back when
@@ -1299,12 +1299,12 @@ void CBasePlayer::WaterMove()
 	if (pev->watertype == CONTENT_LAVA) // do damage
 	{
 		if (pev->dmgtime < gpGlobals->time)
-			TakeDamage(CWorld::Instance->pev, CWorld::Instance->pev, 10 * pev->waterlevel, DMG_BURN);
+			TakeDamage(CWorld::World->pev, CWorld::World->pev, 10 * pev->waterlevel, DMG_BURN);
 	}
 	else if (pev->watertype == CONTENT_SLIME) // do damage
 	{
 		pev->dmgtime = gpGlobals->time + 1;
-		TakeDamage(CWorld::Instance->pev, CWorld::Instance->pev, 4 * pev->waterlevel, DMG_ACID);
+		TakeDamage(CWorld::World->pev, CWorld::World->pev, 4 * pev->waterlevel, DMG_ACID);
 	}
 
 	if (!FBitSet(pev->flags, FL_INWATER))
@@ -2727,7 +2727,7 @@ void CBasePlayer::PostThink()
 
 			if (flFallDamage > 0)
 			{
-				TakeDamage(CWorld::Instance->pev, CWorld::Instance->pev, flFallDamage, DMG_FALL);
+				TakeDamage(CWorld::World->pev, CWorld::World->pev, flFallDamage, DMG_FALL);
 				pev->punchangle.x = 0;
 			}
 		}
@@ -2922,7 +2922,7 @@ edict_t* EntSelectSpawnPoint(CBaseEntity* pPlayer)
 			{
 				// if ent is a client, kill em (unless they are ourselves)
 				if (ent->IsPlayer() && !(ent->edict() == player))
-					ent->TakeDamage(CWorld::Instance->pev, CWorld::Instance->pev, 300, DMG_GENERIC);
+					ent->TakeDamage(CWorld::World->pev, CWorld::World->pev, 300, DMG_GENERIC);
 			}
 			goto ReturnSpot;
 		}
@@ -2946,7 +2946,7 @@ ReturnSpot:
 	if (FNullEnt(pSpot))
 	{
 		ALERT(at_error, "PutClientInServer: no info_player_start on level");
-		return CWorld::Instance->edict();
+		return CWorld::World->edict();
 	}
 
 	g_pLastSpawn = pSpot;
@@ -3794,7 +3794,7 @@ void CBasePlayer::CheatImpulseCommands(int iImpulse)
 	{
 		TraceResult tr;
 
-		edict_t* pWorld = CWorld::Instance->edict();
+		edict_t* pWorld = CWorld::World->edict();
 
 		Vector start = pev->origin + pev->view_ofs;
 		Vector end = start + gpGlobals->v_forward * 1024;
@@ -3803,7 +3803,7 @@ void CBasePlayer::CheatImpulseCommands(int iImpulse)
 			pWorld = tr.pHit;
 		const char* pTextureName = TRACE_TEXTURE(pWorld, start, end);
 		if (pTextureName)
-			ALERT(at_debug, "Texture: %s\n", pTextureName);
+			ALERT(at_debug, "Texture: %s (%c)\n", pTextureName, PM_FindTextureType(pTextureName));
 	}
 	break;
 	case 195: // show shortest paths for entire level to nearest node
@@ -4078,6 +4078,10 @@ void CBasePlayer::ItemPostFrame()
 	}
 
 	ImpulseCommands();
+
+	// check again if the player is using a tank if they started using it in PlayerUse
+	if (m_pTank != NULL)
+		return;
 
 	if (!m_pActiveItem)
 		return;
