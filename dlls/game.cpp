@@ -15,6 +15,7 @@
 #include "extdll.h"
 #include "eiface.h"
 #include "util.h"
+#include "client.h"
 #include "game.h"
 #include "filesystem_utils.h"
 
@@ -43,6 +44,8 @@ cvar_t allowmonsters = {"mp_allowmonsters", "0", FCVAR_SERVER};
 cvar_t allow_spectators = {"allow_spectators", "0.0", FCVAR_SERVER}; // 0 prevents players from being spectators
 
 cvar_t mp_chattime = {"mp_chattime", "10", FCVAR_SERVER};
+
+cvar_t sv_allowbunnyhopping = {"sv_allowbunnyhopping", "0", FCVAR_SERVER};
 
 //CVARS FOR SKILL LEVEL SETTINGS
 // Agrunt
@@ -493,6 +496,8 @@ void GameDLLInit()
 
 	CVAR_REGISTER(&mp_chattime);
 
+	CVAR_REGISTER(&sv_allowbunnyhopping);
+
 	// REGISTER CVARS FOR SKILL LEVEL STUFF
 	// Agrunt
 	CVAR_REGISTER(&sk_agrunt_health1); // {"sk_agrunt_health1","0"};
@@ -898,6 +903,8 @@ void GameDLLInit()
 	CVAR_REGISTER(&sk_player_leg2);
 	CVAR_REGISTER(&sk_player_leg3);
 	// END REGISTER CVARS FOR SKILL LEVEL STUFF
+
+	InitMapLoadingUtils();
 
 	SERVER_COMMAND("exec skill.cfg\n");
 }

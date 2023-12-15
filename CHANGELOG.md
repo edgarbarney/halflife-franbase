@@ -1,8 +1,41 @@
 # Half-Life Updated changelog
 
-## Changges in V1.0.0 Beta 015
+## Changes in V1.0.0 Release Candidate 003
 
-> Note: this beta has not been released yet.
+### Bug fixes
+
+* Fixed save game system not saving arrays of EHANDLEs if the first half of the array contains null handles (mainly affected Nihilanth's spheres) [#224](https://github.com/SamVanheer/halflife-updated/issues/224) (Thanks Ronin4862)
+* Fixed player gaining health when drowning with god mode enabled and recovering health after surfacing (Thanks malortie)
+* Fixed human grunts continuing to fire for a few seconds after killing the last enemy in an area [Opposing Force Updated #100](https://github.com/SamVanheer/halflife-op4-updated/issues/100) (Thanks Ronin4862 and malortie)
+* Fixed crash when +USEing NPCs that have just exited a scripted sequence (Thanks malortie)
+* Fixed talk monsters resetting other talk monsters' dying schedule if they are both killed at the same time (Thanks FreeSlave)
+* Fixed RPG laser turning on when reloading immediately after equipping the weapon
+* Reverted weapon selection using weapon IDs to prevent the game from malfunctioning when delta.lst is missing
+
+### Features
+
+* Added sv_load_all_maps & sv_stop_loading_all_maps to help automate node graph generation
+
+## Changes in V1.0.0 Release Candidate 002
+
+### Bug fixes
+
+* Fixed hand grenade animations not playing correctly [#209](https://github.com/SamVanheer/halflife-updated/pull/209) (Thanks Toodles2You)
+* Fixed out of bounds access in studiomodel renderer bone setup code (halflife issue [#3360](https://github.com/ValveSoftware/halflife/issues/3360))
+* Fixed mouse cursor being invisible in VGUI1 menus when raw input is enabled [#211](https://github.com/SamVanheer/halflife-updated/issues/211) (Thanks RykahKnight)
+* Mouse movement in the main menu no longer affects in-game view angles when not using raw input
+* Fixed RPG being flagged as unusable while a rocket is loaded [#213](https://github.com/SamVanheer/halflife-updated/pull/213) (Thanks Toodles2You)
+* Have clients select weapons by ID, rather than by name [#217](https://github.com/SamVanheer/halflife-updated/pull/217) (Thanks Toodles2You)
+* Copy delta.lst when building client or server to ensure mods have correct delta.lst file (Thanks P38TaKjYzY)
+* Reset current history icon slot when resetting item history HUD [#223](https://github.com/SamVanheer/halflife-updated/issues/223) (Thanks malortie)
+* Fixed Gauss gun dealing full damage when saving and loading right after starting a charged shot (Thanks Oxofemple.)
+* Prevent breakables from spawning multiple items when destroyed by gunfire and explosives at the same time (Thanks Oxofemple.)
+
+### Features
+
+* Added cvar `sv_allowbunnyhopping` to control whether the bunny hopping limiter is enabled (halflife issue [#11](https://github.com/ValveSoftware/halflife/issues/11))
+
+## Changes in V1.0.0 Release Candidate 001
 
 ### Bug fixes
 
@@ -44,7 +77,7 @@
 * Removed unnecessary semicolons (Thanks Shepard)
 * Updated source file encoding to UTF-8 [#183](https://github.com/SamVanheer/halflife-updated/issues/183) (Thanks anchurcn)
 * Renamed `CWorld::Instance` to `CWorld::World` to avoid conflicting with `CBaseEntity::Instance` function name
-* Added `-flifetime-dse=1` flag to Linux Makefile to disable compiler optimization that removed entity memory zero-initialization, resulting in the game crashing when any entity touches the world  [#187](https://github.com/SamVanheer/halflife-updated/issues/187)(Thanks FreeSlave)
+* Added `-flifetime-dse=1` flag to Linux Makefile to disable compiler optimization that removed entity memory zero-initialization, resulting in the game crashing when any entity touches the world [#187](https://github.com/SamVanheer/halflife-updated/issues/187) (Thanks FreeSlave)
 * Fixed game_player_equip crashing when given a null activator [#189](https://github.com/SamVanheer/halflife-updated/issues/189)
 * Fixed Hornet gun recharging to full ammo after loading a save game [#190](https://github.com/SamVanheer/halflife-updated/issues/190)
 * Fixed explosives that impact the underside of a brush dealing damage to entities on the other side of that brush (halflife issue [#3244](https://github.com/ValveSoftware/halflife/issues/3244))
@@ -61,8 +94,8 @@
 
 ### Project changes
 
-* Added `delta.lst` to the archive again (was accidentally removed in the previous beta)
-* Added game icons to the archive
+* Added `delta.lst` to the game installation again (was accidentally removed in the previous beta)
+* Added game icons to the game installation
 
 ## Changes in V1.0.0 Beta 013
 
@@ -344,7 +377,7 @@
 * Reverted "Fixed multisource having off-by-one error in trigger handling" (halflife issue [[#1737|https://github.com/ValveSoftware/halflife/issues/1737]]) to avoid edge cases where entities triggering the multisource use a delayed trigger which is not supported by fixed code
 * Fixed func_breakable keyvalue "explosion" not working (#24) (Thanks ArroganceJustified)
 * Fixed saytext message handling potentially causing buffer overflow (halflife issue [[#3095|https://github.com/ValveSoftware/halflife/issues/3095]])
-* Implemented skill cvars sk_plr_hornet_dmg1/2/3 for player Hornet gun damage
+* Implemented skill cvars `sk_plr_hornet_dmg1/2/3` for player Hornet gun damage
 * Fixed memory leak in VGUI1 image loading code (halflife issue [[#3101|https://github.com/ValveSoftware/halflife/issues/3101]])
 * Fixed underwater breathing sounds playing when standing in shallow water (halflife issue [[#3110|https://github.com/ValveSoftware/halflife/issues/3110]])
 * Fixed camera not being consistently centered when raw mouse input is enabled (Thanks IntriguingTiles) [#32](https://github.com/SamVanheer/halflife-updated/pull/32)
