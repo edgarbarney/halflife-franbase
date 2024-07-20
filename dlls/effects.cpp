@@ -4763,7 +4763,7 @@ void CEnvMirror ::Spawn(void)
 	Precache();
 
 	if (pev->spawnflags & SF_MIRROR_DRAWPLAYER)
-		CBaseEntity::Create("player_marker", (float*)&Center(), (float*)&g_vecZero, NULL);
+		CBaseEntity::Create("player_marker", Center(), g_vecZero, NULL);
 
 	SET_MODEL(ENT(pev), STRING(pev->model));
 	SetThink(&CEnvMirror ::MirrorThink);
@@ -4804,7 +4804,7 @@ void CEnvMirror ::MirrorThink(void)
 
 		if (UTIL_PlayerByIndex(1))
 		{
-			PLAYBACK_EVENT_FULL(FEV_RELIABLE | FEV_GLOBAL, edict(), m_usMirror, 0.0, (float*)&Center(), (float*)&g_vecZero, 0.0, 0.0, m_flRadius, pev->frags, 1, 0);
+			PLAYBACK_EVENT_FULL(FEV_RELIABLE | FEV_GLOBAL, edict(), m_usMirror, 0.0, Center(), g_vecZero, 0.0, 0.0, m_flRadius, pev->frags, 1, 0);
 			bSent = true;
 		}
 	}
@@ -4813,7 +4813,7 @@ void CEnvMirror ::MirrorThink(void)
 		if (pev->rendermode != kRenderNormal)
 		{
 			pev->rendermode = kRenderNormal;
-			PLAYBACK_EVENT_FULL(FEV_RELIABLE | FEV_GLOBAL, edict(), m_usMirror, 0.0, (float*)&Center(), (float*)&g_vecZero, 0.0, 0.0, m_flRadius, pev->frags, 0, 0);
+			PLAYBACK_EVENT_FULL(FEV_RELIABLE | FEV_GLOBAL, edict(), m_usMirror, 0.0, Center(), g_vecZero, 0.0, 0.0, m_flRadius, pev->frags, 0, 0);
 		}
 
 		bSent = true;

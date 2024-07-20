@@ -15,6 +15,7 @@
 #include "extdll.h"
 #include "eiface.h"
 #include "util.h"
+#include "client.h"
 #include "game.h"
 #include "filesystem_utils.h"
 
@@ -48,6 +49,8 @@ cvar_t impulsetarget = {"sohl_impulsetarget", "0", FCVAR_SERVER}; //LRC - trigge
 cvar_t mw_debug = {"sohl_mwdebug", "0", FCVAR_SERVER};			  //LRC - debug info. for MoveWith. (probably not useful for most people.)
 
 cvar_t mp_chattime = {"mp_chattime", "10", FCVAR_SERVER};
+
+cvar_t sv_allowbunnyhopping = {"sv_allowbunnyhopping", "0", FCVAR_SERVER};
 
 //CVARS FOR SKILL LEVEL SETTINGS
 // Agrunt
@@ -456,6 +459,23 @@ cvar_t sk_player_leg3 = {"sk_player_leg3", "1"};
 
 // END Cvars for Skill Level settings
 
+static bool SV_InitServer()
+{
+	if (!FileSystem_LoadFileSystem())
+	{
+		return false;
+	}
+
+	if (UTIL_IsValveGameDirectory())
+	{
+		g_engfuncs.pfnServerPrint("This mod has detected that it is being run from a Valve game directory which is not supported\n"
+			"Run this mod from its intended location\n\nThe game will now shut down\n");
+		return false;
+	}
+
+	return true;
+}
+
 // Register your console variables here
 // This gets called one time when the game is initialied
 void GameDLLInit()
@@ -467,8 +487,9 @@ void GameDLLInit()
 	g_footsteps = CVAR_GET_POINTER("mp_footsteps");
 	g_psv_cheats = CVAR_GET_POINTER("sv_cheats");
 
-	if (!FileSystem_LoadFileSystem())
+	if (!SV_InitServer())
 	{
+		g_engfuncs.pfnServerPrint("Error initializing server\n");
 		//Shut the game down as soon as possible.
 		SERVER_COMMAND("quit\n");
 		return;
@@ -501,6 +522,8 @@ void GameDLLInit()
 	//CVAR_REGISTER (&mp3volume); //G-Cont. Stuff for Mp3 player	//AJH
 
 	CVAR_REGISTER(&mp_chattime);
+
+	CVAR_REGISTER(&sv_allowbunnyhopping);
 
 	// REGISTER CVARS FOR SKILL LEVEL STUFF
 	// Agrunt
@@ -907,6 +930,8 @@ void GameDLLInit()
 	CVAR_REGISTER(&sk_player_leg2);
 	CVAR_REGISTER(&sk_player_leg3);
 	// END REGISTER CVARS FOR SKILL LEVEL STUFF
+
+	InitMapLoadingUtils();
 
 	SERVER_COMMAND("exec skill.cfg\n");
 }
