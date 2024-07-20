@@ -545,6 +545,12 @@ void CRpg::UpdateSpot()
 {
 
 #ifndef CLIENT_DLL
+	// Don't turn on the laser if we're in the middle of a reload.
+	if (m_fInReload)
+	{
+		return;
+	}
+
 	if (m_fSpotActive)
 	{
 		if (!m_pSpot)
@@ -562,17 +568,6 @@ void CRpg::UpdateSpot()
 		UTIL_SetOrigin(m_pSpot, tr.vecEndPos);
 	}
 #endif
-}
-
-bool CRpg::IsUseable()
-{
-	// The client needs to fall through to WeaponIdle so check the ammo here.
-	if (m_pPlayer->ammo_rockets <= 0)
-	{
-		return false;
-	}
-
-	return CBasePlayerWeapon::IsUseable();
 }
 
 class CRpgAmmo : public CBasePlayerAmmo
