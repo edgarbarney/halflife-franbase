@@ -126,6 +126,8 @@ TYPEDESCRIPTION CBasePlayer::m_playerSaveData[] =
 		//DEFINE_FIELD(CBasePlayer, m_SndLast, FIELD_EHANDLE),
 		//DEFINE_FIELD(CBasePlayer, m_flSndRange, FIELD_FLOAT),
 
+		DEFINE_FIELD(CBasePlayer, m_flStartCharge, FIELD_TIME),
+
 		//LRC
 		//	DEFINE_FIELD( CBasePlayer, m_iFogStartDist, FIELD_INTEGER ),
 		//	DEFINE_FIELD( CBasePlayer, m_iFogEndDist, FIELD_INTEGER ),
@@ -1247,13 +1249,20 @@ void CBasePlayer::WaterMove()
 				pev->dmg += 1;
 				if (pev->dmg > 5)
 					pev->dmg = 5;
+
+				const float oldHealth = pev->health;
+
 				TakeDamage(CWorld::World->pev, CWorld::World->pev, pev->dmg, DMG_DROWN);
 				pev->pain_finished = gpGlobals->time + 1;
 
 				// track drowning damage, give it back when
 				// player finally takes a breath
 
-				m_idrowndmg += pev->dmg;
+				// Account for god mode, the unkillable flag, potential damage mitigation
+				// and gaining health from drowning to avoid counting damage not actually taken.
+				const float drownDamageTaken = std::max(0.f, std::floor(oldHealth - pev->health));
+
+				m_idrowndmg += drownDamageTaken;
 			}
 		}
 		else
@@ -2990,6 +2999,7 @@ void CBasePlayer::Spawn()
 
 	g_engfuncs.pfnSetPhysicsKeyValue(edict(), "slj", "0");
 	g_engfuncs.pfnSetPhysicsKeyValue(edict(), "hl", "1");
+	g_engfuncs.pfnSetPhysicsKeyValue(edict(), "bj", UTIL_dtos1(sv_allowbunnyhopping.value != 0 ? 1 : 0));
 
 	m_iFOV = 0;		   // init field of view.
 	m_iClientFOV = -1; // make sure fov reset is sent
