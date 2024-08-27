@@ -1759,7 +1759,8 @@ void UTIL_StringToVector(float* pVector, const char* pString)
 	char *pstr, *pfront, tempString[128];
 	int j;
 
-	strcpy(tempString, pString);
+	strncpy(tempString, pString, sizeof(tempString));
+	tempString[sizeof(tempString) - 1] = '\0';
 	pstr = pfront = tempString;
 
 	for (j = 0; j < 3; j++) // lifted from pr_edict.c
@@ -1838,7 +1839,8 @@ void UTIL_StringToIntArray(int* pVector, int count, const char* pString)
 	char *pstr, *pfront, tempString[128];
 	int j;
 
-	strcpy(tempString, pString);
+	strncpy(tempString, pString, sizeof(tempString));
+	tempString[sizeof(tempString) - 1] = '\0';
 	pstr = pfront = tempString;
 
 	for (j = 0; j < count; j++) // lifted from pr_edict.c
@@ -2045,11 +2047,11 @@ float UTIL_DotPoints(const Vector& vecSrc, const Vector& vecCheck, const Vector&
 //=========================================================
 // UTIL_StripToken - for redundant keynames
 //=========================================================
-void UTIL_StripToken(const char* pKey, char* pDest)
+void UTIL_StripToken(const char* pKey, char* pDest, int nLen)
 {
 	int i = 0;
 
-	while ('\0' != pKey[i] && pKey[i] != '#')
+	while (i < nLen - 1 && '\0' != pKey[i] && pKey[i] != '#')
 	{
 		pDest[i] = pKey[i];
 		i++;
