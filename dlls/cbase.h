@@ -133,6 +133,8 @@ typedef void (CBaseEntity::*USEPTR)(CBaseEntity* pActivator, CBaseEntity* pCalle
 #define CLASS_BARNACLE 99 // special because no one pays attention to it, and it eats a wide cross-section of creatures. \
 						  // also special because barnacles don't use it, only Xen Trees! --LRC
 
+#define CLASS_VEHICLE 14
+
 class CBaseEntity;
 class CBaseMonster;
 class CBasePlayerItem;
