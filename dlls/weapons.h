@@ -1135,6 +1135,7 @@ public:
 	void Holster() override;
 	void WeaponIdle() override;
 	void Throw();
+	void Detonate();
 
 	bool UseDecrement() override
 	{
