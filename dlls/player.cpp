@@ -1028,6 +1028,12 @@ void CBasePlayer::Killed(entvars_t* pevAttacker, int iGib)
 	WRITE_BYTE(0);
 	MESSAGE_END();
 
+	// Adrian: always make the players non-solid in multiplayer when they die
+	if (g_pGameRules->IsMultiplayer())
+	{
+		pev->solid = SOLID_NOT;
+	}
+
 	//I don't _think_ we need to anything about fog here. - LRC
 
 	// UNDONE: Put this in, but add FFADE_PERMANENT and make fade time 8.8 instead of 4.12
