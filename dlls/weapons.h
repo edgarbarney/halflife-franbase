@@ -980,6 +980,7 @@ public:
 	void Fire(const Vector& vecOrigSrc, const Vector& vecDir);
 
 	bool HasAmmo();
+	bool CanHolster();
 
 	void UseAmmo(int count);
 

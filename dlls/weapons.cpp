@@ -35,6 +35,8 @@
 
 #define TRACER_FREQ 4 // Tracers fire every fourth bullet
 
+extern bool IsBustingGame();
+extern bool IsPlayerBusting(CBaseEntity* pPlayer);
 
 //=========================================================
 // MaxAmmoCarry - pass in a name and this function will tell
@@ -445,6 +447,19 @@ void CBasePlayerItem::FallThink()
 
 		Materialize();
 	}
+	else if (m_pPlayer != NULL)
+	{
+		SetThink(NULL);
+	}
+
+	// This weapon is an egon, it has no owner and we're in busting mode, so just remove it when it hits the ground
+	if (IsBustingGame() && FNullEnt(pev->owner))
+	{
+		if (!strcmp("weapon_egon", STRING(pev->classname)))
+		{
+			UTIL_Remove(this);
+		}
+	}
 }
 
 //=========================================================
@@ -535,6 +550,9 @@ void CBasePlayerItem::DefaultTouch(CBaseEntity* pOther)
 {
 	// if it's not a player, ignore
 	if (!pOther->IsPlayer())
+		return;
+
+	if (IsPlayerBusting(pOther))
 		return;
 
 	CBasePlayer* pPlayer = (CBasePlayer*)pOther;
@@ -820,7 +838,7 @@ bool CBasePlayerWeapon::IsUseable()
 	}
 
 	// clip is empty (or nonexistant) and the player has no more ammo of this type.
-	return false;
+	return CanDeploy();
 }
 
 bool CBasePlayerWeapon::DefaultDeploy(const char* szViewModel, const char* szWeaponModel, int iAnim, const char* szAnimExt, int body)

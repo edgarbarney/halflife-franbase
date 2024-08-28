@@ -457,6 +457,8 @@ cvar_t sk_player_leg3 = {"sk_player_leg3", "1"};
 
 // END Cvars for Skill Level settings
 
+cvar_t sv_busters = {"sv_busters", "0", FCVAR_SERVER};
+
 static bool SV_InitServer()
 {
 	if (!FileSystem_LoadFileSystem())
@@ -519,6 +521,8 @@ void GameDLLInit()
 	CVAR_REGISTER(&mw_debug);	   //LRC
 
 	CVAR_REGISTER(&mp_chattime);
+
+	CVAR_REGISTER(&sv_busters);
 
 	CVAR_REGISTER(&sv_allowbunnyhopping);
 
