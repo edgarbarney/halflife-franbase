@@ -35,7 +35,6 @@ float g_fFadeDuration; //negative = fading out
 
 extern BEAM* pBeam;
 extern BEAM* pBeam2;
-extern TEMPENTITY* pFlare; // Vit_amiN
 
 
 extern rain_properties Rain;
@@ -107,7 +106,6 @@ void CHud::MsgFunc_InitHUD(const char* pszName, int iSize, void* pbuf)
 
 	//Probably not a good place to put this.
 	pBeam = pBeam2 = NULL;
-	pFlare = NULL; // Vit_amiN: clear egon's beam flare
 }
 
 //LRC
@@ -221,6 +219,15 @@ bool CHud::MsgFunc_GameMode(const char* pszName, int iSize, void* pbuf)
 	//See CHalfLifeTeamplay::UpdateGameMode
 	//TODO: define game mode constants
 	m_Teamplay = READ_BYTE() == 1;
+
+#ifdef STEAM_RICH_PRESENCE
+	if (m_Teamplay)
+		gEngfuncs.pfnClientCmd("richpresence_gamemode Teamplay\n");
+	else
+		gEngfuncs.pfnClientCmd("richpresence_gamemode\n"); // reset
+
+	gEngfuncs.pfnClientCmd("richpresence_update\n");
+#endif
 
 	return true;
 }
