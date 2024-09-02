@@ -606,7 +606,7 @@ bool CMultiManager::KeyValue(KeyValueData* pkvd)
 		{
 			char tmp[128];
 
-			UTIL_StripToken(pkvd->szKeyName, tmp);
+			UTIL_StripToken(pkvd->szKeyName, tmp, sizeof(tmp));
 			m_iTargetName[m_cTargets] = ALLOC_STRING(tmp);
 			m_flTargetDelay[m_cTargets] = atof(pkvd->szValue);
 			m_cTargets++;
@@ -1106,7 +1106,7 @@ bool CStateWatcher::KeyValue(KeyValueData* pkvd)
 		// this assumes that additional fields are targetnames and their values are delay values.
 		if (m_cTargets < MAX_MULTI_TARGETS)
 		{
-			UTIL_StripToken(pkvd->szKeyName, tmp);
+			UTIL_StripToken(pkvd->szKeyName, tmp, sizeof(tmp));
 			m_iTargetName[m_cTargets] = ALLOC_STRING(tmp);
 			m_cTargets++;
 			return true;
@@ -2408,7 +2408,19 @@ void CTriggerHurt::HurtTouch(CBaseEntity* pOther)
 #endif
 
 	if (fldmg < 0)
-		pOther->TakeHealth(-fldmg, m_bitsDamageInflict);
+	{
+		bool bApplyHeal = true;
+
+		if (g_pGameRules->IsMultiplayer() && pOther->IsPlayer())
+		{
+			bApplyHeal = pOther->pev->deadflag == DEAD_NO;
+		}
+
+		if (bApplyHeal)
+		{
+			pOther->TakeHealth(-fldmg, m_bitsDamageInflict);
+		}
+	}
 	else
 		pOther->TakeDamage(pev, pev, fldmg, m_bitsDamageInflict);
 
