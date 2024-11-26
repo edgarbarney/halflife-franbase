@@ -24,7 +24,12 @@
 #define SF_BEAM_DECALS 0x0040
 #define SF_BEAM_SHADEIN 0x0080
 #define SF_BEAM_SHADEOUT 0x0100
+#define SF_BEAM_SOLID 0x0200
 #define SF_BEAM_TEMPORARY 0x8000
+//LRC - tripbeams
+#define SF_BEAM_TRIPPED 0x80000
+//LRC - smoother lasers
+#define SF_LASER_INTERPOLATE 0x0400
 
 #define SF_SPRITE_STARTON 0x0001
 #define SF_SPRITE_ONCE 0x0002
@@ -49,6 +54,8 @@ public:
 	void Animate(float frames);
 	void Expand(float scaleSpeed, float fadeSpeed);
 	void SpriteInit(const char* pSpriteName, const Vector& origin);
+
+	STATE GetState() override { return (pev->effects & EF_NODRAW) ? STATE_OFF : STATE_ON; };
 
 	inline void SetAttachment(edict_t* pEntity, int attachment)
 	{
@@ -87,7 +94,7 @@ public:
 		SetThink(&CSprite::AnimateUntilDead);
 		pev->framerate = framerate;
 		pev->dmgtime = gpGlobals->time + (m_maxFrame / framerate);
-		pev->nextthink = gpGlobals->time;
+		SetNextThink(0);
 	}
 
 	void EXPORT AnimateUntilDead();
@@ -97,7 +104,6 @@ public:
 	static TYPEDESCRIPTION m_SaveData[];
 	static CSprite* SpriteCreate(const char* pSpriteName, const Vector& origin, bool animate);
 
-private:
 	float m_lastTime;
 	float m_maxFrame;
 };
@@ -161,6 +167,8 @@ public:
 	inline int GetFrame() { return pev->frame; }
 	inline int GetScrollRate() { return pev->animtime; }
 
+	CBaseEntity* GetTripEntity(TraceResult* ptr); //LRC
+
 	// Call after you change start/end positions
 	void RelinkBeam();
 	//	void		SetObjectCollisionBox();
@@ -180,7 +188,7 @@ public:
 	inline void LiveForTime(float time)
 	{
 		SetThink(&CBeam::SUB_Remove);
-		pev->nextthink = gpGlobals->time + time;
+		SetNextThink(time);
 	}
 	inline void BeamDamageInstant(TraceResult* ptr, float damage)
 	{
@@ -199,14 +207,15 @@ class CLaser : public CBeam
 {
 public:
 	void Spawn() override;
+	void PostSpawn() override;
 	void Precache() override;
 	bool KeyValue(KeyValueData* pkvd) override;
 
 	void TurnOn();
 	void TurnOff();
-	bool IsOn();
+	STATE GetState() override { return (pev->effects & EF_NODRAW) ? STATE_OFF : STATE_ON; };
 
-	void FireAtPoint(TraceResult& point);
+	void FireAtPoint(Vector startpos, TraceResult& point);
 
 	void EXPORT StrikeThink();
 	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
@@ -214,7 +223,50 @@ public:
 	bool Restore(CRestore& restore) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	CSprite* m_pSprite;
-	int m_iszSpriteName;
+	EHANDLE m_hActivator; //AJH allow *locus start/end positions
+
+	CSprite* m_pStartSprite;
+	CSprite* m_pEndSprite;
+	int m_iszStartSpriteName;
+	int m_iszEndSpriteName;
 	Vector m_firePosition;
+	int m_iProjection;
+	int m_iStoppedBy;
+	int m_iszStartPosition;
+	int m_iTowardsMode;
+};
+
+class CRainSettings : public CBaseEntity
+{
+public:
+	void Spawn() override;
+	bool KeyValue(KeyValueData* pkvd) override;
+
+	int ObjectCaps() override { return (CBaseEntity ::ObjectCaps() & ~FCAP_ACROSS_TRANSITION); }
+
+	bool Save(CSave& save) override;
+	bool Restore(CRestore& restore) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	float Rain_Distance;
+	int Rain_Mode;
+};
+
+class CRainModify : public CBaseEntity
+{
+public:
+	void Spawn() override;
+	bool KeyValue(KeyValueData* pkvd) override;
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
+
+	int ObjectCaps() override { return (CBaseEntity ::ObjectCaps() & ~FCAP_ACROSS_TRANSITION); }
+
+	bool Save(CSave& save) override;
+	bool Restore(CRestore& restore) override;
+	static TYPEDESCRIPTION m_SaveData[];
+
+	int Rain_Drips;
+	float Rain_windX, Rain_windY;
+	float Rain_randX, Rain_randY;
+	float fadeTime;
 };

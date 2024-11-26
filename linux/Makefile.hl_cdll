@@ -19,7 +19,7 @@ CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) -DCLIENT_DLL
 
 INCLUDEDIRS=-I$(HL_SRC_DIR) -I$(HL_PARTICLEMAN_DIR) -I../dlls -I/usr/include/malloc -I$(COMMON_SRC_DIR) -I$(PUBLIC_SRC_DIR) -I../pm_shared -I../engine -I../utils/vgui/include -I../game_shared -I../external
 
-LDFLAGS=$(SHLIBLDFLAGS) $(CPP_LIB) -L$(CFG) vgui.so -L. libSDL2-2.0.so.0
+LDFLAGS=$(SHLIBLDFLAGS) $(CPP_LIB) -Wl,--no-as-needed -lGL -lGLU -Wl,--as-needed -L$(CFG) vgui.so -L. libSDL2-2.0.so.0
 
 DO_CC=$(CPLUS) $(INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
 
@@ -40,6 +40,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/battery.o \
 	$(HL1_OBJ_DIR)/cdll_int.o \
 	$(HL1_OBJ_DIR)/com_weapons.o \
+	$(HL1_OBJ_DIR)/CustomMenu.o \
 	$(HL1_OBJ_DIR)/death.o \
 	$(HL1_OBJ_DIR)/demo.o \
 	$(HL1_OBJ_DIR)/entity.o \
@@ -57,6 +58,11 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/interpolation.o \
 	$(HL1_OBJ_DIR)/menu.o \
 	$(HL1_OBJ_DIR)/message.o \
+	$(HL1_OBJ_DIR)/mp3.o \
+	$(HL1_OBJ_DIR)/particlemgr.o \
+	$(HL1_OBJ_DIR)/particlemsg.o \
+	$(HL1_OBJ_DIR)/particlesys.o \
+	$(HL1_OBJ_DIR)/rain.o \
 	$(HL1_OBJ_DIR)/saytext.o \
 	$(HL1_OBJ_DIR)/status_icons.o \
 	$(HL1_OBJ_DIR)/statusbar.o \

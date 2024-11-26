@@ -18,6 +18,9 @@
 // implementation of CHud class
 //
 
+//LRC - define to help track what calls are made on changelevel, save/restore, etc
+#define ENGINE_DEBUG
+
 #include "hud.h"
 #include "cl_util.h"
 #include <string.h>
@@ -25,10 +28,11 @@
 #include "parsemsg.h"
 #include "vgui_int.h"
 #include "vgui_TeamFortressViewport.h"
-
+#include "mp3.h"
 #include "demo.h"
 #include "demo_api.h"
 #include "vgui_ScorePanel.h"
+#include "rain.h"
 
 hud_player_info_t g_PlayerInfoList[MAX_PLAYERS_HUD + 1];	// player info from the engine
 extra_player_info_t g_PlayerExtraInfo[MAX_PLAYERS_HUD + 1]; // additional player info sent directly to the client dll
@@ -95,14 +99,71 @@ int __MsgFunc_Logo(const char* pszName, int iSize, void* pbuf)
 	return static_cast<int>(gHUD.MsgFunc_Logo(pszName, iSize, pbuf));
 }
 
-//DECLARE_MESSAGE(m_Logo, Logo)
+//LRC
+int __MsgFunc_HUDColor(const char* pszName, int iSize, void* pbuf)
+{
+	return gHUD.MsgFunc_HUDColor(pszName, iSize, pbuf);
+}
+
+//LRC
+int __MsgFunc_SetFog(const char* pszName, int iSize, void* pbuf)
+{
+	gHUD.MsgFunc_SetFog(pszName, iSize, pbuf);
+	return 1;
+}
+
+//LRC
+int __MsgFunc_KeyedDLight(const char* pszName, int iSize, void* pbuf)
+{
+	gHUD.MsgFunc_KeyedDLight(pszName, iSize, pbuf);
+	return 1;
+}
+
+//LRC
+int __MsgFunc_AddShine(const char* pszName, int iSize, void* pbuf)
+{
+	gHUD.MsgFunc_AddShine(pszName, iSize, pbuf);
+	return 1;
+}
+
+int __MsgFunc_Test(const char* pszName, int iSize, void* pbuf)
+{
+	return 1;
+}
+
+//LRC
+int __MsgFunc_SetSky(const char* pszName, int iSize, void* pbuf)
+{
+	gHUD.MsgFunc_SetSky(pszName, iSize, pbuf);
+	return 1;
+}
+
+// G-Cont. rain message
+int __MsgFunc_RainData(const char* pszName, int iSize, void* pbuf)
+{
+	return gHUD.MsgFunc_RainData(pszName, iSize, pbuf);
+}
+
+//LRC 1.8
+int __MsgFunc_ClampView(const char* pszName, int iSize, void* pbuf)
+{
+	gHUD.MsgFunc_ClampView(pszName, iSize, pbuf);
+	return 1;
+}
+
 int __MsgFunc_ResetHUD(const char* pszName, int iSize, void* pbuf)
 {
+#ifdef ENGINE_DEBUG
+	CONPRINT("## ResetHUD\n");
+#endif
 	return static_cast<int>(gHUD.MsgFunc_ResetHUD(pszName, iSize, pbuf));
 }
 
 int __MsgFunc_InitHUD(const char* pszName, int iSize, void* pbuf)
 {
+#ifdef ENGINE_DEBUG
+	CONPRINT("## InitHUD\n");
+#endif
 	gHUD.MsgFunc_InitHUD(pszName, iSize, pbuf);
 	return 1;
 }
@@ -131,6 +192,24 @@ int __MsgFunc_Weapons(const char* pszName, int iSize, void* pbuf)
 int __MsgFunc_GameMode(const char* pszName, int iSize, void* pbuf)
 {
 	return static_cast<int>(gHUD.MsgFunc_GameMode(pszName, iSize, pbuf));
+}
+
+int __MsgFunc_PlayMP3(const char* pszName, int iSize, void* pbuf)
+{
+	return gHUD.MsgFunc_PlayMP3(pszName, iSize, pbuf);
+}
+
+
+int __MsgFunc_CamData(const char* pszName, int iSize, void* pbuf)
+{
+	gHUD.MsgFunc_CamData(pszName, iSize, pbuf);
+	return 1;
+}
+
+int __MsgFunc_Inventory(const char* pszName, int iSize, void* pbuf)
+{
+	gHUD.MsgFunc_Inventory(pszName, iSize, pbuf);
+	return 1;
 }
 
 // TFFree Command Menu
@@ -165,6 +244,11 @@ void __CmdFunc_ForceCloseCommandMenu()
 	{
 		gViewPort->HideCommandMenu();
 	}
+}
+
+void __CmdFunc_StopMP3()
+{
+	gMP3.StopMP3();
 }
 
 // TFFree Command Menu Message Handlers
@@ -283,6 +367,9 @@ int __MsgFunc_AllowSpec(const char* pszName, int iSize, void* pbuf)
 // This is called every time the DLL is loaded
 void CHud::Init()
 {
+#ifdef ENGINE_DEBUG
+	CONPRINT("## CHud::Init\n");
+#endif
 	HOOK_MESSAGE(Logo);
 	HOOK_MESSAGE(ResetHUD);
 	HOOK_MESSAGE(GameMode);
@@ -291,6 +378,24 @@ void CHud::Init()
 	HOOK_MESSAGE(SetFOV);
 	HOOK_MESSAGE(Concuss);
 	HOOK_MESSAGE(Weapons);
+	HOOK_MESSAGE(HUDColor);	   //LRC
+	HOOK_MESSAGE(SetFog);	   //LRC
+	HOOK_MESSAGE(KeyedDLight); //LRC
+							   //	HOOK_MESSAGE( KeyedELight ); //LRC
+	HOOK_MESSAGE(AddShine);	   //LRC
+	HOOK_MESSAGE(Test);		   //LRC
+	HOOK_MESSAGE(SetSky);	   //LRC
+	HOOK_MESSAGE(CamData);	   //G-Cont. for new camera style
+	HOOK_MESSAGE(RainData);	   //G-Cont. for rain control
+	HOOK_MESSAGE(Inventory);   //AJH Inventory system
+	HOOK_MESSAGE(ClampView);   //LRC 1.8
+
+	//KILLAR: MP3
+	if (gMP3.Initialize())
+	{
+		HOOK_MESSAGE(PlayMP3);
+		HOOK_COMMAND("stopaudio", StopMP3);
+	}
 
 	// TFFree CommandMenu
 	HOOK_COMMAND("+commandmenu", OpenCommandMenu);
@@ -322,9 +427,20 @@ void CHud::Init()
 	CVAR_CREATE("hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO); // controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE("hud_takesshots", "0", FCVAR_ARCHIVE);					   // controls whether or not to automatically take screenshots at the end of a round
 
+	//start glow effect --FragBait0
+	CVAR_CREATE("r_glow", "0", FCVAR_ARCHIVE);
+	//CVAR_CREATE("r_glowmode", "0", FCVAR_ARCHIVE ); //AJH this is now redundant
+	CVAR_CREATE("r_glowstrength", "1", FCVAR_ARCHIVE);
+	CVAR_CREATE("r_glowblur", "4", FCVAR_ARCHIVE);
+	CVAR_CREATE("r_glowdark", "2", FCVAR_ARCHIVE);
+	//end glow effect
 
+	viewEntityIndex = 0; // trigger_viewset stuff
+	viewFlags = 0;
 	m_iLogo = 0;
 	m_iFOV = 0;
+	numMirrors = 0;
+	m_iHUDColor = 0x00FFA000; //255,160,0 -- LRC
 
 	CVAR_CREATE("zoom_sensitivity_ratio", "1.2", FCVAR_ARCHIVE);
 	CVAR_CREATE("cl_autowepswitch", "1", FCVAR_ARCHIVE | FCVAR_USERINFO);
@@ -337,7 +453,9 @@ void CHud::Init()
 	cl_bobtilt = CVAR_CREATE("cl_bobtilt", "0", FCVAR_ARCHIVE);
 	r_decals = gEngfuncs.pfnGetCvarPointer("r_decals");
 
+	RainInfo = gEngfuncs.pfnRegisterVariable("cl_raininfo", "0", 0);
 	m_pSpriteList = NULL;
+	m_pShinySurface = NULL; //LRC
 
 	// Clear any old HUD list
 	if (m_pHudList)
@@ -370,8 +488,10 @@ void CHud::Init()
 	m_TextMessage.Init();
 	m_StatusIcons.Init();
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
+	m_Particle.Init(); // (LRC) -- 30/08/02 November235: Particles to Order
 
 	m_Menu.Init();
+	InitRain();
 
 	MsgFunc_ResetHUD(0, 0, NULL);
 
@@ -385,9 +505,20 @@ void CHud::Init()
 // cleans up memory allocated for m_rg* arrays
 CHud::~CHud()
 {
+#ifdef ENGINE_DEBUG
+	CONPRINT("## CHud::destructor\n");
+#endif
 	delete[] m_rghSprites;
 	delete[] m_rgrcRects;
 	delete[] m_rgszSpriteNames;
+	gMP3.Shutdown();
+	ResetRain();
+	//LRC - clear all shiny surfaces
+	if (m_pShinySurface)
+	{
+		delete m_pShinySurface;
+		m_pShinySurface = NULL;
+	}
 
 	if (m_pHudList)
 	{
@@ -420,6 +551,9 @@ int CHud::GetSpriteIndex(const char* SpriteName)
 
 void CHud::VidInit()
 {
+#ifdef ENGINE_DEBUG
+	CONPRINT("## CHud::VidInit (hi from me)\n");
+#endif
 	m_scrinfo.iSize = sizeof(m_scrinfo);
 	GetScreenInfo(&m_scrinfo);
 
@@ -430,6 +564,15 @@ void CHud::VidInit()
 
 	m_hsprLogo = 0;
 	m_hsprCursor = 0;
+	numMirrors = 0;
+	ResetRain();
+
+	//LRC - clear all shiny surfaces
+	if (m_pShinySurface)
+	{
+		delete m_pShinySurface;
+		m_pShinySurface = NULL;
+	}
 
 	if (ScreenWidth > 2560 && ScreenHeight > 1600)
 		m_iRes = 2560;
@@ -524,6 +667,7 @@ void CHud::VidInit()
 	m_TextMessage.VidInit();
 	m_StatusIcons.VidInit();
 	GetClientVoiceMgr()->VidInit();
+	m_Particle.VidInit(); // (LRC) -- 30/08/02 November235: Particles to Order
 }
 
 bool CHud::MsgFunc_Logo(const char* pszName, int iSize, void* pbuf)
@@ -534,6 +678,16 @@ bool CHud::MsgFunc_Logo(const char* pszName, int iSize, void* pbuf)
 	m_iLogo = READ_BYTE();
 
 	return true;
+}
+
+//LRC
+bool CHud::MsgFunc_HUDColor(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+
+	m_iHUDColor = READ_LONG();
+
+	return 1;
 }
 
 float g_lastFOV = 0.0;

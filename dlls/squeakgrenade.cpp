@@ -79,6 +79,9 @@ IMPLEMENT_SAVERESTORE(CSqueakGrenade, CGrenade);
 
 int CSqueakGrenade::Classify()
 {
+	if (m_iClass)
+		return m_iClass;
+
 	if (m_iMyClass != 0)
 		return m_iMyClass; // protect against recursion
 
@@ -108,16 +111,17 @@ void CSqueakGrenade::Spawn()
 
 	SET_MODEL(ENT(pev), "models/w_squeak.mdl");
 	UTIL_SetSize(pev, Vector(-4, -4, 0), Vector(4, 4, 8));
-	UTIL_SetOrigin(pev, pev->origin);
+	UTIL_SetOrigin(this, pev->origin);
 
 	SetTouch(&CSqueakGrenade::SuperBounceTouch);
 	SetThink(&CSqueakGrenade::HuntThink);
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 	m_flNextHunt = gpGlobals->time + 1E6;
 
 	pev->flags |= FL_MONSTER;
 	pev->takedamage = DAMAGE_AIM;
-	pev->health = gSkillData.snarkHealth;
+	if (pev->health == 0)
+		pev->health = gSkillData.snarkHealth;
 	pev->gravity = 0.5;
 	pev->friction = 0.5;
 
@@ -154,7 +158,7 @@ void CSqueakGrenade::Killed(entvars_t* pevAttacker, int iGib)
 	pev->model = iStringNull; // make invisible
 	SetThink(&CSqueakGrenade::SUB_Remove);
 	SetTouch(NULL);
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	// since squeak grenades never leave a body behind, clear out their takedamage now.
 	// Squeaks do a bit of radius damage when they pop, and that radius damage will
@@ -199,7 +203,7 @@ void CSqueakGrenade::HuntThink()
 	}
 
 	StudioFrameAdvance();
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	// explode when ready
 	if (gpGlobals->time >= m_flDie)
@@ -211,7 +215,7 @@ void CSqueakGrenade::HuntThink()
 	}
 
 	// float
-	if (pev->waterlevel != 0)
+	if (pev->waterlevel != 0 && pev->watertype != CONTENT_FOG)
 	{
 		if (pev->movetype == MOVETYPE_BOUNCE)
 		{
@@ -476,17 +480,16 @@ bool CSqueak::Deploy()
 void CSqueak::Holster()
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+	SendWeaponAnim(SQUEAK_DOWN);
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "common/null.wav", 1.0, ATTN_NORM);
 
 	if (0 == m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType])
 	{
 		m_pPlayer->ClearWeaponBit(m_iId);
 		SetThink(&CSqueak::DestroyItem);
-		pev->nextthink = gpGlobals->time + 0.1;
+		SetNextThink(0.1);
 		return;
 	}
-
-	SendWeaponAnim(SQUEAK_DOWN);
-	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "common/null.wav", 1.0, ATTN_NORM);
 }
 
 

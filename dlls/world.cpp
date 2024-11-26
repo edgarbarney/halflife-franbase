@@ -33,10 +33,12 @@
 #include "weapons.h"
 #include "gamerules.h"
 #include "teamplay_gamerules.h"
+#include "movewith.h" //LRC
 
 CGlobalState gGlobalState;
 
-extern void W_Precache();
+extern void W_Precache(); //weapon precache - weapons.cpp
+extern void I_Precache(); //item precache - items.cpp
 
 //
 // This must match the list in util.h
@@ -120,7 +122,7 @@ void CDecal::Spawn()
 	{
 		SetThink(&CDecal::StaticDecal);
 		// if there's no targetname, the decal will spray itself on as soon as the world is done spawning.
-		pev->nextthink = gpGlobals->time;
+		SetNextThink(0);
 	}
 	else
 	{
@@ -152,7 +154,7 @@ void CDecal::TriggerDecal(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYP
 	MESSAGE_END();
 
 	SetThink(&CDecal::SUB_Remove);
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 }
 
 
@@ -181,11 +183,10 @@ bool CDecal::KeyValue(KeyValueData* pkvd)
 	{
 		pev->skin = DECAL_INDEX(pkvd->szValue);
 
-		if (pev->skin < 0)
-		{
-			ALERT(at_console, "Can't find decal %s\n", pkvd->szValue);
-		}
-
+		// Found
+		if (pev->skin >= 0)
+			return true;
+		ALERT(at_debug, "Can't find decal %s\n", pkvd->szValue);
 		return true;
 	}
 
@@ -251,7 +252,7 @@ void CopyToBodyQue(entvars_t* pev)
 	pevHead->sequence = pev->sequence;
 	pevHead->animtime = pev->animtime;
 
-	UTIL_SetOrigin(pevHead, pev->origin);
+	UTIL_SetEdictOrigin(g_pBodyQueueHead, pev->origin);
 	UTIL_SetSize(pevHead, pev->mins, pev->maxs);
 	g_pBodyQueueHead = pevHead->owner;
 }
@@ -297,11 +298,11 @@ void CGlobalState::DumpGlobals()
 	static const char* estates[] = {"Off", "On", "Dead"};
 	globalentity_t* pTest;
 
-	ALERT(at_console, "-- Globals --\n");
+	ALERT(at_debug, "-- Globals --\n");
 	pTest = m_pList;
 	while (pTest)
 	{
-		ALERT(at_console, "%s: %s (%s)\n", pTest->name, pTest->levelName, estates[pTest->state]);
+		ALERT(at_debug, "%s: %s (%s)\n", pTest->name, pTest->levelName, estates[pTest->state]);
 		pTest = pTest->pNext;
 	}
 }
@@ -370,13 +371,13 @@ bool CGlobalState::Save(CSave& save)
 	int i;
 	globalentity_t* pEntity;
 
-	if (!save.WriteFields("GLOBAL", this, m_SaveData, ARRAYSIZE(m_SaveData)))
+	if (!save.WriteFields("cGLOBAL", "GLOBAL", this, m_SaveData, ARRAYSIZE(m_SaveData)))
 		return false;
 
 	pEntity = m_pList;
 	for (i = 0; i < m_listCount && pEntity; i++)
 	{
-		if (!save.WriteFields("GENT", pEntity, gGlobalEntitySaveData, ARRAYSIZE(gGlobalEntitySaveData)))
+		if (!save.WriteFields("cGENT", "GENT", pEntity, gGlobalEntitySaveData, ARRAYSIZE(gGlobalEntitySaveData)))
 			return false;
 
 		pEntity = pEntity->pNext;
@@ -389,7 +390,6 @@ bool CGlobalState::Restore(CRestore& restore)
 {
 	int i, listCount;
 	globalentity_t tmpEntity;
-
 
 	ClearStates();
 	if (!restore.ReadFields("GLOBAL", this, m_SaveData, ARRAYSIZE(m_SaveData)))
@@ -459,6 +459,8 @@ void ResetGlobalState()
 	gInitHUD = true; // Init the HUD on a new game / load game
 }
 
+
+
 // moved CWorld class definition to cbase.h
 //=======================
 // CWorld
@@ -471,6 +473,11 @@ LINK_ENTITY_TO_CLASS(worldspawn, CWorld);
 #define SF_WORLD_DARK 0x0001	  // Fade from black at startup
 #define SF_WORLD_TITLE 0x0002	  // Display game title at startup
 #define SF_WORLD_FORCETEAM 0x0004 // Force teams
+//#define SF_WORLD_STARTSUIT	0x0008		// LRC- Start this level with an HEV suit!
+
+bool g_allowGJump;
+
+bool g_startSuit; //LRC
 
 CWorld::CWorld()
 {
@@ -508,6 +515,12 @@ void CWorld::Precache()
 		return;
 	}
 
+	//LRC - set up the world lists
+	g_pWorld = this;
+	m_pAssistLink = NULL;
+	m_pFirstAlias = NULL;
+	//	ALERT(at_console, "Clearing AssistList\n");
+
 	g_pLastSpawn = NULL;
 
 #if 1
@@ -527,6 +540,18 @@ void CWorld::Precache()
 
 	//!!!UNDONE why is there so much Spawn code in the Precache function? I'll just keep it here
 
+	/*	if ( WorldGraph.m_fGraphPresent && !WorldGraph.m_fGraphPointersSet )
+	{
+		if ( !WorldGraph.FSetGraphPointers() )
+		{
+			ALERT ( at_debug, "**Graph pointers were not set!\n");
+		}
+		else
+		{
+			ALERT ( at_debug, "**Graph Pointers Set!\n" );
+		} 
+	}*/
+
 	///!!!LATER - do we want a sound ent in deathmatch? (sjb)
 	//pSoundEnt = CBaseEntity::Create( "soundent", g_vecZero, g_vecZero, edict() );
 	pSoundEnt = GetClassPtr((CSoundEnt*)NULL);
@@ -534,7 +559,7 @@ void CWorld::Precache()
 
 	if (!pSoundEnt)
 	{
-		ALERT(at_console, "**COULD NOT CREATE SOUNDENT**\n");
+		ALERT(at_debug, "**COULD NOT CREATE SOUNDENT**\n");
 	}
 
 	InitBodyQue();
@@ -553,6 +578,7 @@ void CWorld::Precache()
 
 	// player precaches
 	W_Precache(); // get weapon precaches
+	I_Precache(); // get Inventory Item precaches
 
 	ClientPrecache();
 
@@ -581,57 +607,26 @@ void CWorld::Precache()
 	PRECACHE_SOUND("weapons/ric3.wav");
 	PRECACHE_SOUND("weapons/ric4.wav");
 	PRECACHE_SOUND("weapons/ric5.wav");
+
+	PRECACHE_MODEL("sprites/null.spr"); //LRC
+
 	//
 	// Setup light animation tables. 'a' is total darkness, 'z' is maxbright.
 	//
+	int i;
 
 	// 0 normal
-	LIGHT_STYLE(0, "m");
-
-	// 1 FLICKER (first variety)
-	LIGHT_STYLE(1, "mmnmmommommnonmmonqnmmo");
-
-	// 2 SLOW STRONG PULSE
-	LIGHT_STYLE(2, "abcdefghijklmnopqrstuvwxyzyxwvutsrqponmlkjihgfedcba");
-
-	// 3 CANDLE (first variety)
-	LIGHT_STYLE(3, "mmmmmaaaaammmmmaaaaaabcdefgabcdefg");
-
-	// 4 FAST STROBE
-	LIGHT_STYLE(4, "mamamamamama");
-
-	// 5 GENTLE PULSE 1
-	LIGHT_STYLE(5, "jklmnopqrstuvwxyzyxwvutsrqponmlkj");
-
-	// 6 FLICKER (second variety)
-	LIGHT_STYLE(6, "nmonqnmomnmomomno");
-
-	// 7 CANDLE (second variety)
-	LIGHT_STYLE(7, "mmmaaaabcdefgmmmmaaaammmaamm");
-
-	// 8 CANDLE (third variety)
-	LIGHT_STYLE(8, "mmmaaammmaaammmabcdefaaaammmmabcdefmmmaaaa");
-
-	// 9 SLOW STROBE (fourth variety)
-	LIGHT_STYLE(9, "aaaaaaaazzzzzzzz");
-
-	// 10 FLUORESCENT FLICKER
-	LIGHT_STYLE(10, "mmamammmmammamamaaamammma");
-
-	// 11 SLOW PULSE NOT FADE TO BLACK
-	LIGHT_STYLE(11, "abcdefghijklmnopqrrqponmlkjihgfedcba");
-
-	// 12 UNDERWATER LIGHT MUTATION
-	// this light only distorts the lightmap - no contribution
-	// is made to the brightness of affected surfaces
-	LIGHT_STYLE(12, "mmnnmmnnnmmnn");
+	for (i = 0; i <= 13; i++)
+	{
+		LIGHT_STYLE(i, (char*)STRING(GetStdLightStyle(i)));
+	}
 
 	// styles 32-62 are assigned by the light program for switchable lights
 
 	// 63 testing
 	LIGHT_STYLE(63, "a");
 
-	for (int i = 0; i < ARRAYSIZE(gDecals); i++)
+	for (i = 0; i < ARRAYSIZE(gDecals); i++)
 		gDecals[i].index = DECAL_INDEX(gDecals[i].name);
 
 	// init the WorldGraph.
@@ -646,12 +641,12 @@ void CWorld::Precache()
 	{ // Load the node graph for this level
 		if (!WorldGraph.FLoadGraph((char*)STRING(gpGlobals->mapname)))
 		{ // couldn't load, so alloc and prepare to build a graph.
-			ALERT(at_console, "*Error opening .NOD file\n");
+			ALERT(at_debug, "*Error opening .NOD file\n");
 			WorldGraph.AllocNodes();
 		}
 		else
 		{
-			ALERT(at_console, "\n*Graph Loaded!\n");
+			ALERT(at_debug, "\n*Graph Loaded!\n");
 		}
 	}
 
@@ -669,7 +664,7 @@ void CWorld::Precache()
 			pEntity->SetThink(&CBaseEntity::SUB_CallUseToggle);
 			pEntity->pev->message = pev->netname;
 			pev->netname = 0;
-			pEntity->pev->nextthink = gpGlobals->time + 0.3;
+			pEntity->SetNextThink(0.3);
 			pEntity->pev->spawnflags = SF_MESSAGE_ONCE;
 		}
 	}
@@ -759,6 +754,40 @@ bool CWorld::KeyValue(KeyValueData* pkvd)
 		{
 			pev->spawnflags |= SF_WORLD_FORCETEAM;
 		}
+		return true;
+	}
+	//LRC- let map designers start the player with his suit already on
+	else if (FStrEq(pkvd->szKeyName, "startsuit"))
+	{
+		g_startSuit = atoi(pkvd->szValue);
+		return true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "allowmonsters"))
+	{
+		CVAR_SET_FLOAT("mp_allowmonsters", atof(pkvd->szValue));
+		return true;
+	}
+	//LRC- ends
+
+	//AJH- Gauss Jump in single play
+	else if (FStrEq(pkvd->szKeyName, "allow_sp_gjump"))
+	{
+		g_allowGJump = atoi(pkvd->szValue);
+		return true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "timed_damage"))
+	{
+		CVAR_SET_FLOAT("timed_damage", atof(pkvd->szValue));
+		return true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "max_medkit"))
+	{
+		CVAR_SET_FLOAT("max_medkit", atof(pkvd->szValue));
+		return true;
+	}
+	else if (FStrEq(pkvd->szKeyName, "max_cameras"))
+	{
+		CVAR_SET_FLOAT("max_cameras", atof(pkvd->szValue));
 		return true;
 	}
 

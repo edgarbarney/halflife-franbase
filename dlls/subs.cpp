@@ -14,6 +14,9 @@
 ****/
 /*
 
+  Last Modifed 4 May 2004 By Andrew Hamilton (AJH)
+  :- Added support for acceleration of doors etc
+
 ===== subs.cpp ========================================================
 
   frequently used global functions
@@ -26,6 +29,11 @@
 #include "saverestore.h"
 #include "nodes.h"
 #include "doors.h"
+#include "movewith.h"
+#include "player.h"
+#include "locus.h"
+
+#define ACCELTIMEINCREMENT 0.1 //AJH for acceleration/deceleration time steps
 
 extern bool FEntIsVisible(entvars_t* pev, entvars_t* pevTarget);
 
@@ -33,9 +41,7 @@ extern bool FEntIsVisible(entvars_t* pev, entvars_t* pevTarget);
 void CPointEntity::Spawn()
 {
 	pev->solid = SOLID_NOT;
-	//	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 }
-
 
 class CNullEntity : public CBaseEntity
 {
@@ -50,12 +56,14 @@ void CNullEntity::Spawn()
 	REMOVE_ENTITY(ENT(pev));
 }
 LINK_ENTITY_TO_CLASS(info_null, CNullEntity);
+LINK_ENTITY_TO_CLASS(info_texlights, CNullEntity); // don't complain about Merl's new info entities
+LINK_ENTITY_TO_CLASS(info_compile_parameters, CNullEntity);
 
 class CBaseDMStart : public CPointEntity
 {
 public:
 	bool KeyValue(KeyValueData* pkvd) override;
-	bool IsTriggered(CBaseEntity* pEntity) override;
+	STATE GetState(CBaseEntity* pEntity) override;
 
 private:
 };
@@ -76,17 +84,78 @@ bool CBaseDMStart::KeyValue(KeyValueData* pkvd)
 	return CPointEntity::KeyValue(pkvd);
 }
 
-bool CBaseDMStart::IsTriggered(CBaseEntity* pEntity)
+STATE CBaseDMStart::GetState(CBaseEntity* pEntity)
 {
-	bool master = UTIL_IsMasterTriggered(pev->netname, pEntity);
-
-	return master;
+	if (UTIL_IsMasterTriggered(pev->netname, pEntity))
+		return STATE_ON;
+	else
+		return STATE_OFF;
 }
 
 // This updates global tables that need to know about entities being removed
 void CBaseEntity::UpdateOnRemove()
 {
 	int i;
+	CBaseEntity* pTemp;
+
+	if (!g_pWorld)
+	{
+		ALERT(at_debug, "UpdateOnRemove has no AssistList!\n");
+		return;
+	}
+
+	//LRC - remove this from the AssistList.
+	for (pTemp = g_pWorld; pTemp->m_pAssistLink != NULL; pTemp = pTemp->m_pAssistLink)
+	{
+		if (this == pTemp->m_pAssistLink)
+		{
+			//			ALERT(at_console,"REMOVE: %s removed from the Assist List.\n", STRING(pev->classname));
+			pTemp->m_pAssistLink = this->m_pAssistLink;
+			this->m_pAssistLink = NULL;
+			break;
+		}
+	}
+
+	//LRC
+	if (m_pMoveWith)
+	{
+		// if I'm moving with another entity, take me out of the list. (otherwise things crash!)
+		pTemp = m_pMoveWith->m_pChildMoveWith;
+		if (pTemp == this)
+		{
+			m_pMoveWith->m_pChildMoveWith = this->m_pSiblingMoveWith;
+		}
+		else
+		{
+			while (pTemp->m_pSiblingMoveWith)
+			{
+				if (pTemp->m_pSiblingMoveWith == this)
+				{
+					pTemp->m_pSiblingMoveWith = this->m_pSiblingMoveWith;
+					break;
+				}
+				pTemp = pTemp->m_pSiblingMoveWith;
+			}
+		}
+		//		ALERT(at_console,"REMOVE: %s removed from the %s ChildMoveWith list.\n", STRING(pev->classname), STRING(m_pMoveWith->pev->targetname));
+	}
+
+	//LRC - do the same thing if another entity is moving with _me_.
+	if (m_pChildMoveWith)
+	{
+		CBaseEntity* pCur = m_pChildMoveWith;
+		CBaseEntity* pNext;
+		while (pCur != NULL)
+		{
+			pNext = pCur->m_pSiblingMoveWith;
+			// bring children to a stop
+			UTIL_SetMoveWithVelocity(pCur, g_vecZero, 100);
+			UTIL_SetMoveWithAvelocity(pCur, g_vecZero, 100);
+			pCur->m_pMoveWith = NULL;
+			pCur->m_pSiblingMoveWith = NULL;
+			pCur = pNext;
+		}
+	}
 
 	if (FBitSet(pev->flags, FL_GRAPHED))
 	{
@@ -123,6 +192,10 @@ void CBaseEntity::SUB_Remove()
 // Convenient way to explicitly do nothing (passed to functions that require a method)
 void CBaseEntity::SUB_DoNothing()
 {
+	//	if (pev->ltime)
+	//		ALERT(at_console, "Doing Nothing %f\n", pev->ltime);
+	//	else
+	//		ALERT(at_console, "Doing Nothing %f\n", gpGlobals->time);
 }
 
 
@@ -131,6 +204,7 @@ TYPEDESCRIPTION CBaseDelay::m_SaveData[] =
 	{
 		DEFINE_FIELD(CBaseDelay, m_flDelay, FIELD_FLOAT),
 		DEFINE_FIELD(CBaseDelay, m_iszKillTarget, FIELD_STRING),
+		DEFINE_FIELD(CBaseDelay, m_hActivator, FIELD_EHANDLE), //LRC
 };
 
 IMPLEMENT_SAVERESTORE(CBaseDelay, CBaseEntity);
@@ -181,25 +255,111 @@ void CBaseEntity::SUB_UseTargets(CBaseEntity* pActivator, USE_TYPE useType, floa
 
 void FireTargets(const char* targetName, CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	edict_t* pentTarget = NULL;
+	const char* inputTargetName = targetName;
+	CBaseEntity* inputActivator = pActivator;
+	CBaseEntity* pTarget = NULL;
+	int i, j, found = false;
+	char szBuf[80];
+
 	if (!targetName)
 		return;
+	if (useType == USE_NOT)
+		return;
+
+	//LRC - allow changing of usetype
+	if (targetName[0] == '+')
+	{
+		targetName++;
+		useType = USE_ON;
+	}
+	else if (targetName[0] == '-')
+	{
+		targetName++;
+		useType = USE_OFF;
+	}
+	else if (targetName[0] == '!') //G-cont
+	{
+		targetName++;
+		useType = USE_KILL;
+	}
+	else if (targetName[0] == '>') //G-cont
+	{
+		targetName++;
+		useType = USE_SAME;
+	}
+
+	else if (targetName[0] == '&') //AJH Use_Spawn
+	{
+		targetName++;
+		useType = USE_SPAWN;
+	}
 
 	ALERT(at_aiconsole, "Firing: (%s)\n", targetName);
 
-	for (;;)
+	pTarget = UTIL_FindEntityByTargetname(pTarget, targetName, pActivator);
+	if (!pTarget)
 	{
-		pentTarget = FIND_ENTITY_BY_TARGETNAME(pentTarget, targetName);
-		if (FNullEnt(pentTarget))
-			break;
-
-		CBaseEntity* pTarget = CBaseEntity::Instance(pentTarget);
-		if (pTarget && (pTarget->pev->flags & FL_KILLME) == 0) // Don't use dying ents
+		// it's not an entity name; check for a locus specifier, e.g: "fadein(mywall)"
+		for (i = 0; targetName[i]; i++)
 		{
-			ALERT(at_aiconsole, "Found: %s, firing (%s)\n", STRING(pTarget->pev->classname), targetName);
-			pTarget->Use(pActivator, pCaller, useType, value);
+			if (targetName[i] == '(')
+			{
+				i++;
+				for (j = i; targetName[j]; j++)
+				{
+					if (targetName[j] == ')')
+					{
+						strncpy(szBuf, targetName + i, j - i);
+						szBuf[j - i] = 0;
+						pActivator = CalcLocusParameter(inputActivator, szBuf);
+						//						pActivator = UTIL_FindEntityByTargetname(NULL, szBuf, inputActivator);
+						if (!pActivator)
+						{
+							//ALERT(at_console, "Missing activator \"%s\"\n", szBuf);
+							return; // it's a locus specifier, but the locus is invalid.
+						}
+						//ALERT(at_console, "Found activator \"%s\"\n", STRING(pActivator->pev->targetname));
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+					ALERT(at_error, "Missing ')' in target value \"%s\"", inputTargetName);
+				break;
+			}
 		}
+		if (!found)
+			return; // no, it's not a locus specifier.
+
+		strncpy(szBuf, targetName, i - 1);
+		szBuf[i - 1] = 0;
+		targetName = szBuf;
+		pTarget = UTIL_FindEntityByTargetname(NULL, targetName, inputActivator);
+
+		if (!pTarget)
+			return; // it's a locus specifier all right, but the target's invalid.
 	}
+
+	do // start firing targets
+	{
+		if ((pTarget->pev->flags & FL_KILLME) == 0) // Don't use dying ents
+		{
+			if (useType == USE_KILL)
+			{
+				ALERT(at_aiconsole, "Use_kill on %s\n", STRING(pTarget->pev->classname));
+				UTIL_Remove(pTarget);
+			}
+			else
+			{
+				ALERT(at_aiconsole, "Found: %s, firing (%s)\n", STRING(pTarget->pev->classname), targetName);
+				pTarget->Use(pActivator, pCaller, useType, value);
+			}
+		}
+		pTarget = UTIL_FindEntityByTargetname(pTarget, targetName, inputActivator);
+	} while (pTarget);
+
+	//LRC- Firing has finished, aliases can now reflect their new values.
+	UTIL_FlushAliases();
 }
 
 LINK_ENTITY_TO_CLASS(DelayedUse, CBaseDelay);
@@ -222,7 +382,7 @@ void CBaseDelay::SUB_UseTargets(CBaseEntity* pActivator, USE_TYPE useType, float
 		CBaseDelay* pTemp = GetClassPtr((CBaseDelay*)NULL);
 		pTemp->pev->classname = MAKE_STRING("DelayedUse");
 
-		pTemp->pev->nextthink = gpGlobals->time + m_flDelay;
+		pTemp->SetNextThink(m_flDelay);
 
 		pTemp->SetThink(&CBaseDelay::DelayThink);
 
@@ -232,18 +392,10 @@ void CBaseDelay::SUB_UseTargets(CBaseEntity* pActivator, USE_TYPE useType, float
 		pTemp->m_flDelay = 0; // prevent "recursion"
 		pTemp->pev->target = pev->target;
 
-		// HACKHACK
-		// This wasn't in the release build of Half-Life.  We should have moved m_hActivator into this class
-		// but changing member variable hierarchy would break save/restore without some ugly code.
-		// This code is not as ugly as that code
-		if (pActivator && pActivator->IsPlayer()) // If a player activates, then save it
-		{
-			pTemp->pev->owner = pActivator->edict();
-		}
-		else
-		{
-			pTemp->pev->owner = NULL;
-		}
+		//LRC - Valve had a hacked thing here to avoid breaking
+		// save/restore. In Spirit that's not a problem.
+		// I've moved m_hActivator into this class, for the "elegant" fix.
+		pTemp->m_hActivator = pActivator;
 
 		return;
 	}
@@ -257,14 +409,8 @@ void CBaseDelay::SUB_UseTargets(CBaseEntity* pActivator, USE_TYPE useType, float
 		edict_t* pentKillTarget = NULL;
 
 		ALERT(at_aiconsole, "KillTarget: %s\n", STRING(m_iszKillTarget));
-		pentKillTarget = FIND_ENTITY_BY_TARGETNAME(NULL, STRING(m_iszKillTarget));
-		while (!FNullEnt(pentKillTarget))
-		{
-			UTIL_Remove(CBaseEntity::Instance(pentKillTarget));
-
-			ALERT(at_aiconsole, "killing %s\n", STRING(pentKillTarget->v.classname));
-			pentKillTarget = FIND_ENTITY_BY_TARGETNAME(pentKillTarget, STRING(m_iszKillTarget));
-		}
+		//LRC- now just USE_KILLs its killtarget, for consistency.
+		FireTargets(STRING(m_iszKillTarget), pActivator, this, USE_KILL, 0);
 	}
 
 	//
@@ -278,7 +424,7 @@ void CBaseDelay::SUB_UseTargets(CBaseEntity* pActivator, USE_TYPE useType, float
 
 
 /*
-void CBaseDelay:: SUB_UseTargetsEntMethod()
+void CBaseDelay::SUB_UseTargetsEntMethod()
 {
 	SUB_UseTargets(pev);
 }
@@ -290,23 +436,26 @@ just constant angles.
 */
 void SetMovedir(entvars_t* pev)
 {
-	if (pev->angles == Vector(0, -1, 0))
-	{
-		pev->movedir = Vector(0, 0, 1);
-	}
-	else if (pev->angles == Vector(0, -2, 0))
-	{
-		pev->movedir = Vector(0, 0, -1);
-	}
-	else
-	{
-		UTIL_MakeVectors(pev->angles);
-		pev->movedir = gpGlobals->v_forward;
-	}
-
+	pev->movedir = GetMovedir(pev->angles);
 	pev->angles = g_vecZero;
 }
 
+Vector GetMovedir(Vector vecAngles)
+{
+	if (vecAngles == Vector(0, -1, 0))
+	{
+		return Vector(0, 0, 1);
+	}
+	else if (vecAngles == Vector(0, -2, 0))
+	{
+		return Vector(0, 0, -1);
+	}
+	else
+	{
+		UTIL_MakeVectors(vecAngles);
+		return gpGlobals->v_forward;
+	}
+}
 
 
 
@@ -314,12 +463,9 @@ void CBaseDelay::DelayThink()
 {
 	CBaseEntity* pActivator = NULL;
 
-	if (pev->owner != NULL) // A player activated this on delay
-	{
-		pActivator = CBaseEntity::Instance(pev->owner);
-	}
 	// The use type is cached (and stashed) in pev->button
-	SUB_UseTargets(pActivator, (USE_TYPE)pev->button, 0);
+	//LRC - now using m_hActivator.
+	SUB_UseTargets(m_hActivator, (USE_TYPE)pev->button, 0);
 	REMOVE_ENTITY(ENT(pev));
 }
 
@@ -340,12 +486,21 @@ TYPEDESCRIPTION CBaseToggle::m_SaveData[] =
 		DEFINE_FIELD(CBaseToggle, m_vecAngle2, FIELD_VECTOR), // UNDONE: Position could go through transition, but also angle?
 		DEFINE_FIELD(CBaseToggle, m_cTriggersLeft, FIELD_INTEGER),
 		DEFINE_FIELD(CBaseToggle, m_flHeight, FIELD_FLOAT),
-		DEFINE_FIELD(CBaseToggle, m_hActivator, FIELD_EHANDLE),
 		DEFINE_FIELD(CBaseToggle, m_pfnCallWhenMoveDone, FIELD_FUNCTION),
 		DEFINE_FIELD(CBaseToggle, m_vecFinalDest, FIELD_POSITION_VECTOR),
+		DEFINE_FIELD(CBaseToggle, m_flLinearMoveSpeed, FIELD_FLOAT),
+		DEFINE_FIELD(CBaseToggle, m_flAngularMoveSpeed, FIELD_FLOAT), //LRC
 		DEFINE_FIELD(CBaseToggle, m_vecFinalAngle, FIELD_VECTOR),
 		DEFINE_FIELD(CBaseToggle, m_sMaster, FIELD_STRING),
 		DEFINE_FIELD(CBaseToggle, m_bitsDamageInflict, FIELD_INTEGER), // damage type inflicted
+
+		DEFINE_FIELD(CBaseToggle, m_flLinearAccel, FIELD_FLOAT), //
+		DEFINE_FIELD(CBaseToggle, m_flLinearDecel, FIELD_FLOAT), //
+		DEFINE_FIELD(CBaseToggle, m_flAccelTime, FIELD_FLOAT),	 // AJH Needed for acceleration/deceleration
+		DEFINE_FIELD(CBaseToggle, m_flDecelTime, FIELD_FLOAT),	 //
+		DEFINE_FIELD(CBaseToggle, m_flCurrentTime, FIELD_FLOAT), //
+		DEFINE_FIELD(CBaseToggle, m_bDecelerate, FIELD_BOOLEAN), //
+
 };
 IMPLEMENT_SAVERESTORE(CBaseToggle, CBaseAnimating);
 
@@ -376,6 +531,12 @@ bool CBaseToggle::KeyValue(KeyValueData* pkvd)
 	return CBaseDelay::KeyValue(pkvd);
 }
 
+
+//void CBaseToggle::LinearMove( Vector	vecInput, float flSpeed)
+//{
+//	LinearMove(vecInput, flSpeed);
+//}
+
 /*
 =============
 LinearMove
@@ -384,16 +545,95 @@ calculate pev->velocity and pev->nextthink to reach vecDest from
 pev->origin traveling at flSpeed
 ===============
 */
-void CBaseToggle::LinearMove(Vector vecDest, float flSpeed)
+void CBaseToggle::LinearMove(Vector vecInput, float flSpeed) //, bool bNow )
 {
+	//	ALERT(at_console, "LMove %s: %f %f %f, speed %f\n", STRING(pev->targetname), vecInput.x, vecInput.y, vecInput.z, flSpeed);
 	ASSERTSZ(flSpeed != 0, "LinearMove:  no speed is defined!");
 	//	ASSERTSZ(m_pfnCallWhenMoveDone != NULL, "LinearMove: no post-move function defined");
 
-	m_vecFinalDest = vecDest;
+	m_flLinearMoveSpeed = flSpeed;
+	m_vecFinalDest = vecInput;
+	m_flLinearAccel = -1.0; // AJH Not using Acceleration
+	m_flLinearDecel = -1.0; //
+
+	//	if ((m_pMoveWith || m_pChildMoveWith))// && !bNow)
+	//	{
+	//		ALERT(at_console,"Setting LinearMoveNow to happen after %f\n",gpGlobals->time);
+	SetThink(&CBaseToggle::LinearMoveNow);
+	UTIL_DesiredThink(this);
+	//pev->nextthink = pev->ltime + 0.01;
+	//	}
+	//	else
+	//	{
+	//		LinearMoveNow(); // starring Martin Sheen and Marlon Brando
+	//	}
+}
+
+void CBaseToggle ::LinearMove(Vector vecInput, float flSpeed, float flAccel, float flDecel) //, BOOL bNow )  // AJH Call this to use acceleration
+{
+	//	ALERT(at_console, "LMove %s: %f %f %f, speed %f, accel %f \n", STRING(pev->targetname), vecInput.x, vecInput.y, vecInput.z, flSpeed, flAccel);
+	ASSERTSZ(flSpeed != 0, "LinearMove:  no speed is defined!");
+	//	ASSERTSZ(m_pfnCallWhenMoveDone != NULL, "LinearMove: no post-move function defined");
+
+	m_flLinearMoveSpeed = flSpeed;
+
+	m_flLinearAccel = flAccel;
+	m_flLinearDecel = flDecel;
+	m_flCurrentTime = 0;
+
+	if (m_flLinearAccel > 0)
+	{
+		m_flAccelTime = m_flLinearMoveSpeed / m_flLinearAccel;
+	}
+	else
+	{
+		m_flLinearAccel = -1;
+		m_flAccelTime = 0;
+	}
+	if (m_flLinearDecel > 0)
+	{
+		m_flDecelTime = m_flLinearMoveSpeed / m_flLinearDecel;
+	}
+	else
+	{
+		m_flLinearDecel = -1;
+		m_flDecelTime = 0;
+	}
+
+	m_vecFinalDest = vecInput;
+
+	//	if ((m_pMoveWith || m_pChildMoveWith))// && !bNow)
+	//	{
+	//		ALERT(at_console,"Setting LinearMoveNow to happen after %f\n",gpGlobals->time);
+	SetThink(&CBaseToggle::LinearMoveNow);
+	UTIL_DesiredThink(this);
+	//pev->nextthink = pev->ltime + 0.01;
+	//	}
+	//	else
+	//	{
+	//		LinearMoveNow(); // starring Martin Sheen and Marlon Brando
+	//	}
+}
+
+void CBaseToggle ::LinearMoveNow() // AJH Now supports acceleration
+{
+	//	ALERT(at_console, "LMNow %s\n", STRING(pev->targetname));
+
+	Vector vecDest;
+	//	if (m_pMoveWith || m_pChildMoveWith )
+	//		ALERT(at_console,"THINK: LinearMoveNow happens at %f, speed %f\n",gpGlobals->time, m_flLinearMoveSpeed);
+
+	if (m_pMoveWith)
+	{
+		vecDest = m_vecFinalDest + m_pMoveWith->pev->origin;
+	}
+	else
+		vecDest = m_vecFinalDest;
 
 	// Already there?
 	if (vecDest == pev->origin)
 	{
+		ALERT(at_console, "%s Already There!!\n", STRING(pev->targetname));
 		LinearMoveDone();
 		return;
 	}
@@ -402,35 +642,143 @@ void CBaseToggle::LinearMove(Vector vecDest, float flSpeed)
 	Vector vecDestDelta = vecDest - pev->origin;
 
 	// divide vector length by speed to get time to reach dest
-	float flTravelTime = vecDestDelta.Length() / flSpeed;
+	float flTravelTime = vecDestDelta.Length() / m_flLinearMoveSpeed;
+	if (m_flLinearAccel > 0 || m_flLinearDecel > 0)
+	{ //AJH Are we using acceleration/deceleration?
 
-	// set nextthink to trigger a call to LinearMoveDone when dest is reached
-	pev->nextthink = pev->ltime + flTravelTime;
-	SetThink(&CBaseToggle::LinearMoveDone);
+		if (m_bDecelerate == true)
+		{ // Are we slowing down?
+			m_flCurrentTime -= ACCELTIMEINCREMENT;
+			if (m_flCurrentTime <= 0)
+			{
+				//	ALERT(at_debug, "%s has finished moving\n", STRING(pev->targetname));
+				LinearMoveDone(); //Finished slowing.
 
-	// scale the destdelta vector by the time spent traveling to get velocity
-	pev->velocity = vecDestDelta / flTravelTime;
+				m_flCurrentTime = 0;   //
+				m_bDecelerate = false; // reset
+			}
+			else
+			{
+
+
+				UTIL_SetVelocity(this, vecDestDelta.Normalize() * (m_flLinearDecel * m_flCurrentTime)); //Slow down
+				//	ALERT(at_debug, "%s is decelerating, time: %f speed: %f vector: %f %f %f\n", STRING(pev->targetname),m_flCurrentTime,(m_flLinearDecel*m_flCurrentTime),vecDestDelta.Normalize().x,vecDestDelta.Normalize().y,vecDestDelta.Normalize().z);
+
+				// Continually calls LinearMoveNow every ACCELTIMEINCREMENT (seconds?) till stopped
+				if (m_flCurrentTime < ACCELTIMEINCREMENT)
+				{
+					SetNextThink(m_flCurrentTime, true);
+					m_flCurrentTime = 0;
+				}
+				else
+				{
+					SetNextThink(ACCELTIMEINCREMENT, true);
+				}
+				SetThink(&CBaseToggle ::LinearMoveNow);
+			}
+		}
+		else
+		{
+
+			if (m_flCurrentTime < m_flAccelTime)
+			{ // We are Accelerating.
+
+				//	ALERT(at_console, "%s is accelerating\n", STRING(pev->targetname));
+				UTIL_SetVelocity(this, vecDestDelta.Normalize() * (m_flLinearAccel * m_flCurrentTime));
+
+				// Continually calls LinearMoveNow every 0.1 (seconds?) till up to speed
+				SetNextThink(ACCELTIMEINCREMENT, true);
+				SetThink(&CBaseToggle ::LinearMoveNow);
+				m_flCurrentTime += ACCELTIMEINCREMENT;
+
+				//BUGBUG this will mean that we will be going faster than maxspeed on the last call to 'accelerate'
+			}
+			else
+			{ // We are now at full speed.
+
+				//	m_flAccelTime = m_flCurrentTime;
+				//	ALERT(at_console, "%s is traveling at constant speed\n", STRING(pev->targetname));
+
+				UTIL_SetVelocity(this, vecDestDelta.Normalize() * (m_flLinearMoveSpeed)); //we are probably going slightly faster.
+
+				// set nextthink to trigger a recall to LinearMoveNow when we need to slow down.
+				SetNextThink((vecDestDelta.Length() - (m_flLinearMoveSpeed * m_flDecelTime / 2)) / (m_flLinearMoveSpeed), true);
+				SetThink(&CBaseToggle ::LinearMoveNow);
+				//	m_flCurrentTime = (flTravelTime);
+				m_bDecelerate = true;								//Set boolean so next call we know we are decelerating.
+				m_flDecelTime += (m_flCurrentTime - m_flAccelTime); //Hack to fix time increment bug
+				m_flCurrentTime = m_flDecelTime;
+			}
+		}
+	}
+	else
+	{ // We are not using acceleration.
+
+		// set nextthink to trigger a call to LinearMoveDone when dest is reached
+		SetNextThink(flTravelTime, true);
+		SetThink(&CBaseToggle::LinearMoveDone);
+
+		// scale the destdelta vector by the time spent traveling to get velocity
+		//	pev->velocity = vecDestDelta / flTravelTime;
+		UTIL_SetVelocity(this, vecDestDelta / flTravelTime);
+
+		//	ALERT(at_console, "LMNow \"%s\": Vel %f %f %f, think %f\n", STRING(pev->targetname), pev->velocity.x, pev->velocity.y, pev->velocity.z, pev->nextthink);
+	}
 }
-
 
 /*
 ============
 After moving, set origin to exact final destination, call "move done" function
 ============
 */
+/*void CBaseToggle::LinearMoveDone()
+{
+	Vector vecDiff;
+	if (m_pMoveWith)
+		vecDiff = (m_vecFinalDest + m_pMoveWith->pev->origin) - pev->origin;
+	else
+		vecDiff = m_vecFinalDest - pev->origin;
+	if (vecDiff.Length() > 0.05) //pev->velocity.Length())
+	{
+		// HACK: not there yet, try waiting one more frame.
+		ALERT(at_console,"Rejecting difference %f\n",vecDiff.Length());
+		SetThink(LinearMoveFinalDone);
+		pev->nextthink = gpGlobals->time + 0.01;
+	}
+	else
+	{
+		LinearMoveFinalDone();
+	}
+}*/
+
 void CBaseToggle::LinearMoveDone()
 {
-	Vector delta = m_vecFinalDest - pev->origin;
-	float error = delta.Length();
-	if (error > 0.03125)
-	{
-		LinearMove(m_vecFinalDest, 100);
-		return;
-	}
+	SetThink(&CBaseToggle::LinearMoveDoneNow);
+	//	ALERT(at_console, "LMD: desiredThink %s\n", STRING(pev->targetname));
+	UTIL_DesiredThink(this);
+}
 
-	UTIL_SetOrigin(pev, m_vecFinalDest);
-	pev->velocity = g_vecZero;
-	pev->nextthink = -1;
+void CBaseToggle::LinearMoveDoneNow()
+{
+	Vector vecDest;
+
+	//	ALERT(at_console, "LMDone %s\n", STRING(pev->targetname));
+
+	UTIL_SetVelocity(this, g_vecZero); //, true);
+									   //	pev->velocity = g_vecZero;
+	if (m_pMoveWith)
+	{
+		vecDest = m_vecFinalDest + m_pMoveWith->pev->origin;
+		//		ALERT(at_console, "LMDone %s: p.origin = %f %f %f, origin = %f %f %f. Set it to %f %f %f\n", STRING(pev->targetname), m_pMoveWith->pev->origin.x,  m_pMoveWith->pev->origin.y,  m_pMoveWith->pev->origin.z, pev->origin.x, pev->origin.y, pev->origin.z, vecDest.x, vecDest.y, vecDest.z);
+	}
+	else
+	{
+		vecDest = m_vecFinalDest;
+		//		ALERT(at_console, "LMDone %s: origin = %f %f %f. Set it to %f %f %f\n", STRING(pev->targetname), pev->origin.x, pev->origin.y, pev->origin.z, vecDest.x, vecDest.y, vecDest.z);
+	}
+	UTIL_AssignOrigin(this, vecDest);
+	DontThink(); //LRC
+	//pev->nextthink = -1;
 	if (m_pfnCallWhenMoveDone)
 		(this->*m_pfnCallWhenMoveDone)();
 }
@@ -439,6 +787,24 @@ bool CBaseToggle::IsLockedByMaster()
 {
 	return !FStringNull(m_sMaster) && !UTIL_IsMasterTriggered(m_sMaster, m_hActivator);
 }
+
+//LRC- mapping toggle-states to global states
+STATE CBaseToggle::GetState()
+{
+	switch (m_toggle_state)
+	{
+	case TS_AT_TOP:
+		return STATE_ON;
+	case TS_AT_BOTTOM:
+		return STATE_OFF;
+	case TS_GOING_UP:
+		return STATE_TURN_ON;
+	case TS_GOING_DOWN:
+		return STATE_TURN_OFF;
+	default:
+		return STATE_OFF; // This should never happen.
+	}
+};
 
 void CBaseToggle::PlaySentence(const char* pszSentence, float duration, float volume, float attenuation)
 {
@@ -486,6 +852,31 @@ void CBaseToggle::AngularMove(Vector vecDestAngle, float flSpeed)
 	//	ASSERTSZ(m_pfnCallWhenMoveDone != NULL, "AngularMove: no post-move function defined");
 
 	m_vecFinalAngle = vecDestAngle;
+	m_flAngularMoveSpeed = flSpeed;
+
+	//	if ((m_pMoveWith || m_pChildMoveWith))// && !bNow)
+	//	{
+	//		ALERT(at_console,"Setting AngularMoveNow to happen after %f\n",gpGlobals->time);
+	SetThink(&CBaseToggle::AngularMoveNow);
+	UTIL_DesiredThink(this);
+	//	ExternalThink( 0.01 );
+	//		pev->nextthink = pev->ltime + 0.01;
+	//	}
+	//	else
+	//	{
+	//		AngularMoveNow(); // starring Martin Sheen and Marlon Brando
+	//	}
+}
+
+void CBaseToggle::AngularMoveNow()
+{
+	//	ALERT(at_console, "AngularMoveNow %f\n", pev->ltime);
+	Vector vecDestAngle;
+
+	if (m_pMoveWith)
+		vecDestAngle = m_vecFinalAngle + m_pMoveWith->pev->angles;
+	else
+		vecDestAngle = m_vecFinalAngle;
 
 	// Already there?
 	if (vecDestAngle == pev->angles)
@@ -498,32 +889,46 @@ void CBaseToggle::AngularMove(Vector vecDestAngle, float flSpeed)
 	Vector vecDestDelta = vecDestAngle - pev->angles;
 
 	// divide by speed to get time to reach dest
-	float flTravelTime = vecDestDelta.Length() / flSpeed;
+	float flTravelTime = vecDestDelta.Length() / m_flAngularMoveSpeed;
 
 	// set nextthink to trigger a call to AngularMoveDone when dest is reached
-	pev->nextthink = pev->ltime + flTravelTime;
+	SetNextThink(flTravelTime, true);
 	SetThink(&CBaseToggle::AngularMoveDone);
 
 	// scale the destdelta vector by the time spent traveling to get velocity
-	pev->avelocity = vecDestDelta / flTravelTime;
+	UTIL_SetAvelocity(this, vecDestDelta / flTravelTime);
 }
 
+void CBaseToggle::AngularMoveDone()
+{
+	SetThink(&CBaseToggle::AngularMoveDoneNow);
+	//	ALERT(at_console, "LMD: desiredThink %s\n", STRING(pev->targetname));
+	UTIL_DesiredThink(this);
+}
 
 /*
 ============
 After rotating, set angle to exact final angle, call "move done" function
 ============
 */
-void CBaseToggle::AngularMoveDone()
+void CBaseToggle::AngularMoveDoneNow()
 {
-	pev->angles = m_vecFinalAngle;
-	pev->avelocity = g_vecZero;
-	pev->nextthink = -1;
+	//	ALERT(at_console, "AngularMoveDone %f\n", pev->ltime);
+	UTIL_SetAvelocity(this, g_vecZero);
+	if (m_pMoveWith)
+	{
+		UTIL_SetAngles(this, m_vecFinalAngle + m_pMoveWith->pev->angles);
+	}
+	else
+	{
+		UTIL_SetAngles(this, m_vecFinalAngle);
+	}
+	DontThink();
 	if (m_pfnCallWhenMoveDone)
 		(this->*m_pfnCallWhenMoveDone)();
 }
 
-
+// this isn't currently used. Otherwise I'd fix it to use movedir the way it should...
 float CBaseToggle::AxisValue(int flags, const Vector& angles)
 {
 	if (FBitSet(flags, SF_DOOR_ROTATE_Z))
@@ -537,6 +942,9 @@ float CBaseToggle::AxisValue(int flags, const Vector& angles)
 
 void CBaseToggle::AxisDir(entvars_t* pev)
 {
+	if (pev->movedir != g_vecZero) //LRC
+		return;
+
 	if (FBitSet(pev->spawnflags, SF_DOOR_ROTATE_Z))
 		pev->movedir = Vector(0, 0, 1); // around z-axis
 	else if (FBitSet(pev->spawnflags, SF_DOOR_ROTATE_X))
@@ -582,4 +990,114 @@ bool FEntIsVisible(
 		return true;
 
 	return false;
+}
+
+
+//=========================================================
+// LRC - info_movewith, the first entity I've made which
+//       truly doesn't fit ANY preexisting category.
+//=========================================================
+#define SF_IMW_INACTIVE 1
+#define SF_IMW_BLOCKABLE 2
+
+class CInfoMoveWith : public CBaseEntity
+{
+public:
+	void Spawn() override;
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
+	int ObjectCaps() override { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+
+	STATE GetState() override { return (pev->spawnflags & SF_IMW_INACTIVE) ? STATE_OFF : STATE_ON; }
+};
+
+LINK_ENTITY_TO_CLASS(info_movewith, CInfoMoveWith);
+
+void CInfoMoveWith::Spawn()
+{
+	if (pev->spawnflags & SF_IMW_INACTIVE)
+		m_MoveWith = pev->netname;
+	else
+		m_MoveWith = pev->target;
+
+	if (pev->spawnflags & SF_IMW_BLOCKABLE)
+	{
+		pev->solid = SOLID_SLIDEBOX;
+		pev->movetype = MOVETYPE_FLY;
+	}
+	// and allow InitMoveWith to set things up as usual.
+}
+
+void CInfoMoveWith::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
+{
+	CBaseEntity* pSibling;
+
+	if (!ShouldToggle(useType))
+		return;
+
+	if (m_pMoveWith)
+	{
+		// remove this from the old parent's list of children
+		pSibling = m_pMoveWith->m_pChildMoveWith;
+		if (pSibling == this)
+			m_pMoveWith->m_pChildMoveWith = this->m_pSiblingMoveWith;
+		else
+		{
+			while (pSibling->m_pSiblingMoveWith && pSibling->m_pSiblingMoveWith != this)
+			{
+				pSibling = pSibling->m_pSiblingMoveWith;
+			}
+
+			if (pSibling->m_pSiblingMoveWith == this)
+			{
+				pSibling->m_pSiblingMoveWith = this->m_pSiblingMoveWith;
+			}
+			else
+			{
+				// failed to find myself in the list, complain
+				ALERT(at_error, "info_movewith can't find itself\n");
+				return;
+			}
+		}
+		m_pMoveWith = NULL;
+		m_pSiblingMoveWith = NULL;
+	}
+
+	if (pev->spawnflags & SF_IMW_INACTIVE)
+	{
+		pev->spawnflags &= ~SF_IMW_INACTIVE;
+		m_MoveWith = pev->target;
+	}
+	else
+	{
+		pev->spawnflags |= SF_IMW_INACTIVE;
+		m_MoveWith = pev->netname;
+	}
+
+	// set things up for the new m_MoveWith value
+	if (!m_MoveWith)
+	{
+		UTIL_SetVelocity(this, g_vecZero); // come to a stop
+		return;
+	}
+
+	m_pMoveWith = UTIL_FindEntityByTargetname(NULL, STRING(m_MoveWith));
+	if (!m_pMoveWith)
+	{
+		ALERT(at_debug, "Missing movewith entity %s\n", STRING(m_MoveWith));
+		return;
+	}
+
+	pSibling = m_pMoveWith->m_pChildMoveWith;
+	while (pSibling) // check that this entity isn't already in the list of children
+	{
+		if (pSibling == this)
+			return;
+		pSibling = pSibling->m_pSiblingMoveWith;
+	}
+
+	// add this entity to the list of children
+	m_pSiblingMoveWith = m_pMoveWith->m_pChildMoveWith; // may be null: that's fine by me.
+	m_pMoveWith->m_pChildMoveWith = this;
+	m_vecMoveWithOffset = pev->origin - m_pMoveWith->pev->origin;
+	UTIL_SetVelocity(this, g_vecZero); // match speed with the new entity
 }

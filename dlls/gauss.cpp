@@ -147,7 +147,7 @@ void CGauss::SecondaryAttack()
 	m_pPlayer->m_flStartCharge = V_min(m_pPlayer->m_flStartCharge, gpGlobals->time);
 
 	// don't fire underwater
-	if (m_pPlayer->pev->waterlevel == 3)
+	if (m_pPlayer->pev->waterlevel == 3 && m_pPlayer->pev->watertype > CONTENT_FLYFIELD)
 	{
 		if (m_fInAttack != 0)
 		{
@@ -248,7 +248,7 @@ void CGauss::SecondaryAttack()
 		// ALERT( at_console, "%d %d %d\n", m_fInAttack, m_iSoundState, pitch );
 
 		if (m_iSoundState == 0)
-			ALERT(at_console, "sound state %d\n", m_iSoundState);
+			ALERT(at_debug, "sound state %d\n", m_iSoundState);
 
 		PLAYBACK_EVENT_FULL(FEV_NOTHOST, m_pPlayer->edict(), m_usGaussSpin, 0.0, g_vecZero, g_vecZero, 0.0, 0.0, pitch, 0, (m_iSoundState == SND_CHANGE_PITCH) ? 1 : 0, 0);
 
@@ -330,7 +330,7 @@ void CGauss::StartFire()
 			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * flDamage * 5;
 		}
 
-		if (!g_pGameRules->IsMultiplayer())
+		if (!g_pGameRules->IsMultiplayer() && !g_allowGJump) //AJH allow SP gauss jumpflag
 
 		{
 			// in deathmatch, gauss can pop you up into the air. Not in single play.

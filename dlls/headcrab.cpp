@@ -23,6 +23,7 @@
 #include "schedule.h"
 #include "game.h"
 
+
 //=========================================================
 // Monster's Anim Events Go Here
 //=========================================================
@@ -151,7 +152,7 @@ const char* CHeadCrab::pBiteSounds[] =
 //=========================================================
 int CHeadCrab::Classify()
 {
-	return CLASS_ALIEN_PREY;
+	return m_iClass ? m_iClass : CLASS_ALIEN_PREY;
 }
 
 //=========================================================
@@ -214,7 +215,7 @@ void CHeadCrab::HandleAnimEvent(MonsterEvent_t* pEvent)
 	{
 		ClearBits(pev->flags, FL_ONGROUND);
 
-		UTIL_SetOrigin(pev, pev->origin + Vector(0, 0, 1)); // take him off ground so engine doesn't instantly reset onground
+		UTIL_SetOrigin(this, pev->origin + Vector(0, 0, 1)); // take him off ground so engine doesn't instantly reset onground
 		UTIL_MakeVectors(pev->angles);
 
 		Vector vecJumpDir;
@@ -274,14 +275,18 @@ void CHeadCrab::Spawn()
 {
 	Precache();
 
-	SET_MODEL(ENT(pev), "models/headcrab.mdl");
+	if (pev->model)
+		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
+	else
+		SET_MODEL(ENT(pev), "models/headcrab.mdl");
 	UTIL_SetSize(pev, Vector(-12, -12, 0), Vector(12, 12, 24));
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
 	m_bloodColor = BLOOD_COLOR_GREEN;
 	pev->effects = 0;
-	pev->health = gSkillData.headcrabHealth;
+	if (pev->health == 0)
+		pev->health = gSkillData.headcrabHealth;
 	pev->view_ofs = Vector(0, 0, 20); // position of the eyes relative to monster's origin.
 	pev->yaw_speed = 5;				  //!!! should we put this in the monster's changeanim function since turn rates may vary with state/anim?
 	m_flFieldOfView = 0.5;			  // indicates the width of this monster's forward view cone ( as a dotproduct result )
@@ -302,7 +307,10 @@ void CHeadCrab::Precache()
 	PRECACHE_SOUND_ARRAY(pDeathSounds);
 	PRECACHE_SOUND_ARRAY(pBiteSounds);
 
-	PRECACHE_MODEL("models/headcrab.mdl");
+	if (pev->model)
+		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
+	else
+		PRECACHE_MODEL("models/headcrab.mdl");
 }
 
 
@@ -493,7 +501,10 @@ LINK_ENTITY_TO_CLASS(monster_babycrab, CBabyCrab);
 void CBabyCrab::Spawn()
 {
 	CHeadCrab::Spawn();
-	SET_MODEL(ENT(pev), "models/baby_headcrab.mdl");
+	if (pev->model)
+		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
+	else
+		SET_MODEL(ENT(pev), "models/baby_headcrab.mdl");
 	pev->rendermode = kRenderTransTexture;
 	pev->renderamt = 192;
 	UTIL_SetSize(pev, Vector(-12, -12, 0), Vector(12, 12, 24));
@@ -503,7 +514,10 @@ void CBabyCrab::Spawn()
 
 void CBabyCrab::Precache()
 {
-	PRECACHE_MODEL("models/baby_headcrab.mdl");
+	if (pev->model)
+		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
+	else
+		PRECACHE_MODEL("models/baby_headcrab.mdl");
 	CHeadCrab::Precache();
 }
 

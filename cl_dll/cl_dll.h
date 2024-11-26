@@ -38,3 +38,5 @@ typedef int (*pfnUserMsgHook)(const char* pszName, int iSize, void* pbuf);
 #include "../dlls/cdll_dll.h"
 
 extern cl_enginefunc_t gEngfuncs;
+
+#define CONPRINT (gEngfuncs.Con_Printf) //LRC - I can't live without printf!

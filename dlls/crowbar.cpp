@@ -132,7 +132,7 @@ void CCrowbar::PrimaryAttack()
 	if (!Swing(true))
 	{
 		SetThink(&CCrowbar::SwingAgain);
-		pev->nextthink = gpGlobals->time + 0.1;
+		SetNextThink(0.1);
 	}
 }
 
@@ -190,8 +190,15 @@ bool CCrowbar::Swing(bool fFirst)
 		if (fFirst)
 		{
 			// miss
-			m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
-
+			switch ((m_iSwing++) % 3)
+			{
+			case 0: SendWeaponAnim(CROWBAR_ATTACK1MISS); break;
+			case 1: SendWeaponAnim(CROWBAR_ATTACK2MISS); break;
+			case 2: SendWeaponAnim(CROWBAR_ATTACK3MISS); break;
+			}
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
+			// play wiff or swish sound
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/cbar_miss1.wav", 1, ATTN_NORM, 0, 94 + RANDOM_LONG(0, 0xF));
 			// player "shoot" animation
 			m_pPlayer->SetAnimation(PLAYER_ATTACK1);
 		}
@@ -290,12 +297,8 @@ bool CCrowbar::Swing(bool fFirst)
 			// also play crowbar strike
 			switch (RANDOM_LONG(0, 1))
 			{
-			case 0:
-				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit1.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0, 3));
-				break;
-			case 1:
-				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit2.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0, 3));
-				break;
+			case 0: EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit1.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0, 3)); break;
+			case 1: EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit2.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0, 3)); break;
 			}
 
 			// delay the decal a bit
@@ -305,7 +308,7 @@ bool CCrowbar::Swing(bool fFirst)
 		m_pPlayer->m_iWeaponVolume = flVol * CROWBAR_WALLHIT_VOLUME;
 #endif
 		SetThink(&CCrowbar::Smack);
-		pev->nextthink = gpGlobals->time + 0.2;
+		SetNextThink(0.2);
 	}
 	return fDidHit;
 }

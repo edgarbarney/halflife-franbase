@@ -10,3 +10,5 @@
 !libSDL2-2.0.so.0.dbg
 !vgui.so
 !release/vgui.so
+!libCg.so
+!libCgGL.so

@@ -69,9 +69,8 @@ public:
 	void HandleAnimEvent(MonsterEvent_t* pEvent) override;
 	void Killed(entvars_t* pevAttacker, int iGib) override;
 
-	MONSTERSTATE GetIdealState() override { return MONSTERSTATE_IDLE; }
-	//TODO: should override base, but has different signature
-	bool CanPlaySequence(bool fDisregardState) { return true; }
+	MONSTERSTATE GetIdealState() override { return MONSTERSTATE_IDLE; };
+	bool CanPlaySequence(int interruptFlags) override { return true; };
 
 	int Classify() override;
 
@@ -241,7 +240,7 @@ typedef enum
 //=========================================================
 int CTentacle::Classify()
 {
-	return CLASS_ALIEN_MONSTER;
+	return m_iClass ? m_iClass : CLASS_ALIEN_MONSTER;
 }
 
 //
@@ -272,7 +271,7 @@ void CTentacle::Spawn()
 	SetTouch(&CTentacle::HitTouch);
 	SetUse(&CTentacle::CommandUse);
 
-	pev->nextthink = gpGlobals->time + 0.2;
+	SetNextThink(0.2);
 
 	ResetSequenceInfo();
 	m_iDir = 1;
@@ -292,7 +291,7 @@ void CTentacle::Spawn()
 	m_MonsterState = MONSTERSTATE_IDLE;
 
 	// SetThink( Test );
-	UTIL_SetOrigin(pev, pev->origin);
+	UTIL_SetOrigin(this, pev->origin);
 }
 
 void CTentacle::Precache()
@@ -450,7 +449,7 @@ void CTentacle::Test()
 	pev->sequence = TENTACLE_ANIM_Floor_Strike;
 	pev->framerate = 0;
 	StudioFrameAdvance();
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 }
 
 
@@ -461,7 +460,7 @@ void CTentacle::Test()
 void CTentacle::Cycle()
 {
 	// ALERT( at_console, "%s %.2f %d %d\n", STRING( pev->targetname ), pev->origin.z, m_MonsterState, m_IdealMonsterState );
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	// ALERT( at_console, "%s %d %d %d %f %f\n", STRING( pev->targetname ), pev->sequence, m_iGoalAnim, m_iDir, pev->framerate, pev->health );
 
@@ -748,7 +747,7 @@ void CTentacle::CommandUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TY
 
 void CTentacle::DieThink()
 {
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	DispatchAnimEvents();
 	StudioFrameAdvance();
@@ -947,7 +946,7 @@ void CTentacle::HandleAnimEvent(MonsterEvent_t* pEvent)
 //
 // TentacleStart
 //
-// void CTentacle:: Start( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+// void CTentacle::Start( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 void CTentacle::Start()
 {
 	SetThink(&CTentacle::Cycle);
@@ -964,7 +963,7 @@ void CTentacle::Start()
 		g_fSquirmSound = true;
 	}
 
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 }
 
 

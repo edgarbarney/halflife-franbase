@@ -101,7 +101,7 @@ void CPython::Holster()
 		SecondaryAttack();
 	}
 
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat(m_pPlayer->random_seed, 10, 15);
 	SendWeaponAnim(PYTHON_HOLSTER);
 }
@@ -132,7 +132,7 @@ void CPython::SecondaryAttack()
 void CPython::PrimaryAttack()
 {
 	// don't fire underwater
-	if (m_pPlayer->pev->waterlevel == 3)
+	if (m_pPlayer->pev->waterlevel == 3 && m_pPlayer->pev->watertype > CONTENT_FLYFIELD)
 	{
 		PlayEmptySound();
 		m_flNextPrimaryAttack = 0.15;
@@ -156,6 +156,21 @@ void CPython::PrimaryAttack()
 	m_iClip--;
 
 	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
+
+#ifndef CLIENT_DLL
+	MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
+	WRITE_BYTE(TE_DLIGHT);
+	WRITE_COORD(pev->origin.x); // origin
+	WRITE_COORD(pev->origin.y);
+	WRITE_COORD(pev->origin.z);
+	WRITE_BYTE(16);	 // radius
+	WRITE_BYTE(255); // R
+	WRITE_BYTE(255); // G
+	WRITE_BYTE(180); // B
+	WRITE_BYTE(0);	 // life * 10
+	WRITE_BYTE(0);	 // decay
+	MESSAGE_END();
+#endif
 
 	// player "shoot" animation
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);

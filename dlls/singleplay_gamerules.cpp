@@ -124,6 +124,20 @@ float CHalfLifeRules::FlPlayerFallDamage(CBasePlayer* pPlayer)
 //=========================================================
 void CHalfLifeRules::PlayerSpawn(CBasePlayer* pPlayer)
 {
+	CBaseEntity* pWeaponEntity = NULL;
+
+	//LRC- support the new "start with HEV" flag...
+	if (g_startSuit)
+	{
+		pPlayer->SetHasSuit(true);
+	}
+
+	// LRC what's wrong with allowing "game_player_equip" entities in single player? (The
+	// level designer is God: if he wants the player to start with a weapon, we should allow it!)
+	while (pWeaponEntity = UTIL_FindEntityByClassname(pWeaponEntity, "game_player_equip"))
+	{
+		pWeaponEntity->Touch(pPlayer);
+	}
 }
 
 //=========================================================

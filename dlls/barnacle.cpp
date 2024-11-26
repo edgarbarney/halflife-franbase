@@ -75,7 +75,7 @@ IMPLEMENT_SAVERESTORE(CBarnacle, CBaseMonster);
 //=========================================================
 int CBarnacle::Classify()
 {
-	return CLASS_ALIEN_MONSTER;
+	return m_iClass ? m_iClass : CLASS_ALIEN_MONSTER;
 }
 
 //=========================================================
@@ -104,7 +104,10 @@ void CBarnacle::Spawn()
 {
 	Precache();
 
-	SET_MODEL(ENT(pev), "models/barnacle.mdl");
+	if (pev->model)
+		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
+	else
+		SET_MODEL(ENT(pev), "models/barnacle.mdl");
 	UTIL_SetSize(pev, Vector(-16, -16, -32), Vector(16, 16, 0));
 
 	pev->solid = SOLID_SLIDEBOX;
@@ -125,9 +128,9 @@ void CBarnacle::Spawn()
 	SetActivity(ACT_IDLE);
 
 	SetThink(&CBarnacle::BarnacleThink);
-	pev->nextthink = gpGlobals->time + 0.5;
+	SetNextThink(0.5);
 
-	UTIL_SetOrigin(pev, pev->origin);
+	UTIL_SetOrigin(this, pev->origin);
 }
 
 bool CBarnacle::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
@@ -148,7 +151,7 @@ void CBarnacle::BarnacleThink()
 	CBaseMonster* pVictim;
 	float flLength;
 
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	if (m_hEnemy != NULL)
 	{
@@ -186,7 +189,8 @@ void CBarnacle::BarnacleThink()
 
 			if (fabs(pev->origin.z - (vecNewEnemyOrigin.z + m_hEnemy->pev->view_ofs.z - 8)) < BARNACLE_BODY_HEIGHT)
 			{
-				// prey has just been lifted into position ( if the victim origin + eye height + 8 is higher than the bottom of the barnacle, it is assumed that the head is within barnacle's body )
+				// prey has just been lifted into position ( if the victim origin + eye height + 8 is higher
+				// than the bottom of the barnacle, it is assumed that the head is within barnacle's body )
 				m_fLiftingPrey = false;
 
 				EMIT_SOUND(ENT(pev), CHAN_WEAPON, "barnacle/bcl_bite3.wav", 1, ATTN_NORM);
@@ -202,7 +206,7 @@ void CBarnacle::BarnacleThink()
 				}
 			}
 
-			UTIL_SetOrigin(m_hEnemy->pev, vecNewEnemyOrigin);
+			UTIL_SetOrigin(m_hEnemy, vecNewEnemyOrigin);
 		}
 		else
 		{
@@ -247,8 +251,8 @@ void CBarnacle::BarnacleThink()
 		// barnacle has no prey right now, so just idle and check to see if anything is touching the tongue.
 
 		// If idle and no nearby client, don't think so often
-		if (FNullEnt(FIND_CLIENT_IN_PVS(edict())))
-			pev->nextthink = gpGlobals->time + RANDOM_FLOAT(1, 1.5); // Stagger a bit to keep barnacles from thinking on the same frame
+		if (FNullEnt(FIND_CLIENT_IN_PVS(edict())) && !HaveCamerasInPVS(edict()))
+			SetNextThink(RANDOM_FLOAT(1, 1.5)); // Stagger a bit to keep barnacles from thinking on the same frame
 
 		if (m_fSequenceFinished)
 		{ // this is done so barnacle will fidget.
@@ -291,8 +295,8 @@ void CBarnacle::BarnacleThink()
 				m_hEnemy = pTouchEnt;
 
 				pTouchEnt->pev->movetype = MOVETYPE_FLY;
-				pTouchEnt->pev->velocity = g_vecZero;
-				pTouchEnt->pev->basevelocity = g_vecZero;
+				pTouchEnt->pev->velocity = pev->velocity;	  //LRC- make him come _with_ me
+				pTouchEnt->pev->basevelocity = pev->velocity; //LRC
 				pTouchEnt->pev->origin.x = pev->origin.x;
 				pTouchEnt->pev->origin.y = pev->origin.y;
 
@@ -361,7 +365,7 @@ void CBarnacle::Killed(entvars_t* pevAttacker, int iGib)
 
 	StudioFrameAdvance(0.1);
 
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 	SetThink(&CBarnacle::WaitTillDead);
 }
 
@@ -369,7 +373,7 @@ void CBarnacle::Killed(entvars_t* pevAttacker, int iGib)
 //=========================================================
 void CBarnacle::WaitTillDead()
 {
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	float flInterval = StudioFrameAdvance(0.1);
 	DispatchAnimEvents(flInterval);
@@ -387,7 +391,10 @@ void CBarnacle::WaitTillDead()
 //=========================================================
 void CBarnacle::Precache()
 {
-	PRECACHE_MODEL("models/barnacle.mdl");
+	if (pev->model)
+		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
+	else
+		PRECACHE_MODEL("models/barnacle.mdl");
 
 	PRECACHE_SOUND("barnacle/bcl_alert2.wav"); //happy, lifting food up
 	PRECACHE_SOUND("barnacle/bcl_bite3.wav");  //just got food to mouth

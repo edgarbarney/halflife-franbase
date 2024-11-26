@@ -859,7 +859,7 @@ void CFuncVehicle ::Find(void)
 
 	if (pev->spawnflags & SF_TRACKTRAIN_NOPITCH)
 		pev->angles.x = 0;
-	UTIL_SetOrigin(pev, nextPos);
+	UTIL_SetOrigin(this, nextPos);
 	NextThink(pev->ltime + 0.1, false);
 	SetThink(&CFuncVehicle::Next);
 	pev->speed = m_startSpeed;
@@ -979,7 +979,7 @@ void CFuncVehicle ::Spawn()
 	SET_MODEL(ENT(pev), STRING(pev->model));
 
 	UTIL_SetSize(pev, pev->mins, pev->maxs);
-	UTIL_SetOrigin(pev, pev->origin);
+	UTIL_SetOrigin(this, pev->origin);
 
 	// Cache off placed origin for train controls
 	pev->oldorigin = pev->origin;
@@ -1012,7 +1012,7 @@ void CFuncVehicle ::Restart()
 	if (FStringNull(pev->target))
 		ALERT(at_console, "Vehicle with no target");
 
-	UTIL_SetOrigin(pev, pev->oldorigin);
+	UTIL_SetOrigin(this, pev->oldorigin);
 
 	STOP_SOUND(ENT(pev), CHAN_STATIC, (char*)STRING(pev->noise));
 	// start trains on the next frame, to make sure their targets have had
@@ -1106,7 +1106,7 @@ void CFuncVehicleControls ::Spawn()
 	SET_MODEL(ENT(pev), STRING(pev->model));
 
 	UTIL_SetSize(pev, pev->mins, pev->maxs);
-	UTIL_SetOrigin(pev, pev->origin);
+	UTIL_SetOrigin(this, pev->origin);
 
 	SetThink(&CFuncVehicleControls::Find);
 	pev->nextthink = gpGlobals->time;

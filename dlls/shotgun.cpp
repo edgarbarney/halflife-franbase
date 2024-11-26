@@ -90,10 +90,16 @@ bool CShotgun::Deploy()
 	return DefaultDeploy("models/v_shotgun.mdl", "models/p_shotgun.mdl", SHOTGUN_DRAW, "shotgun");
 }
 
+void CShotgun::Holster()
+{
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+	SendWeaponAnim(SHOTGUN_HOLSTER);
+}
+
 void CShotgun::PrimaryAttack()
 {
 	// don't fire underwater
-	if (m_pPlayer->pev->waterlevel == 3)
+	if (m_pPlayer->pev->waterlevel == 3 && m_pPlayer->pev->watertype > CONTENT_FLYFIELD)
 	{
 		PlayEmptySound();
 		m_flNextPrimaryAttack = GetNextAttackDelay(0.15);
@@ -125,6 +131,21 @@ void CShotgun::PrimaryAttack()
 
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	Vector vecAiming = m_pPlayer->GetAutoaimVector(AUTOAIM_5DEGREES);
+
+#ifndef CLIENT_DLL
+	MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
+	WRITE_BYTE(TE_DLIGHT);
+	WRITE_COORD(pev->origin.x); // origin
+	WRITE_COORD(pev->origin.y);
+	WRITE_COORD(pev->origin.z);
+	WRITE_BYTE(16);	 // radius
+	WRITE_BYTE(255); // R
+	WRITE_BYTE(255); // G
+	WRITE_BYTE(160); // B
+	WRITE_BYTE(0);	 // life * 10
+	WRITE_BYTE(0);	 // decay
+	MESSAGE_END();
+#endif
 
 	Vector vecDir;
 
@@ -165,7 +186,7 @@ void CShotgun::PrimaryAttack()
 void CShotgun::SecondaryAttack()
 {
 	// don't fire underwater
-	if (m_pPlayer->pev->waterlevel == 3)
+	if (m_pPlayer->pev->waterlevel == 3 && m_pPlayer->pev->watertype > CONTENT_FLYFIELD)
 	{
 		PlayEmptySound();
 		m_flNextPrimaryAttack = GetNextAttackDelay(0.15);
@@ -199,6 +220,21 @@ void CShotgun::SecondaryAttack()
 
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	Vector vecAiming = m_pPlayer->GetAutoaimVector(AUTOAIM_5DEGREES);
+
+#ifndef CLIENT_DLL
+	MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
+	WRITE_BYTE(TE_DLIGHT);
+	WRITE_COORD(pev->origin.x); // origin
+	WRITE_COORD(pev->origin.y);
+	WRITE_COORD(pev->origin.z);
+	WRITE_BYTE(16);	 // radius
+	WRITE_BYTE(255); // R
+	WRITE_BYTE(255); // G
+	WRITE_BYTE(160); // B
+	WRITE_BYTE(0);	 // life * 10
+	WRITE_BYTE(0);	 // decay
+	MESSAGE_END();
+#endif
 
 	Vector vecDir;
 

@@ -77,7 +77,11 @@ bool CRuleEntity::KeyValue(KeyValueData* pkvd)
 
 bool CRuleEntity::CanFireForActivator(CBaseEntity* pActivator)
 {
-	if (!FStringNull(m_iszMaster))
+	if (!pActivator)
+	{
+		return true;
+	}
+	else if (!FStringNull(m_iszMaster))
 	{
 		return UTIL_IsMasterTriggered(m_iszMaster, pActivator);
 	}
@@ -92,6 +96,8 @@ class CRulePointEntity : public CRuleEntity
 {
 public:
 	void Spawn() override;
+	//LRC 1.8 - they don't cross transitions
+	int ObjectCaps() override { return CBaseEntity ::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 };
 
 void CRulePointEntity::Spawn()
@@ -216,6 +222,7 @@ void CGameEnd::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useTy
 
 
 #define SF_ENVTEXT_ALLPLAYERS 0x0001
+#define SF_ENVTEXT_ONLY_ONCE 0x0002
 
 
 class CGameText : public CRulePointEntity
@@ -232,8 +239,11 @@ public:
 	inline void MessageSet(const char* pMessage) { pev->message = ALLOC_STRING(pMessage); }
 	inline const char* MessageGet() { return STRING(pev->message); }
 
+	void EXPORT TriggerThink();
+
 private:
 	hudtextparms_t m_textParms;
+	CBaseEntity* m_pActivator;
 };
 
 LINK_ENTITY_TO_CLASS(game_text, CGameText);
@@ -243,6 +253,7 @@ LINK_ENTITY_TO_CLASS(game_text, CGameText);
 TYPEDESCRIPTION CGameText::m_SaveData[] =
 	{
 		DEFINE_ARRAY(CGameText, m_textParms, FIELD_CHARACTER, sizeof(hudtextparms_t)),
+		DEFINE_FIELD(CGameText, m_pActivator, FIELD_CLASSPTR),
 };
 
 IMPLEMENT_SAVERESTORE(CGameText, CRulePointEntity);
@@ -326,12 +337,39 @@ void CGameText::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useT
 	}
 	else
 	{
-		if (pActivator->IsNetClient())
+		if (pActivator && pActivator->IsNetClient())
 		{
 			UTIL_HudMessage(pActivator, m_textParms, MessageGet());
 		}
 	}
+
+	if (pev->target)
+	{
+		m_pActivator = pActivator;
+		SetThink(&CGameText::TriggerThink);
+		SetNextThink(m_textParms.fadeinTime + m_textParms.holdTime + m_textParms.fadeoutTime);
+		//		ALERT(at_console, "GameText sets NextThink = %f\n", m_textParms.fadeinTime + m_textParms.holdTime + m_textParms.fadeoutTime);
+	}
+	else if (pev->spawnflags & SF_ENVTEXT_ONLY_ONCE)
+	{
+		SetThink(&CGameText::SUB_Remove);
+		SetNextThink(0.1);
+	}
 }
+
+//LRC
+void CGameText::TriggerThink()
+{
+	//	ALERT(at_console, "GameText uses targets\n");
+	SUB_UseTargets(m_pActivator, USE_TOGGLE, 0);
+
+	if (pev->spawnflags & SF_ENVTEXT_ONLY_ONCE)
+	{
+		SetThink(&CGameText::SUB_Remove);
+		SetNextThink(0.1);
+	}
+}
+
 
 
 //
@@ -351,9 +389,8 @@ class CGameTeamMaster : public CRulePointEntity
 public:
 	bool KeyValue(KeyValueData* pkvd) override;
 	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
-	int ObjectCaps() override { return CRulePointEntity::ObjectCaps() | FCAP_MASTER; }
 
-	bool IsTriggered(CBaseEntity* pActivator) override;
+	bool IsTriggered(CBaseEntity* pActivator);
 	const char* TeamID() override;
 	inline bool RemoveOnFire() { return (pev->spawnflags & SF_TEAMMASTER_FIREONCE) != 0; }
 	inline bool AnyTeam() { return (pev->spawnflags & SF_TEAMMASTER_ANYTEAM) != 0; }
@@ -567,16 +604,27 @@ void CGamePlayerZone::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYP
 		{
 			TraceResult trace;
 			int hullNumber;
+			bool inside = false;
 
 			hullNumber = human_hull;
 			if ((pPlayer->pev->flags & FL_DUCKING) != 0)
 			{
-				hullNumber = head_hull;
+				hullNumber = human_hull;
+				if ((pPlayer->pev->flags & FL_DUCKING) != 0)
+				{
+					hullNumber = head_hull;
+				}
+				UTIL_TraceModel(pPlayer->pev->origin, pPlayer->pev->origin, hullNumber, edict(), &trace);
+				inside = 0 != trace.fStartSolid;
+			}
+			else
+			{
+				//LIMITATION: this doesn't allow for non-cuboid game_zone_player entities.
+				// (is that a problem?)
+				inside = this->Intersects(pPlayer);
 			}
 
-			UTIL_TraceModel(pPlayer->pev->origin, pPlayer->pev->origin, hullNumber, edict(), &trace);
-
-			if (0 != trace.fStartSolid)
+			if (inside)
 			{
 				playersInCount++;
 				if (!FStringNull(m_iszInTarget))

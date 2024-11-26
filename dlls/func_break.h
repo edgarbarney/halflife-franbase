@@ -36,6 +36,7 @@ typedef enum
 } Materials;
 
 #define NUM_SHARDS 6 // this many shards spawned when breakable objects break;
+#define SF_BREAKABLE_INVERT 16
 
 class CBreakable : public CBaseDelay
 {
@@ -44,9 +45,15 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	bool KeyValue(KeyValueData* pkvd) override;
+	bool CalcNumber(CBaseEntity *pLocus, float* OUTresult) override;
 	void EXPORT BreakTouch(CBaseEntity* pOther);
-	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
+	void EXPORT BreakUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+	void EXPORT RespawnUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+	void EXPORT RespawnThink();
+	void EXPORT RespawnFadeThink();
 	void DamageSound();
+	virtual void DoRespawn(); //AJH Fix for respawnable breakable pushables
+	int Classify() override { return m_iClass; }
 
 	// breakables use an overridden takedamage
 	bool TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType) override;
@@ -55,6 +62,8 @@ public:
 
 	bool IsBreakable();
 	bool SparkWhenHit();
+
+	STATE GetState() override;
 
 	int DamageDecal(int bitsDamageType) override;
 
@@ -86,4 +95,12 @@ public:
 	float m_angle;
 	int m_iszGibModel;
 	int m_iszSpawnObject;
+	//LRC
+	int m_iRespawnTime;
+	int m_iInitialHealth;
+	int m_iInitialRenderAmt;
+	int m_iInitialRenderMode;
+	int m_iClass;	  //so that monsters will attack it
+	int m_iszWhenHit; // locus trigger
+	CPointEntity* m_pHitProxy;
 };

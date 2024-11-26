@@ -80,7 +80,7 @@ public:
 	void Killed(entvars_t* pevAttacker, int iGib) override;
 	void Poop();
 	bool FPathBlocked();
-	//void KeyValue( KeyValueData *pkvd ) override;
+	//bool KeyValue( KeyValueData *pkvd );
 
 	bool Save(CSave& save) override;
 	bool Restore(CRestore& restore) override;
@@ -205,7 +205,7 @@ void CFlockingFlyerFlock::SpawnFlock()
 		vecSpot.z = RANDOM_FLOAT(0, 16);
 		vecSpot = pev->origin + vecSpot;
 
-		UTIL_SetOrigin(pBoid->pev, vecSpot);
+		UTIL_SetOrigin(pBoid, vecSpot);
 		pBoid->pev->movetype = MOVETYPE_FLY;
 		pBoid->SpawnCommonCode();
 		pBoid->pev->flags &= ~FL_ONGROUND;
@@ -213,7 +213,7 @@ void CFlockingFlyerFlock::SpawnFlock()
 		pBoid->pev->angles = pev->angles;
 
 		pBoid->pev->frame = 0;
-		pBoid->pev->nextthink = gpGlobals->time + 0.2;
+		pBoid->SetNextThink(0.2);
 		pBoid->SetThink(&CFlockingFlyer::IdleThink);
 
 		if (pBoid != pLeader)
@@ -231,7 +231,7 @@ void CFlockingFlyer::Spawn()
 	SpawnCommonCode();
 
 	pev->frame = 0;
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 	SetThink(&CFlockingFlyer::IdleThink);
 }
 
@@ -304,7 +304,7 @@ void CFlockingFlyer::Killed(entvars_t* pevAttacker, int iGib)
 	pev->movetype = MOVETYPE_TOSS;
 
 	SetThink(&CFlockingFlyer::FallHack);
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 }
 
 void CFlockingFlyer::FallHack()
@@ -314,7 +314,7 @@ void CFlockingFlyer::FallHack()
 		if (!FClassnameIs(pev->groundentity, "worldspawn"))
 		{
 			pev->flags &= ~FL_ONGROUND;
-			pev->nextthink = gpGlobals->time + 0.1;
+			SetNextThink(0.1);
 		}
 		else
 		{
@@ -377,13 +377,14 @@ void CFlockingFlyer::BoidAdvanceFrame()
 //=========================================================
 void CFlockingFlyer::IdleThink()
 {
-	pev->nextthink = gpGlobals->time + 0.2;
+	SetNextThink(0.2);
 
 	// see if there's a client in the same pvs as the monster
-	if (!FNullEnt(FIND_CLIENT_IN_PVS(edict())))
+	//	if ( !FNullEnt(FIND_CLIENT_IN_PVS(edict())))
+	if (!FNullEnt(FIND_CLIENT_IN_PVS(edict())) || HaveCamerasInPVS(edict()))
 	{
 		SetThink(&CFlockingFlyer::Start);
-		pev->nextthink = gpGlobals->time + 0.1;
+		SetNextThink(0.1);
 	}
 }
 
@@ -392,7 +393,7 @@ void CFlockingFlyer::IdleThink()
 //=========================================================
 void CFlockingFlyer::Start()
 {
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	if (IsLeader())
 	{
@@ -455,7 +456,7 @@ void CFlockingFlyer::FormFlock()
 	}
 
 	SetThink(&CFlockingFlyer::IdleThink); // now that flock is formed, go to idle and wait for a player to come along.
-	pev->nextthink = gpGlobals->time;
+	SetNextThink(0);
 }
 
 //=========================================================
@@ -579,7 +580,7 @@ void CFlockingFlyer::FlockLeaderThink()
 	float flRightSide;
 
 
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	UTIL_MakeVectors(pev->angles);
 
@@ -658,7 +659,7 @@ void CFlockingFlyer::FlockLeaderThink()
 	// maybe it did, though.
 	if (FBitSet(pev->flags, FL_ONGROUND))
 	{
-		UTIL_SetOrigin(pev, pev->origin + Vector(0, 0, 1));
+		UTIL_SetOrigin(this, pev->origin + Vector(0, 0, 1));
 		pev->velocity.z = 0;
 	}
 
@@ -684,7 +685,7 @@ void CFlockingFlyer::FlockFollowerThink()
 	Vector vecDirToLeader;
 	float flDistToLeader;
 
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	if (IsLeader() || !InSquad())
 	{

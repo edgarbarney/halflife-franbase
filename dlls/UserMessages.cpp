@@ -42,6 +42,16 @@ void LinkUserMessages()
 	gmsgWeaponList = REG_USER_MSG("WeaponList", -1);
 	gmsgResetHUD = REG_USER_MSG("ResetHUD", 1); // called every respawn
 	gmsgInitHUD = REG_USER_MSG("InitHUD", 0);	// called every time a new player joins the server
+
+	gmsgSetFog = REG_USER_MSG("SetFog", 9);			   //LRC
+	gmsgKeyedDLight = REG_USER_MSG("KeyedDLight", -1); //LRC
+	gmsgKeyedELight = REG_USER_MSG("KeyedELight", -1); //LRC
+	gmsgSetSky = REG_USER_MSG("SetSky", 8);			   //LRC
+	gmsgHUDColor = REG_USER_MSG("HUDColor", 4);		   //LRC
+	gmsgParticle = REG_USER_MSG("Particle", -1);	   //LRC
+	gmsgAddShine = REG_USER_MSG("AddShine", -1);	   //LRC
+	gmsgClampView = REG_USER_MSG("ClampView", 10);	   //LRC 1.8
+
 	gmsgShowGameTitle = REG_USER_MSG("GameTitle", 1);
 	gmsgDeathMsg = REG_USER_MSG("DeathMsg", -1);
 	gmsgScoreInfo = REG_USER_MSG("ScoreInfo", 9);
@@ -60,9 +70,14 @@ void LinkUserMessages()
 	gmsgFade = REG_USER_MSG("ScreenFade", sizeof(ScreenFade));
 	gmsgAmmoX = REG_USER_MSG("AmmoX", 2);
 	gmsgTeamNames = REG_USER_MSG("TeamNames", -1);
+	gmsgStatusIcon = REG_USER_MSG("StatusIcon", -1);
 
 	gmsgStatusText = REG_USER_MSG("StatusText", -1);
 	gmsgStatusValue = REG_USER_MSG("StatusValue", 3);
+	gmsgCamData = REG_USER_MSG("CamData", -1);
+	gmsgPlayMP3 = REG_USER_MSG("PlayMP3", -1); //Killar
+	gmsgRainData = REG_USER_MSG("RainData", 16);
+	gmsgInventory = REG_USER_MSG("Inventory", -1); //AJH Inventory system
 
 	gmsgWeapons = REG_USER_MSG("Weapons", 8);
 }

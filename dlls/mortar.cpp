@@ -183,7 +183,7 @@ void CFuncMortarField::FieldUse(CBaseEntity* pActivator, CBaseEntity* pCaller, U
 			pentOwner = pActivator->edict();
 
 		CBaseEntity* pMortar = Create("monster_mortar", tr.vecEndPos, Vector(0, 0, 0), pentOwner);
-		pMortar->pev->nextthink = gpGlobals->time + t;
+		pMortar->SetNextThink(t);
 		t += RANDOM_FLOAT(0.2, 0.5);
 
 		if (i == 0)
@@ -213,7 +213,7 @@ void CMortar::Spawn()
 	pev->dmg = 200;
 
 	SetThink(&CMortar::MortarExplode);
-	pev->nextthink = 0;
+	DontThink();
 
 	Precache();
 }
@@ -302,7 +302,7 @@ void CMortar::MortarExplode()
 	*/
 
 	SetThink( &CMortar::SUB_Remove );
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink( 0.1 );
 #endif
 }
 
@@ -316,7 +316,7 @@ void CMortar::ShootTimed( EVARS *pevOwner, Vector vecStart, float time )
 	TraceResult tr;
 	UTIL_TraceLine( vecStart, vecStart + Vector( 0, 0, -1 ) * 4096, ignore_monsters, ENT(pMortar->pev), &tr );
 
-	pMortar->pev->nextthink = gpGlobals->time + time;
+	pMortar->SetNextThink( time );
 
 	UTIL_SetOrigin( pMortar->pev, tr.vecEndPos );
 }

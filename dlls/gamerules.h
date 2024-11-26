@@ -18,6 +18,9 @@
 
 #pragma once
 
+//LRC
+#define GAME_NAME "Spirit of Half-Life 1.8 alpha1"
+
 //#include "weapons.h"
 //#include "items.h"
 class CBasePlayerItem;
@@ -70,11 +73,11 @@ public:
 	virtual bool GetNextBestWeapon(CBasePlayer* pPlayer, CBasePlayerItem* pCurrentWeapon, bool alwaysSearch = false); // I can't use this weapon anymore, get me the next best one.
 
 	// Functions to verify the single/multiplayer status of a game
-	virtual bool IsMultiplayer() = 0;								 // is this a multiplayer game? (either coop or deathmatch)
-	virtual bool IsDeathmatch() = 0;								 //is this a deathmatch game?
-	virtual bool IsTeamplay() { return false; }						 // is this deathmatch game being played with team rules?
-	virtual bool IsCoOp() = 0;										 // is this a coop game?
-	virtual const char* GetGameDescription() { return "Half-Life"; } // this is the game name that gets seen in the server browser
+	virtual bool IsMultiplayer() = 0;							   // is this a multiplayer game? (either coop or deathmatch)
+	virtual bool IsDeathmatch() = 0;							   //is this a deathmatch game?
+	virtual bool IsTeamplay() { return false; };				   // is this deathmatch game being played with team rules?
+	virtual bool IsCoOp() = 0;									   // is this a coop game?
+	virtual const char* GetGameDescription() { return GAME_NAME; } // this is the game name that gets seen in the server browser
 
 	// Client connection/disconnection
 	virtual bool ClientConnected(edict_t* pEntity, const char* pszName, const char* pszAddress, char szRejectReason[128]) = 0; // a client just connected to the server (player hasn't spawned yet)
@@ -249,7 +252,7 @@ public:
 	bool FAllowMonsters() override;
 
 	// Teamplay stuff
-	const char* GetTeamID(CBaseEntity* pEntity) override { return ""; }
+	const char* GetTeamID(CBaseEntity* pEntity) override { return ""; };
 	int PlayerRelationship(CBaseEntity* pPlayer, CBaseEntity* pTarget) override;
 };
 

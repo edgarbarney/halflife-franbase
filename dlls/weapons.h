@@ -61,11 +61,21 @@ public:
 };
 
 
+/* AJH we don't need to specify this stuff in here. It's now in items.h instead
 // constant items
 #define ITEM_HEALTHKIT 1
 #define ITEM_ANTIDOTE 2
 #define ITEM_SECURITY 3
 #define ITEM_BATTERY 4
+#define ITEM_LONGJUMP		5
+
+//AJH extended inventory
+#define ITEM_SLOT6			6
+#define ITEM_SLOT7			7
+#define ITEM_SLOT8			8
+#define ITEM_SLOT9			9
+#define ITEM_SLOT10			10
+*/
 
 #define MAX_NORMAL_BATTERY 100
 
@@ -85,7 +95,6 @@ public:
 #define SNARK_WEIGHT 5
 #define SATCHEL_WEIGHT -10
 #define TRIPMINE_WEIGHT -10
-
 
 // weapon clip/carry ammo capacities
 #define URANIUM_MAX_CARRY 100
@@ -119,7 +128,6 @@ public:
 #define SATCHEL_MAX_CLIP WEAPON_NOCLIP
 #define TRIPMINE_MAX_CLIP WEAPON_NOCLIP
 #define SNARK_MAX_CLIP WEAPON_NOCLIP
-
 
 // the default amount of ammo that comes with each gun when it spawns
 #define GLOCK_DEFAULT_GIVE 17
@@ -211,6 +219,9 @@ class CBasePlayerItem : public CBaseAnimating
 {
 public:
 	void SetObjectCollisionBox() override;
+#ifndef CLIENT_DLL								//AJH for lockable weapons
+	bool KeyValue(KeyValueData* pkvd) override; //
+#endif											//
 
 	bool Save(CSave& save) override;
 	bool Restore(CRestore& restore) override;
@@ -263,11 +274,22 @@ public:
 	static inline ItemInfo ItemInfoArray[MAX_WEAPONS];
 	static inline AmmoInfo AmmoInfoArray[MAX_AMMO_SLOTS];
 
+	string_t m_sMaster; //AJH for lockable weapons
+
 	CBasePlayer* m_pPlayer;
 	CBasePlayerItem* m_pNext;
-	int m_iId; // WEAPON_???
-
-	virtual int iItemSlot() { return 0; } // return 0 to MAX_ITEMS_SLOTS, used in hud
+	int m_iId;	   // WEAPON_???
+#ifndef CLIENT_DLL //AJH Test Debug
+	void Spawn() override;
+#endif //AJH
+	virtual int iItemSlot()
+	{
+		ItemInfo II;
+		if (GetItemInfo(&II))
+			return II.iSlot + 1;
+		else
+			return 0; // return 0 to MAX_ITEMS_SLOTS, used in hud
+	}
 
 	int iItemPosition() { return ItemInfoArray[m_iId].iPosition; }
 	const char* pszAmmo1() { return ItemInfoArray[m_iId].pszAmmo1; }
@@ -295,6 +317,8 @@ public:
 	bool Restore(CRestore& restore) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
+
+	void SetNextThink(float delay) override; //LRC
 
 	// generic weapon versions of CBasePlayerItem calls
 	void AddToPlayer(CBasePlayer* pPlayer) override;
@@ -342,6 +366,9 @@ public:
 	void Holster() override;
 	virtual bool UseDecrement() { return false; }
 
+	//LRC - used by weaponstrip
+	void DrainClip(CBasePlayer* pPlayer, bool keep, int i9mm, int i357, int iBuck, int iBolt, int iARGren, int iRock, int iUranium, int iSatchel, int iSnark, int iTrip, int iGren);
+
 	int PrimaryAmmoIndex() override;
 	int SecondaryAmmoIndex() override;
 
@@ -361,6 +388,7 @@ public:
 	int m_iClientClip;			   // the last version of m_iClip sent to hud dll
 	int m_iClientWeaponState;	   // the last version of the weapon state sent to hud dll (is current weapon, is on target)
 	bool m_fInReload;			   // Are we in the middle of a reload;
+	int m_iClipSize;			   //This required weapon_generic, defintion in same class will crash'es compile
 
 	int m_iDefaultAmmo; // how much ammo you get when you pick up this weapon as placed by a level designer.
 
@@ -370,7 +398,8 @@ public:
 };
 
 
-class CBasePlayerAmmo : public CBaseEntity
+class CBasePlayerAmmo : public CBasePlayerItem //AJH
+//class CBasePlayerAmmo : public CBaseEntity
 {
 public:
 	void Spawn() override;
@@ -392,6 +421,7 @@ inline DLL_GLOBAL short g_sModelIndexWExplosion; // holds the index for the unde
 inline DLL_GLOBAL short g_sModelIndexBubbles;	 // holds the index for the bubbles model
 inline DLL_GLOBAL short g_sModelIndexBloodDrop;	 // holds the sprite index for blood drops
 inline DLL_GLOBAL short g_sModelIndexBloodSpray; // holds the sprite index for blood spray (bigger)
+inline DLL_GLOBAL unsigned short m_usMirror;	 //Mirror event
 
 extern void ClearMultiDamage();
 extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker);
@@ -495,13 +525,13 @@ class CGlock : public CBasePlayerWeapon
 public:
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 2; }
 	bool GetItemInfo(ItemInfo* p) override;
 
 	void PrimaryAttack() override;
 	void SecondaryAttack() override;
 	void GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim);
 	bool Deploy() override;
+	void Holster() override;
 	void Reload() override;
 	void WeaponIdle() override;
 
@@ -540,7 +570,6 @@ class CCrowbar : public CBasePlayerWeapon
 public:
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 1; }
 	void EXPORT SwingAgain();
 	void EXPORT Smack();
 	bool GetItemInfo(ItemInfo* p) override;
@@ -582,7 +611,6 @@ class CPython : public CBasePlayerWeapon
 public:
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 2; }
 	bool GetItemInfo(ItemInfo* p) override;
 	void PrimaryAttack() override;
 	void SecondaryAttack() override;
@@ -614,6 +642,7 @@ enum mp5_e
 	MP5_FIRE1,
 	MP5_FIRE2,
 	MP5_FIRE3,
+	MP5_HOLSTER,
 };
 
 class CMP5 : public CBasePlayerWeapon
@@ -621,12 +650,12 @@ class CMP5 : public CBasePlayerWeapon
 public:
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 3; }
 	bool GetItemInfo(ItemInfo* p) override;
 
 	void PrimaryAttack() override;
 	void SecondaryAttack() override;
 	bool Deploy() override;
+	void Holster() override;
 	void Reload() override;
 	void WeaponIdle() override;
 	float m_flNextAnimTime;
@@ -667,7 +696,6 @@ class CCrossbow : public CBasePlayerWeapon
 public:
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 3; }
 	bool GetItemInfo(ItemInfo* p) override;
 
 	void FireBolt();
@@ -719,12 +747,12 @@ public:
 
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 3; }
 	bool GetItemInfo(ItemInfo* p) override;
 
 	void PrimaryAttack() override;
 	void SecondaryAttack() override;
 	bool Deploy() override;
+	void Holster() override;
 	void Reload() override;
 	void WeaponIdle() override;
 	void ItemPostFrame() override;
@@ -758,6 +786,7 @@ public:
 	void EXPORT Revive();
 
 	static CLaserSpot* CreateSpot();
+	static CLaserSpot* CreateSpot(const char* spritename);
 };
 
 enum rpg_e
@@ -786,7 +815,6 @@ public:
 	void Spawn() override;
 	void Precache() override;
 	void Reload() override;
-	int iItemSlot() override { return 4; }
 	bool GetItemInfo(ItemInfo* p) override;
 
 	bool Deploy() override;
@@ -796,7 +824,6 @@ public:
 	void PrimaryAttack() override;
 	void SecondaryAttack() override;
 	void WeaponIdle() override;
-
 	void UpdateSpot();
 	bool ShouldWeaponIdle() override { return true; }
 
@@ -866,7 +893,6 @@ public:
 
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 4; }
 	bool GetItemInfo(ItemInfo* p) override;
 
 	bool Deploy() override;
@@ -950,7 +976,6 @@ public:
 
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 4; }
 	bool GetItemInfo(ItemInfo* p) override;
 
 	bool Deploy() override;
@@ -1024,7 +1049,6 @@ public:
 
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 4; }
 	bool GetItemInfo(ItemInfo* p) override;
 	void AddToPlayer(CBasePlayer* pPlayer) override;
 
@@ -1071,7 +1095,6 @@ class CHandGrenade : public CBasePlayerWeapon
 public:
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 5; }
 	bool GetItemInfo(ItemInfo* p) override;
 
 	void PrimaryAttack() override;
@@ -1118,7 +1141,6 @@ public:
 
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 5; }
 	bool GetItemInfo(ItemInfo* p) override;
 	void AddToPlayer(CBasePlayer* pPlayer) override;
 	void PrimaryAttack() override;
@@ -1161,7 +1183,6 @@ class CTripmine : public CBasePlayerWeapon
 public:
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 5; }
 	bool GetItemInfo(ItemInfo* p) override;
 	void SetObjectCollisionBox() override
 	{
@@ -1203,7 +1224,6 @@ class CSqueak : public CBasePlayerWeapon
 public:
 	void Spawn() override;
 	void Precache() override;
-	int iItemSlot() override { return 5; }
 	bool GetItemInfo(ItemInfo* p) override;
 
 	void PrimaryAttack() override;
@@ -1224,4 +1244,57 @@ public:
 
 private:
 	unsigned short m_usSnarkFire;
+};
+
+enum generic_e
+{
+	GENERIC_IDLE1 = 0,
+	GENERIC_IDLE2,
+	GENERIC_IDLE3,
+	GENERIC_SHOOT,
+	GENERIC_SHOOT2,
+	GENERIC_RELOAD,
+	GENERIC_RELOAD2,
+	GENERIC_DRAW,
+	GENERIC_HOLSTER,
+	GENERIC_SPECIAL
+};
+
+class CWpnGeneric : public CBasePlayerWeapon
+{
+public:
+	void Spawn() override;
+	bool GetItemInfo(ItemInfo* p) override;
+
+	void PrimaryAttack() override;
+	void SecondaryAttack() override;
+	bool Deploy() override;
+	void Holster() override;
+	void WeaponIdle() override;
+	void Precache() override;
+	void Reload() override;
+
+private:
+	int m_iShell;
+
+
+	unsigned short m_usFireGen1; //Different type of shots
+	unsigned short m_usFireGen2; //In next release may be extended. G-Cont.
+	unsigned short m_usFireGen3;
+
+public:
+	/*	int m_fInZoom; // don't save this
+	BOOL m_fNVG;//NightVision Status
+	CLaserSpot *m_pSpot;
+	int m_fSpotActive;
+	void UpdateSpot( void );
+*/
+	bool UseDecrement() override
+	{
+#if defined(CLIENT_WEAPONS)
+		return true;
+#else
+		return false;
+#endif
+	}
 };

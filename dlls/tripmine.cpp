@@ -92,7 +92,7 @@ void CTripmineGrenade::Spawn()
 	pev->framerate = 0;
 
 	UTIL_SetSize(pev, Vector(-8, -8, -8), Vector(8, 8, 8));
-	UTIL_SetOrigin(pev, pev->origin);
+	UTIL_SetOrigin(this, pev->origin);
 
 	//TODO: define constant
 	if ((pev->spawnflags & 1) != 0)
@@ -107,7 +107,7 @@ void CTripmineGrenade::Spawn()
 	}
 
 	SetThink(&CTripmineGrenade::PowerupThink);
-	pev->nextthink = gpGlobals->time + 0.2;
+	SetNextThink(0.2);
 
 	pev->takedamage = DAMAGE_YES;
 	pev->dmg = gSkillData.plrDmgTripmine;
@@ -145,7 +145,7 @@ void CTripmineGrenade::WarningThink()
 
 	// set to power up
 	SetThink(&CTripmineGrenade::PowerupThink);
-	pev->nextthink = gpGlobals->time + 1.0;
+	SetNextThink(1.0);
 }
 
 
@@ -163,7 +163,7 @@ void CTripmineGrenade::PowerupThink()
 		{
 			pev->owner = oldowner;
 			m_flPowerUp += 0.1;
-			pev->nextthink = gpGlobals->time + 0.1;
+			SetNextThink(0.1);
 			return;
 		}
 		if (tr.flFraction < 1.0)
@@ -178,8 +178,8 @@ void CTripmineGrenade::PowerupThink()
 			STOP_SOUND(ENT(pev), CHAN_VOICE, "weapons/mine_deploy.wav");
 			STOP_SOUND(ENT(pev), CHAN_BODY, "weapons/mine_charge.wav");
 			SetThink(&CTripmineGrenade::SUB_Remove);
-			pev->nextthink = gpGlobals->time + 0.1;
-			ALERT(at_console, "WARNING:Tripmine at %.0f, %.0f, %.0f removed\n", pev->origin.x, pev->origin.y, pev->origin.z);
+			SetNextThink(0.1);
+			ALERT(at_debug, "WARNING:Tripmine at %.0f, %.0f, %.0f removed\n", pev->origin.x, pev->origin.y, pev->origin.z);
 			KillBeam();
 			return;
 		}
@@ -194,7 +194,7 @@ void CTripmineGrenade::PowerupThink()
 
 		SetThink(&CTripmineGrenade::SUB_Remove);
 		KillBeam();
-		pev->nextthink = gpGlobals->time + 0.1;
+		SetNextThink(0.1);
 		return;
 	}
 	// ALERT( at_console, "%d %.0f %.0f %0.f\n", pev->owner, m_pOwner->pev->origin.x, m_pOwner->pev->origin.y, m_pOwner->pev->origin.z );
@@ -203,14 +203,14 @@ void CTripmineGrenade::PowerupThink()
 	{
 		// make solid
 		pev->solid = SOLID_BBOX;
-		UTIL_SetOrigin(pev, pev->origin);
+		UTIL_SetOrigin(this, pev->origin);
 
 		MakeBeam();
 
 		// play enabled sound
 		EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "weapons/mine_activate.wav", 0.5, ATTN_NORM, 1.0, 75);
 	}
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 }
 
 
@@ -236,7 +236,7 @@ void CTripmineGrenade::MakeBeam()
 
 	// set to follow laser spot
 	SetThink(&CTripmineGrenade::BeamBreakThink);
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	Vector vecTmpEnd = pev->origin + m_vecDir * 2048 * m_flBeamLength;
 
@@ -307,7 +307,7 @@ void CTripmineGrenade::BeamBreakThink()
 		return;
 	}
 
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 }
 
 bool CTripmineGrenade::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
@@ -317,7 +317,7 @@ bool CTripmineGrenade::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacke
 		// disable
 		// Create( "weapon_tripmine", pev->origin + m_vecDir * 24, pev->angles );
 		SetThink(&CTripmineGrenade::SUB_Remove);
-		pev->nextthink = gpGlobals->time + 0.1;
+		SetNextThink(0.1);
 		KillBeam();
 		return false;
 	}
@@ -335,7 +335,7 @@ void CTripmineGrenade::Killed(entvars_t* pevAttacker, int iGib)
 	}
 
 	SetThink(&CTripmineGrenade::DelayDeathThink);
-	pev->nextthink = gpGlobals->time + RANDOM_FLOAT(0.1, 0.3);
+	SetNextThink(RANDOM_FLOAT(0.1, 0.3));
 
 	EMIT_SOUND(ENT(pev), CHAN_BODY, "common/null.wav", 0.5, ATTN_NORM); // shut off chargeup
 }
@@ -425,7 +425,7 @@ void CTripmine::Holster()
 		// out of mines
 		m_pPlayer->ClearWeaponBit(m_iId);
 		SetThink(&CTripmine::DestroyItem);
-		pev->nextthink = gpGlobals->time + 0.1;
+		SetNextThink(0.1);
 	}
 
 	SendWeaponAnim(TRIPMINE_HOLSTER);

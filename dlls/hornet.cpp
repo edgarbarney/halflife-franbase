@@ -110,7 +110,7 @@ void CHornet::Spawn()
 		pev->dmg = gSkillData.monDmgHornet;
 	}
 
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 	ResetSequenceInfo();
 }
 
@@ -153,7 +153,8 @@ int CHornet::IRelationship(CBaseEntity* pTarget)
 //=========================================================
 int CHornet::Classify()
 {
-
+	if (m_iClass)
+		return m_iClass;
 	if (pev->owner && (pev->owner->v.flags & FL_CLIENT) != 0)
 	{
 		return CLASS_PLAYER_BIOWEAPON;
@@ -172,7 +173,7 @@ void CHornet::StartTrack()
 	SetTouch(&CHornet::TrackTouch);
 	SetThink(&CHornet::TrackTarget);
 
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 }
 
 //=========================================================
@@ -185,7 +186,7 @@ void CHornet::StartDart()
 	SetTouch(&CHornet::DartTouch);
 
 	SetThink(&CHornet::SUB_Remove);
-	pev->nextthink = gpGlobals->time + 4;
+	SetNextThink(4);
 }
 
 void CHornet::IgniteTrail()
@@ -258,7 +259,7 @@ void CHornet::TrackTarget()
 	{
 		SetTouch(NULL);
 		SetThink(&CHornet::SUB_Remove);
-		pev->nextthink = gpGlobals->time + 0.1;
+		SetNextThink(0.1);
 		return;
 	}
 
@@ -324,11 +325,11 @@ void CHornet::TrackTarget()
 	{
 	case HORNET_TYPE_RED:
 		pev->velocity = pev->velocity * (m_flFlySpeed * flDelta); // scale the dir by the ( speed * width of turn )
-		pev->nextthink = gpGlobals->time + RANDOM_FLOAT(0.1, 0.3);
+		SetNextThink(RANDOM_FLOAT(0.1, 0.3));
 		break;
 	case HORNET_TYPE_ORANGE:
 		pev->velocity = pev->velocity * m_flFlySpeed; // do not have to slow down to turn.
-		pev->nextthink = gpGlobals->time + 0.1;		  // fixed think time
+		SetNextThink(0.1);							  // fixed think time
 		break;
 	}
 
@@ -366,7 +367,7 @@ void CHornet::TrackTarget()
 				break;
 			}
 			pev->velocity = pev->velocity * 2;
-			pev->nextthink = gpGlobals->time + 1.0;
+			SetNextThink(1.0);
 			// don't attack again
 			m_flStopAttack = gpGlobals->time;
 		}
@@ -434,5 +435,5 @@ void CHornet::DieTouch(CBaseEntity* pOther)
 	pev->solid = SOLID_NOT;
 
 	SetThink(&CHornet::SUB_Remove);
-	pev->nextthink = gpGlobals->time + 1; // stick around long enough for the sound to finish!
+	SetNextThink(1); // stick around long enough for the sound to finish!
 }

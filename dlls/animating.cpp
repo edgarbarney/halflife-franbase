@@ -245,6 +245,15 @@ int CBaseAnimating::GetBodygroup(int iGroup)
 	return ::GetBodygroup(GET_MODEL_PTR(ENT(pev)), pev, iGroup);
 }
 
+int CBaseAnimating::GetBoneCount()
+{
+	return ::GetBoneCount(GET_MODEL_PTR(ENT(pev)));
+}
+
+void CBaseAnimating::SetBones(float (*data)[3], int datasize)
+{
+	::SetBones(GET_MODEL_PTR(ENT(pev)), data, datasize);
+}
 
 bool CBaseAnimating::ExtractBbox(int sequence, float* mins, float* maxs)
 {

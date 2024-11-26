@@ -25,12 +25,13 @@ constexpr int MAX_PLAYERS = 32;
 #define MAX_WEAPON_SLOTS 5 // hud item selection slots
 #define MAX_ITEM_TYPES 6   // hud item selection slots
 
-#define MAX_ITEMS 5 // hard coded item types
+#define MAX_ITEMS 10 //AJH (increased from 5 for expanded inventory system) hard coded item types
 
 #define HIDEHUD_WEAPONS (1 << 0)
 #define HIDEHUD_FLASHLIGHT (1 << 1)
 #define HIDEHUD_ALL (1 << 2)
 #define HIDEHUD_HEALTH (1 << 3)
+#define HIDEHUD_CUSTOMCROSSHAIR (1 << 4) //LRC - probably not the right way to do this, but it's just an experiment.
 
 #define MAX_AMMO_TYPES 32 // ???
 #define MAX_AMMO_SLOTS 32 // not really slots
@@ -46,8 +47,9 @@ enum WeaponId
 	WEAPON_CROWBAR,
 	WEAPON_GLOCK,
 	WEAPON_PYTHON,
+	WEAPON_GENERIC,
 	WEAPON_MP5,
-	WEAPON_CHAINGUN,
+	WEAPON_DEBUG,
 	WEAPON_CROSSBOW,
 	WEAPON_SHOTGUN,
 	WEAPON_RPG,
@@ -137,7 +139,7 @@ enum WeaponId
 #define POISON_DURATION 5
 #define POISON_DAMAGE 2.0
 
-#define RADIATION_DURATION 2
+#define RADIATION_DURATION 10
 #define RADIATION_DAMAGE 1.0
 
 #define ACID_DURATION 2

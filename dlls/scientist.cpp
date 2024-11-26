@@ -423,7 +423,7 @@ void CScientist::DeclineFollowing()
 {
 	Talk(10);
 	m_hTalkTarget = m_hEnemy;
-	PlaySentence("SC_POK", 2, VOL_NORM, ATTN_NORM);
+	PlaySentence(m_szGrp[TLK_DECLINE], 2, VOL_NORM, ATTN_NORM); //LRC
 }
 
 
@@ -590,7 +590,7 @@ void CScientist::RunTask(Task_t* pTask)
 //=========================================================
 int CScientist::Classify()
 {
-	return CLASS_HUMAN_PASSIVE;
+	return m_iClass ? m_iClass : CLASS_HUMAN_PASSIVE;
 }
 
 
@@ -665,13 +665,17 @@ void CScientist::Spawn()
 
 	Precache();
 
-	SET_MODEL(ENT(pev), GetScientistModel());
+	if (pev->model)
+		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
+	else
+		SET_MODEL(ENT(pev), GetScientistModel());
 	UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
 	m_bloodColor = BLOOD_COLOR_RED;
-	pev->health = gSkillData.scientistHealth;
+	if (pev->health == 0)
+		pev->health = gSkillData.scientistHealth;
 	pev->view_ofs = Vector(0, 0, 50);  // position of the eyes relative to monster's origin.
 	m_flFieldOfView = VIEW_FIELD_WIDE; // NOTE: we need a wide field of view so scientists will notice player and say hello
 	m_MonsterState = MONSTERSTATE_NONE;
@@ -696,7 +700,10 @@ void CScientist::Spawn()
 //=========================================================
 void CScientist::Precache()
 {
-	PRECACHE_MODEL(GetScientistModel());
+	if (pev->model)
+		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
+	else
+		PRECACHE_MODEL(GetScientistModel());
 	PRECACHE_SOUND("scientist/sci_pain1.wav");
 	PRECACHE_SOUND("scientist/sci_pain2.wav");
 	PRECACHE_SOUND("scientist/sci_pain3.wav");
@@ -724,27 +731,40 @@ void CScientist::TalkInit()
 
 	// scientists speach group names (group names are in sentences.txt)
 
-	m_szGrp[TLK_ANSWER] = "SC_ANSWER";
-	m_szGrp[TLK_QUESTION] = "SC_QUESTION";
-	m_szGrp[TLK_IDLE] = "SC_IDLE";
-	m_szGrp[TLK_STARE] = "SC_STARE";
-	m_szGrp[TLK_USE] = "SC_OK";
-	m_szGrp[TLK_UNUSE] = "SC_WAIT";
-	m_szGrp[TLK_STOP] = "SC_STOP";
-	m_szGrp[TLK_NOSHOOT] = "SC_SCARED";
-	m_szGrp[TLK_HELLO] = "SC_HELLO";
+	if (!m_iszSpeakAs)
+	{
+		m_szGrp[TLK_ANSWER] = "SC_ANSWER";
+		m_szGrp[TLK_QUESTION] = "SC_QUESTION";
+		m_szGrp[TLK_IDLE] = "SC_IDLE";
+		m_szGrp[TLK_STARE] = "SC_STARE";
+		if (pev->spawnflags & SF_MONSTER_PREDISASTER)
+			m_szGrp[TLK_USE] = "SC_PFOLLOW";
+		else
+			m_szGrp[TLK_USE] = "SC_OK";
+		if (pev->spawnflags & SF_MONSTER_PREDISASTER)
+			m_szGrp[TLK_UNUSE] = "SC_PWAIT";
+		else
+			m_szGrp[TLK_UNUSE] = "SC_WAIT";
+		if (pev->spawnflags & SF_MONSTER_PREDISASTER)
+			m_szGrp[TLK_DECLINE] = "SC_POK";
+		else
+			m_szGrp[TLK_DECLINE] = "SC_NOTOK";
+		m_szGrp[TLK_STOP] = "SC_STOP";
+		m_szGrp[TLK_NOSHOOT] = "SC_SCARED";
+		m_szGrp[TLK_HELLO] = "SC_HELLO";
 
-	m_szGrp[TLK_PLHURT1] = "!SC_CUREA";
-	m_szGrp[TLK_PLHURT2] = "!SC_CUREB";
-	m_szGrp[TLK_PLHURT3] = "!SC_CUREC";
+		m_szGrp[TLK_PLHURT1] = "!SC_CUREA";
+		m_szGrp[TLK_PLHURT2] = "!SC_CUREB";
+		m_szGrp[TLK_PLHURT3] = "!SC_CUREC";
 
-	m_szGrp[TLK_PHELLO] = "SC_PHELLO";
-	m_szGrp[TLK_PIDLE] = "SC_PIDLE";
-	m_szGrp[TLK_PQUESTION] = "SC_PQUEST";
-	m_szGrp[TLK_SMELL] = "SC_SMELL";
+		m_szGrp[TLK_PHELLO] = "SC_PHELLO";
+		m_szGrp[TLK_PIDLE] = "SC_PIDLE";
+		m_szGrp[TLK_PQUESTION] = "SC_PQUEST";
+		m_szGrp[TLK_SMELL] = "SC_SMELL";
 
-	m_szGrp[TLK_WOUND] = "SC_WOUND";
-	m_szGrp[TLK_MORTAL] = "SC_MORTAL";
+		m_szGrp[TLK_WOUND] = "SC_WOUND";
+		m_szGrp[TLK_MORTAL] = "SC_MORTAL";
+	}
 
 	// get voice for head
 	switch (pev->body % NUM_SCIENTIST_HEADS)
@@ -1219,7 +1239,7 @@ void CDeadScientist::Spawn()
 	pev->sequence = LookupSequence(m_szPoses[m_iPose]);
 	if (pev->sequence == -1)
 	{
-		ALERT(at_console, "Dead scientist with bad pose\n");
+		ALERT(at_debug, "Dead scientist with bad pose\n");
 	}
 
 	//	pev->skin += 2; // use bloody skin -- UNDONE: Turn this back on when we have a bloody skin again!
@@ -1273,13 +1293,21 @@ typedef enum
 } SITTING_ANIM;
 
 
+#define SF_SITTINGSCI_POSTDISASTER 1024
+
 //
 // ********** Scientist SPAWN **********
 //
 void CSittingScientist::Spawn()
 {
-	PRECACHE_MODEL(GetScientistModel());
-	SET_MODEL(ENT(pev), GetScientistModel());
+	if (pev->model)
+		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
+	else
+		PRECACHE_MODEL(GetScientistModel());
+	if (pev->model)
+		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
+	else
+		SET_MODEL(ENT(pev), GetScientistModel());
 	Precache();
 	InitBoneControllers();
 
@@ -1295,7 +1323,8 @@ void CSittingScientist::Spawn()
 
 	m_afCapability = bits_CAP_HEAR | bits_CAP_TURN_HEAD;
 
-	SetBits(pev->spawnflags, SF_MONSTER_PREDISASTER); // predisaster only!
+	if (!FBitSet(pev->spawnflags, SF_SITTINGSCI_POSTDISASTER)) //LRC- allow a sitter to be postdisaster.
+		SetBits(pev->spawnflags, SF_MONSTER_PREDISASTER);	   // predisaster only!
 
 	if (pev->body == -1)
 	{														 // -1 chooses a random head
@@ -1310,7 +1339,7 @@ void CSittingScientist::Spawn()
 	ResetSequenceInfo();
 
 	SetThink(&CSittingScientist::SittingThink);
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	DROP_TO_FLOOR(ENT(pev));
 }
@@ -1326,7 +1355,7 @@ void CSittingScientist::Precache()
 //=========================================================
 int CSittingScientist::Classify()
 {
-	return CLASS_HUMAN_PASSIVE;
+	return m_iClass ? m_iClass : CLASS_HUMAN_PASSIVE;
 }
 
 
@@ -1441,7 +1470,7 @@ void CSittingScientist::SittingThink()
 		pev->frame = 0;
 		SetBoneController(0, m_headTurn);
 	}
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 }
 
 // prepare sitting scientist to answer a question

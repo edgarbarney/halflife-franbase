@@ -47,6 +47,11 @@ bool CBaseEntity::ShouldToggle(USE_TYPE useType, bool currentState) { return fal
 int CBaseEntity::DamageDecal(int bitsDamageType) { return -1; }
 CBaseEntity* CBaseEntity::Create(const char* szName, const Vector& vecOrigin, const Vector& vecAngles, edict_t* pentOwner) { return NULL; }
 void CBaseEntity::SUB_Remove() {}
+void CBaseEntity::Activate() {}										  //LRC
+void CBaseEntity::InitMoveWith() {}									  //LRC
+void CBaseEntity::SetNextThink(float delay, bool correctSpeed) {}	  //LRC
+void CBaseEntity::AbsoluteNextThink(float time, bool correctSpeed) {} //LRC
+void CBaseEntity::ThinkCorrection() {}								  //LRC
 
 // CBaseDelay Stubs
 bool CBaseDelay::KeyValue(struct KeyValueData_s*) { return false; }
@@ -68,7 +73,7 @@ void UTIL_DecalTrace(TraceResult* pTrace, int decalNumber) {}
 void UTIL_GunshotDecalTrace(TraceResult* pTrace, int decalNumber) {}
 void UTIL_MakeVectors(const Vector& vecAngles) {}
 bool UTIL_IsValidEntity(edict_t* pent) { return true; }
-void UTIL_SetOrigin(entvars_t*, const Vector& org) {}
+void UTIL_SetOrigin(CBaseEntity*, const Vector& org) {}
 void UTIL_LogPrintf(char*, ...) {}
 void UTIL_ClientPrintAll(int, char const*, char const*, char const*, char const*, char const*) {}
 void ClientPrint(entvars_t* client, int msg_dest, const char* msg_name, const char* param1, const char* param2, const char* param3, const char* param4) {}
@@ -77,6 +82,7 @@ void ClientPrint(entvars_t* client, int msg_dest, const char* msg_name, const ch
 bool CBaseToggle::Restore(class CRestore&) { return true; }
 bool CBaseToggle::Save(class CSave&) { return true; }
 bool CBaseToggle::KeyValue(struct KeyValueData_s*) { return false; }
+STATE CBaseToggle::GetState() { return STATE_ON; } //LRC
 void CBaseToggle::PlaySentence(const char* pszSentence, float duration, float volume, float attenuation) {}
 void CBaseToggle::PlaySentenceCore(const char* pszSentence, float duration, float volume, float attenuation) {}
 void CBaseToggle::PlayScriptedSentence(const char* pszSentence, float duration, float volume, float attenuation, bool bConcurrent, CBaseEntity* pListener) {}
@@ -195,7 +201,7 @@ int CBaseMonster::FindHintNode() { return NO_NODE; }
 void CBaseMonster::ReportAIState() {}
 bool CBaseMonster::KeyValue(KeyValueData* pkvd) { return false; }
 bool CBaseMonster::FCheckAITrigger() { return false; }
-bool CBaseMonster::CanPlaySequence(bool fDisregardMonsterState, int interruptLevel) { return false; }
+bool CBaseMonster::CanPlaySequence(int interruptLevel) { return false; } //LRC - prototype changed
 bool CBaseMonster::FindLateralCover(const Vector& vecThreat, const Vector& vecViewOffset) { return false; }
 Vector CBaseMonster::ShootAtEnemy(const Vector& shootOrigin) { return g_vecZero; }
 bool CBaseMonster::FacingIdeal() { return false; }
@@ -256,7 +262,6 @@ void CBasePlayer::Precache() {}
 bool CBasePlayer::Save(CSave& save) { return false; }
 void CBasePlayer::RenewItems() {}
 bool CBasePlayer::Restore(CRestore& restore) { return false; }
-void CBasePlayer::SelectNextItem(int iItem) {}
 bool CBasePlayer::HasWeapons() { return false; }
 void CBasePlayer::SelectPrevItem(int iItem) {}
 bool CBasePlayer::FlashlightIsOn() { return false; }
@@ -267,7 +272,6 @@ void CBasePlayer::ImpulseCommands() {}
 void CBasePlayer::CheatImpulseCommands(int iImpulse) {}
 bool CBasePlayer::AddPlayerItem(CBasePlayerItem* pItem) { return false; }
 bool CBasePlayer::RemovePlayerItem(CBasePlayerItem* pItem) { return false; }
-void CBasePlayer::ItemPreFrame() {}
 void CBasePlayer::ItemPostFrame() {}
 int CBasePlayer::AmmoInventory(int iAmmoIndex) { return -1; }
 int CBasePlayer::GetAmmoIndex(const char* psz) { return -1; }
@@ -285,7 +289,6 @@ void CBasePlayer::SetCustomDecalFrames(int nFrames) {}
 int CBasePlayer::GetCustomDecalFrames() { return -1; }
 void CBasePlayer::DropPlayerItem(char* pszItemName) {}
 bool CBasePlayer::HasPlayerItem(CBasePlayerItem* pCheckItem) { return false; }
-bool CBasePlayer::SwitchWeapon(CBasePlayerItem* pWeapon) { return false; }
 Vector CBasePlayer::GetGunPosition() { return g_vecZero; }
 const char* CBasePlayer::TeamID() { return ""; }
 int CBasePlayer::GiveAmmo(int iCount, const char* szName, int iMax) { return 0; }

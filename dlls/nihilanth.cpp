@@ -282,14 +282,18 @@ void CNihilanth::Spawn()
 	pev->movetype = MOVETYPE_FLY;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL(edict(), "models/nihilanth.mdl");
+	if (pev->model)
+		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
+	else
+		SET_MODEL(edict(), "models/nihilanth.mdl");
 	// UTIL_SetSize(pev, Vector( -300, -300, 0), Vector(300, 300, 512));
 	UTIL_SetSize(pev, Vector(-32, -32, 0), Vector(32, 32, 64));
-	UTIL_SetOrigin(pev, pev->origin);
+	UTIL_SetOrigin(this, pev->origin);
 
 	pev->flags |= FL_MONSTER | FL_FLY;
 	pev->takedamage = DAMAGE_AIM;
-	pev->health = gSkillData.nihilanthHealth;
+	if (pev->health == 0)
+		pev->health = gSkillData.nihilanthHealth;
 	pev->view_ofs = Vector(0, 0, 300);
 
 	m_flFieldOfView = -1; // 360 degrees
@@ -300,7 +304,7 @@ void CNihilanth::Spawn()
 	InitBoneControllers();
 
 	SetThink(&CNihilanth::StartupThink);
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	m_vecDesired = Vector(1, 0, 0);
 	m_posDesired = Vector(pev->origin.x, pev->origin.y, 512);
@@ -333,7 +337,10 @@ void CNihilanth::Spawn()
 
 void CNihilanth::Precache()
 {
-	PRECACHE_MODEL("models/nihilanth.mdl");
+	if (pev->model)
+		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
+	else
+		PRECACHE_MODEL("models/nihilanth.mdl");
 	PRECACHE_MODEL("sprites/lgtning.spr");
 	UTIL_PrecacheOther("nihilanth_energy_ball");
 	UTIL_PrecacheOther("monster_alien_controller");
@@ -377,14 +384,14 @@ void CNihilanth::DeathSound()
 void CNihilanth::NullThink()
 {
 	StudioFrameAdvance();
-	pev->nextthink = gpGlobals->time + 0.5;
+	SetNextThink(0.5);
 }
 
 
 void CNihilanth::StartupUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
 	SetThink(&CNihilanth::HuntThink);
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 	SetUse(&CNihilanth::CommandUse);
 }
 
@@ -417,7 +424,7 @@ void CNihilanth::StartupThink()
 
 	SetThink(&CNihilanth::HuntThink);
 	SetUse(&CNihilanth::CommandUse);
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 }
 
 
@@ -428,7 +435,7 @@ void CNihilanth::Killed(entvars_t* pevAttacker, int iGib)
 
 void CNihilanth::DyingThink()
 {
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 	DispatchAnimEvents();
 	StudioFrameAdvance();
 
@@ -551,7 +558,7 @@ void CNihilanth::CrashTouch(CBaseEntity* pOther)
 	if (pOther->pev->solid == SOLID_BSP)
 	{
 		SetTouch(NULL);
-		pev->nextthink = gpGlobals->time;
+		SetNextThink(0);
 	}
 }
 
@@ -772,7 +779,7 @@ void CNihilanth::NextActivity()
 				sprintf(szText, "%s%d", m_szDrawUse, m_iLevel);
 				FireTargets(szText, this, this, USE_ON, 1.0);
 
-				ALERT(at_console, "fireing %s\n", szText);
+				ALERT(at_debug, "fireing %s\n", szText);
 			}
 			pev->sequence = LookupSequence("recharge");
 		}
@@ -843,7 +850,7 @@ void CNihilanth::NextActivity()
 
 void CNihilanth::HuntThink()
 {
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 	DispatchAnimEvents();
 	StudioFrameAdvance();
 
@@ -968,7 +975,7 @@ void CNihilanth::Flight()
 			m_flForce -= 10;
 	}
 
-	UTIL_SetOrigin(pev, pev->origin + m_velocity * 0.1);
+	UTIL_SetOrigin(this, pev->origin + m_velocity * 0.1);
 	pev->angles = pev->angles + m_avelocity * 0.1;
 
 	// ALERT( at_console, "%5.0f %5.0f : %4.0f : %3.0f : %2.0f\n", m_posDesired.z, pev->origin.z, m_velocity.z, m_avelocity.y, m_flForce );
@@ -1022,6 +1029,7 @@ bool CNihilanth::EmitSphere()
 }
 
 
+//LRC- never called(?)  No. --PC.
 void CNihilanth::TargetSphere(USE_TYPE useType, float value)
 {
 	CBaseMonster* pSphere;
@@ -1042,7 +1050,7 @@ void CNihilanth::TargetSphere(USE_TYPE useType, float value)
 
 	Vector vecSrc, vecAngles;
 	GetAttachment(2, vecSrc, vecAngles);
-	UTIL_SetOrigin(pSphere->pev, vecSrc);
+	UTIL_SetOrigin(pSphere, vecSrc);
 	pSphere->Use(this, this, useType, value);
 	pSphere->pev->velocity = m_vecDesired * RANDOM_FLOAT(50, 100) + Vector(RANDOM_FLOAT(-50, 50), RANDOM_FLOAT(-50, 50), RANDOM_FLOAT(-50, 50));
 }
@@ -1350,11 +1358,11 @@ void CNihilanthHVR::CircleInit(CBaseEntity* pTarget)
 	pev->renderamt = 255;
 
 	UTIL_SetSize(pev, Vector(0, 0, 0), Vector(0, 0, 0));
-	UTIL_SetOrigin(pev, pev->origin);
+	UTIL_SetOrigin(this, pev->origin);
 
 	SetThink(&CNihilanthHVR::HoverThink);
 	SetTouch(&CNihilanthHVR::BounceTouch);
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	m_hTargetEnt = pTarget;
 }
@@ -1377,7 +1385,7 @@ CBaseEntity* CNihilanthHVR::RandomClassname(const char* szName)
 
 void CNihilanthHVR::HoverThink()
 {
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	if (m_hTargetEnt != NULL)
 	{
@@ -1457,14 +1465,14 @@ void CNihilanthHVR::ZapInit(CBaseEntity* pEnemy)
 	m_hEnemy = pEnemy;
 	SetThink(&CNihilanthHVR::ZapThink);
 	SetTouch(&CNihilanthHVR::ZapTouch);
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	EMIT_SOUND_DYN(edict(), CHAN_WEAPON, "debris/zap4.wav", 1, ATTN_NORM, 0, 100);
 }
 
 void CNihilanthHVR::ZapThink()
 {
-	pev->nextthink = gpGlobals->time + 0.05;
+	SetNextThink(0.05);
 
 	// check world boundaries
 	if (m_hEnemy == NULL || pev->origin.x < -4096 || pev->origin.x > 4096 || pev->origin.y < -4096 || pev->origin.y > 4096 || pev->origin.z < -4096 || pev->origin.z > 4096)
@@ -1519,7 +1527,7 @@ void CNihilanthHVR::ZapThink()
 
 		SetTouch(NULL);
 		UTIL_Remove(this);
-		pev->nextthink = gpGlobals->time + 0.2;
+		SetNextThink(0.2);
 		return;
 	}
 
@@ -1559,7 +1567,7 @@ void CNihilanthHVR::ZapTouch(CBaseEntity* pOther)
 
 	SetTouch(NULL);
 	UTIL_Remove(this);
-	pev->nextthink = gpGlobals->time + 0.2;
+	SetNextThink(0.2);
 }
 
 
@@ -1583,7 +1591,7 @@ void CNihilanthHVR::TeleportInit(CNihilanth* pOwner, CBaseEntity* pEnemy, CBaseE
 
 	SetThink(&CNihilanthHVR::TeleportThink);
 	SetTouch(&CNihilanthHVR::TeleportTouch);
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	EMIT_SOUND_DYN(edict(), CHAN_WEAPON, "x/x_teleattack1.wav", 1, 0.2, 0, 100);
 }
@@ -1607,7 +1615,7 @@ void CNihilanthHVR::GreenBallInit()
 
 void CNihilanthHVR::TeleportThink()
 {
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	// check world boundaries
 	if (m_hEnemy == NULL || !m_hEnemy->IsAlive() || pev->origin.x < -4096 || pev->origin.x > 4096 || pev->origin.y < -4096 || pev->origin.y > 4096 || pev->origin.z < -4096 || pev->origin.z > 4096)
@@ -1699,7 +1707,7 @@ void CNihilanthHVR::TeleportTouch(CBaseEntity* pOther)
 
 void CNihilanthHVR::DissipateThink()
 {
-	pev->nextthink = gpGlobals->time + 0.1;
+	SetNextThink(0.1);
 
 	if (pev->scale > 5.0)
 		UTIL_Remove(this);

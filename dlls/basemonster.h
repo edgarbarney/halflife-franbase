@@ -114,6 +114,8 @@ public:
 	bool Save(CSave& save) override;
 	bool Restore(CRestore& restore) override;
 
+	STATE GetState(void) override { return (pev->deadflag == DEAD_DEAD) ? STATE_OFF : STATE_ON; }
+
 	static TYPEDESCRIPTION m_SaveData[];
 
 	bool KeyValue(KeyValueData* pkvd) override;
@@ -123,6 +125,11 @@ public:
 	void EXPORT CorpseUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 
 	// overrideable Monster member functions
+
+	// LRC- to allow level-designers to change monster allegiances
+	int m_iClass;
+	int m_iPlayerReact;
+	int Classify() override { return m_iClass ? m_iClass : CLASS_NONE; }
 
 	int BloodColor() override { return m_bloodColor; }
 
@@ -192,7 +199,7 @@ public:
 	virtual Schedule_t* GetSchedule();
 	virtual void ScheduleChange() {}
 	// virtual bool CanPlaySequence() { return ((m_pCine == NULL) && (m_MonsterState == MONSTERSTATE_NONE || m_MonsterState == MONSTERSTATE_IDLE || m_IdealMonsterState == MONSTERSTATE_IDLE)); }
-	virtual bool CanPlaySequence(bool fDisregardState, int interruptLevel);
+	virtual bool CanPlaySequence(int interruptFlags);
 	virtual bool CanPlaySentence(bool fDisregardState) { return IsAllowedToSpeak(); }
 	virtual bool IsAllowedToSpeak() { return IsAlive() && (m_MonsterState == MONSTERSTATE_SCRIPT || pev->deadflag == DEAD_NO); }
 
@@ -310,6 +317,7 @@ public:
 	virtual void GibMonster();
 	bool ShouldGibMonster(int iGib);
 	void CallGibMonster();
+	virtual bool HasCustomGibs() { return false; } //LRC
 	virtual bool HasHumanGibs();
 	virtual bool HasAlienGibs();
 	virtual void FadeMonster(); // Called instead of GibMonster() when gibs are disabled
@@ -355,9 +363,23 @@ public:
 	bool ExitScriptedSequence();
 	bool CineCleanup();
 
+	void StartPatrol(CBaseEntity* path);
+
 	/**
 	*	@brief Drop an item.
 	*	Will return @c nullptr if item dropping is disabled for this NPC.
 	*/
 	CBaseEntity* DropItem(const char* pszItemName, const Vector& vecPos, const Vector& vecAng);
+
+	//LRC
+	bool CalcNumber(CBaseEntity* pLocus, float* OUTresult) override
+	{
+		//LRC 1.8 - health 0 when dead
+		if (IsAlive())
+			*OUTresult = pev->health / pev->max_health;
+		else
+			*OUTresult = 0;
+
+		return true;
+	}
 };
