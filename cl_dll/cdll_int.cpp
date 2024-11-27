@@ -39,17 +39,39 @@
 #include "vgui_TeamFortressViewport.h"
 #include "filesystem_utils.h"
 
+// RENDERERS START
+#include "renderer/rendererdefs.h"
+#include "renderer/particle_engine.h"
+#include "renderer/bsprenderer.h"
+#include "renderer/propmanager.h"
+#include "renderer/textureloader.h"
+#include "renderer/watershader.h"
+#include "renderer/mirrormanager.h"
+
+#include "studio.h"
+#include "StudioModelRenderer.h"
+#include "GameStudioModelRenderer.h"
+
+extern CGameStudioModelRenderer g_StudioRenderer;
+extern engine_studio_api_t IEngineStudio;
+// RENDERERS END
+
+
 cl_enginefunc_t gEngfuncs;
 CHud gHUD;
 CMP3 gMP3; //AJH - Killars MP3player
 TeamFortressViewport* gViewPort = NULL;
 
+// RENDERERS START
+CBSPRenderer gBSPRenderer;
+CParticleEngine gParticleEngine;
+CWaterShader gWaterShader;
 
-#include "particleman.h"
-IParticleMan* g_pParticleMan = nullptr;
+CTextureLoader gTextureLoader;
+CPropManager gPropManager;
+CMirrorManager gMirrorManager;
+// RENDERERS END
 
-void CL_LoadParticleMan();
-void CL_UnloadParticleMan();
 
 void InitInput();
 void EV_HookEvents();
@@ -115,7 +137,9 @@ void DLLEXPORT HUD_PlayerMove(struct playermove_s* ppmove, int server)
 static bool CL_InitClient()
 {
 	EV_HookEvents();
-	CL_LoadParticleMan();
+	// RENDERERS START
+	R_DisableSteamMSAA();
+	// RENDERERS END
 
 	if (!FileSystem_LoadFileSystem())
 	{
@@ -208,12 +232,18 @@ called every screen frame to
 redraw the HUD.
 ===========================
 */
-
+// RENDERERS START
+extern void HUD_PrintSpeeds();
+// RENDERERS END
 int DLLEXPORT HUD_Redraw(float time, int intermission)
 {
 	//	RecClHudRedraw(time, intermission);
 
 	gHUD.Redraw(time, 0 != intermission);
+
+	// RENDERERS START
+	HUD_PrintSpeeds();
+	// RENDERERS END
 
 	return 1;
 }
@@ -302,23 +332,20 @@ void DLLEXPORT HUD_DirectorMessage(int iSize, void* pbuf)
 	gHUD.m_Spectator.DirectorMessage(iSize, pbuf);
 }
 
-void CL_UnloadParticleMan()
+// RENDERERS_START
+/*
+==========================
+CL_GetModelData
+
+
+==========================
+*/
+extern "C" __declspec(dllexport) void CL_GetModelByIndex(int iIndex, void** pPointer)
 {
-	g_pParticleMan = nullptr;
+	void* pModel = IEngineStudio.GetModelByIndex(iIndex);
+	*pPointer = pModel;
 }
-
-void CL_LoadParticleMan()
-{
-	//Now implemented in the client library.
-	auto particleManFactory = Sys_GetFactoryThis();
-
-	g_pParticleMan = (IParticleMan*)particleManFactory(PARTICLEMAN_INTERFACE, nullptr);
-
-	if (g_pParticleMan)
-	{
-		g_pParticleMan->SetUp(&gEngfuncs);
-	}
-}
+// RENDERERS_END
 
 extern "C" void DLLEXPORT F(void* pv)
 {

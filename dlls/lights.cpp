@@ -27,6 +27,13 @@
 //LRC
 int GetStdLightStyle(int iStyle)
 {
+	// Fran: Trinity uses fullbright everytime. Idk why.
+	
+//RENDERERS START
+	return MAKE_STRING("m");
+//RENDERERS END
+
+	/*
 	switch (iStyle)
 	{
 	// 0 normal
@@ -114,6 +121,7 @@ int GetStdLightStyle(int iStyle)
 	default:
 		return MAKE_STRING("m");
 	}
+	*/
 }
 
 

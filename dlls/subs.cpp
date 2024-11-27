@@ -32,6 +32,7 @@
 #include "movewith.h"
 #include "player.h"
 #include "locus.h"
+#include "UserMessages.h"
 
 #define ACCELTIMEINCREMENT 0.1 //AJH for acceleration/deceleration time steps
 
@@ -184,6 +185,15 @@ void CBaseEntity::SUB_Remove()
 		pev->health = 0;
 		ALERT(at_aiconsole, "SUB_Remove called on entity with health > 0\n");
 	}
+
+//RENDERERS START
+	if (gmsgFreeEnt)
+	{
+		MESSAGE_BEGIN(MSG_ALL, gmsgFreeEnt);
+		WRITE_SHORT(entindex());
+		MESSAGE_END();
+	}
+//RENDERERS END
 
 	REMOVE_ENTITY(ENT(pev));
 }

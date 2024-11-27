@@ -18,6 +18,14 @@
 #include "screenfade.h"
 #include "shake.h"
 #include "hltv.h"
+
+// RENDERERS START
+#include "renderer/bsprenderer.h"
+#include "renderer/propmanager.h"
+#include "renderer/mirrormanager.h"
+#include "renderer/watershader.h"
+// RENDERERS END
+
 #include "Exports.h"
 
 int CL_IsThirdPerson();
@@ -483,9 +491,6 @@ V_CalcRefdef
 
 ==================
 */
-extern void RenderFog();	   //LRC
-extern void ClearToFogColor(); //LRC
-
 void V_CalcNormalRefdef(struct ref_params_s* pparams)
 {
 	cl_entity_t *ent, *view;
@@ -867,18 +872,6 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 	lasttime = pparams->time;
 
 	v_origin = pparams->vieworg;
-
-	//LRC 1.8 - clear to the fog color (if any) on the first pass
-	if (pparams->nextView == 0)
-	{
-		ClearToFogColor();
-	}
-
-	//LRC 1.8 - no fog in the env_sky
-	if (gHUD.m_iSkyMode != SKY_ON_DRAWING)
-	{
-		RenderFog();
-	}
 
 	if (gHUD.viewFlags & 1 && gHUD.m_iSkyMode == SKY_OFF) // custom view active (trigger_viewset) //AJH (added skymode check and copied function to above)
 	{
@@ -1823,6 +1816,10 @@ void DLLEXPORT V_CalcRefdef(struct ref_params_s* pparams)
 	}
 #endif
 */
+// RENDERER START
+	// 2012-02-25
+	R_CalcRefDef(pparams);
+// RENDERER END
 }
 
 /*

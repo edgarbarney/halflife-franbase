@@ -110,14 +110,21 @@
 #define EF_NOINTERP 32		// don't interpolate the next frame
 #define EF_LIGHT 64			// rocket flare glow sprite
 #define EF_NODRAW 128		// don't draw entity
-#define EF_NIGHTVISION 256	// player nightvision
-#define EF_SNIPERLASER 512	// sniper laser effect
-#define EF_FIBERCAMERA 1024 // fiber camera
+//RENDERERS START
+#define FL_ELIGHT 256
+#define FL_DLIGHT 512
+#define FL_SPOTLIGHT 1024
+#define FL_WATERSHADER 2048
+#define FL_MIRROR 4096
+#define FL_NOSHADOW 8192
+#define FL_NOMODEL 16384
+//RENDERERS END
 
 
 // entity flags
 #define EFLAG_SLERP 1 // do studio interpolation of this entity
 #define EFLAG_FLESH_SOUND 2 // JoshA: Whether this entity should sound like flesh. (ie. pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE)
+#define EFLAG_CONVEYOR 3	
 
 //
 // temp entity events
@@ -599,6 +606,11 @@
 
 #define CONTENTS_TRANSLUCENT	-15
 */
+
+//RENDERERS START
+#define CONTENTS_CONVEYOR -15
+//RENDERERS END
+
 #define CONTENTS_LADDER -16
 
 #define CONTENT_FLYFIELD -17
@@ -607,6 +619,10 @@
 #define CONTENT_SPECIAL1 -20 //LRC - used by the particle systems
 #define CONTENT_SPECIAL2 -21
 #define CONTENT_SPECIAL3 -22
+
+//RENDERERS START
+#define CONTENT_FRICTIONMOD -23
+//RENDERERS END
 
 #define CONTENT_EMPTY -1
 #define CONTENT_SOLID -2
@@ -717,9 +733,13 @@ enum
 	kRenderFxExplode,		  // Scale up really big!
 	kRenderFxGlowShell,		  // Glowing Shell
 	kRenderFxClampMinScale,	  // Keep this sprite from getting very small (SPRITES only!)
+	//SPIRIT
 	kRenderFxLightMultiplier, //CTM !!!CZERO added to tell the studiorender that the value in iuser2 is a lightmultiplier
 	kRenderFxReflection,	  //LRC - draw a reflection under my feet
 	kRenderFxEntInPVS,		  //G-Cont - this style for entity, which draw always
+	//RENDERERS START
+	kRenderFxNoShadow,		  // Trinity.
+	//RENDERERS END
 };
 
 #define _DEF_BYTE_

@@ -21,13 +21,10 @@ inline int gmsgFlashlight = 0;
 inline int gmsgFlashBattery = 0;
 inline int gmsgResetHUD = 0;
 inline int gmsgInitHUD = 0;
-inline int gmsgSetFog = 0;		// LRC
 inline int gmsgKeyedDLight = 0; // LRC
 inline int gmsgKeyedELight = 0; // LRC
 inline int gmsgSetSky = 0;		// LRC
 inline int gmsgHUDColor = 0;	// LRC
-inline int gmsgAddShine = 0;	// LRC
-inline int gmsgParticle = 0;	// LRC
 inline int gmsgClampView = 0;	// LRC 1.8
 inline int gmsgPlayMP3 = 0;		// Killar
 inline int gmsgShowGameTitle = 0;
@@ -62,8 +59,18 @@ inline int gmsgStatusIcon = 0; //LRC
 inline int gmsgStatusText = 0;
 inline int gmsgStatusValue = 0;
 inline int gmsgCamData = 0; // for trigger_viewset
-inline int gmsgRainData = 0;
 inline int gmsgInventory = 0; //AJH Inventory system
+//RENDERERS START
+inline int gmsgSetFog = 0;
+inline int gmsgLightStyle = 0;
+inline int gmsgCreateDecal = 0;
+inline int gmsgStudioDecal = 0;
+inline int gmsgSkyMark_Sky = 0;
+inline int gmsgSkyMark_World = 0;
+inline int gmsgCreateDLight = 0;
+inline int gmsgFreeEnt = 0;
+inline int gmsgCreateSystem = 0;
+//RENDERERS END
 
 inline int gmsgWeapons = 0;
 

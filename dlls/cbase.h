@@ -309,6 +309,10 @@ public:
 	virtual void PostSpawn() {} //LRC - called by Activate() to handle entity-specific initialisation.
 								// (mostly setting positions, for MoveWith support)
 
+// RENDERERS START
+	virtual void SendInitMessage(CBasePlayer* player){};
+// RENDERERS END
+
 	// Setup the object->object collision box (pev->mins / pev->maxs is the object->world collision box)
 	virtual void SetObjectCollisionBox();
 
@@ -347,7 +351,11 @@ public:
 	virtual float GetDelay() { return 0; }
 	virtual bool IsMoving() { return pev->velocity != g_vecZero; }
 	virtual void OverrideReset() {}
-	virtual int DamageDecal(int bitsDamageType);
+
+// RENDERERS START
+	virtual char* DamageDecal(int bitsDamageType);
+// RENDERERS END
+
 	// This is ONLY used by the node graph to test movement through a door
 	virtual void SetToggleState(int state) {}
 	virtual void StartSneaking() {}

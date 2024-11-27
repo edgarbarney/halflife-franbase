@@ -32,6 +32,12 @@
 
 #include "vgui_TeamFortressViewport.h"
 
+#ifdef _MINWINDEF_
+#ifdef min
+#undef min // AAAAAAAAAAAAAAAAAA SODDIN WINDOWS HEADERS STOP OVERRIDING STD::MIN WTFFF
+#endif
+#endif
+
 DECLARE_MESSAGE(m_TextMessage, TextMsg);
 
 bool CHudTextMessage::Init()

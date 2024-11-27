@@ -2064,21 +2064,6 @@
 ]
 
 //NEW 0.6
-@PointClass base(Targetname) iconsprite("sprites/env.spr") = env_fog : "Fog effect, DMC stylee"
-[
-	fadein(integer) : "Fade in time" : 0
-	holdtime(string) : "Hold time (0 = permanent)" : "0"
-	fadeout(integer) : "Fade out time" : 0
-	startdist(integer) : "Fog start position" : 0
-      enddist(integer) : "Fog end position" : 1000
-	rendercolor(color255) : "Fog Color (R G B)" : "255 255 255"
-	spawnflags(flags) =
-	[
-		1 : "Start active"   : 0
-	]
-]
-
-//NEW 0.6
 //* To set the player's footstep sounds, trigger this entity 'on'. To revert to normal,
 //* trigger it 'off' in the same way.
 //*   Alternatively, you can just toggle it, to alternately set and unset the sounds.
@@ -2955,25 +2940,6 @@
 	_minlight(integer) : "_minlight"
 	spawnorigin(string) : "X Y Z - Move here after lighting" : "0 0 0"
 	dmg(integer) : "Damage inflicted when blocked" : 0
-]
-
-//NEW 1.1
-@SolidClass base(Targetname) = func_shine : "Shiny Surface" 
-[
-	message(sprite) : "Shine sprite" : "sprites/bgspr.spr"
-	scale(integer) : "Shine scale" : 10
-	renderamt(integer) : "Shine brightness (0-255)" : 50
-]
-
-@SolidClass base(BaseTank, ZHLTLightKeys) = func_tank : "Brush Gun Turret" 
-[
-	bullet(choices) : "Bullets" : 0 = 
-	[
-		0: "None"
-		1: "9mm"
-		2: "MP5"
-		3: "12mm"
-	]
 ]
 
 @SolidClass base(Targetname, MoveWith) = func_tankcontrols : "Tank controls"
@@ -6070,24 +6036,3 @@ sequence(Choices) : "Animation Sequence (editor)" : 10 =
 @PointClass base(Targetname, Angles, RenderFields) size(-40 -40 0, 40 40 120 ) studio("models/fungus.mdl")= xen_spore_medium : "Xen Spore (medium)" []
 @PointClass base(Targetname, Angles, RenderFields) size(-16 -16 0, 16 16 64 ) studio("models/fungus(small).mdl")= xen_spore_small : "Xen Spore (small)" []
 @PointClass base(Targetname, Angles, RenderFields) size(-24 -24 0, 24 24 188 ) studio("models/tree.mdl")= xen_tree : "Xen Tree" []
-
-//NEW 1.5 
-//G-Conts Rain System (rain_settings & rain_modify) 
-@PointClass iconsprite("sprites/env.spr") = rain_settings : "Constant map settings" 
-[ 
-m_flDistance(integer) : "Rain distance" : 1000 
-m_iMode(choices) : "Weather type" : 0 = 
-[ 
-0: "Rain" 
-1: "Snow" 
-] 
-] 
-@PointClass iconsprite("sprites/env.spr") = rain_modify : "Modify rain settings" 
-[ 
-m_flTime(integer) : "Fading time" : 0 
-m_iDripsPerSecond(integer) : "Drips per second" : 800 
-m_flWindX(integer) : "Wind X" : 0 
-m_flWindY(integer) : "Wind Y" : 0 
-m_flRandX(integer) : "Rand X" : 0 
-m_flRandY(integer) : "Rand Y" : 0 
-] 

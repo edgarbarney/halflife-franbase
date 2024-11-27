@@ -25,8 +25,8 @@ Studio models are position independent, so the cache manager can move them.
 */
 
 
-#define MAXSTUDIOTRIANGLES 20000 // TODO: tune this
-#define MAXSTUDIOVERTS 2048		 // TODO: tune this
+#define MAXSTUDIOTRIANGLES 4096  // TODO: tune this
+#define MAXSTUDIOVERTS 8192		 // TODO: tune this
 #define MAXSTUDIOSEQUENCES 2048	 // total animation sequences -- KSH incremented
 #define MAXSTUDIOSKINS 100		 // total textures
 #define MAXSTUDIOSRCBONES 512	 // bones allowed at source movement
@@ -152,8 +152,8 @@ typedef struct
 {
 	char label[32]; // textual name
 	char name[64];	// file name
-	int32 unused1;	// was "cache"  - index pointer
-	int unused2;	// was "data" -  hack for group 0
+	int32 cache;	// cache index pointer
+	int data;		// hack for group 0
 } mstudioseqgroup_t;
 
 // sequence descriptions
@@ -323,13 +323,16 @@ typedef struct
 #endif
 
 // lighting options
-#define STUDIO_NF_FLATSHADE 0x0001
-#define STUDIO_NF_CHROME 0x0002
-#define STUDIO_NF_FULLBRIGHT 0x0004
-#define STUDIO_NF_NOMIPS 0x0008
-#define STUDIO_NF_ALPHA 0x0010
-#define STUDIO_NF_ADDITIVE 0x0020
-#define STUDIO_NF_MASKED 0x0040
+#define STUDIO_NF_FLATSHADE 0x0001	// 1
+#define STUDIO_NF_CHROME 0x0002		// 2
+#define STUDIO_NF_FULLBRIGHT 0x0004 // 4
+#define STUDIO_NF_NOMIPS 0x0008		// 8
+#define STUDIO_NF_ALPHA 0x0010		// 16
+#define STUDIO_NF_ADDITIVE 0x0020	// 32
+#define STUDIO_NF_ALPHATEST 0x0040	// 64
+
+#define STUDIO_NF_NOMIPMAP STUDIO_NF_NOMIPS // TRINITY-SPIRIT COMPATIBILITY
+
 
 // motion flags
 #define STUDIO_X 0x0001

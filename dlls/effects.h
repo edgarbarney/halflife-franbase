@@ -236,37 +236,49 @@ public:
 	int m_iTowardsMode;
 };
 
-class CRainSettings : public CBaseEntity
+// RENDERERS START
+//=======================
+//  ClientFog
+//=======================
+class CClientFog : public CBaseEntity
 {
 public:
-	void Spawn() override;
-	bool KeyValue(KeyValueData* pkvd) override;
+	void Spawn(void);
+	bool KeyValue(KeyValueData* pkvd);
+	void SendInitMessage(CBasePlayer* player);
 
-	int ObjectCaps() override { return (CBaseEntity ::ObjectCaps() & ~FCAP_ACROSS_TRANSITION); }
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+	float m_iStartDist;
+	float m_iEndDist;
 
-	bool Save(CSave& save) override;
-	bool Restore(CRestore& restore) override;
+	bool m_fActive;
+	bool m_bDontAffectSky;
+
+	virtual bool Save(CSave& save);
+	virtual bool Restore(CRestore& restore);
 	static TYPEDESCRIPTION m_SaveData[];
 
-	float Rain_Distance;
-	int Rain_Mode;
+public:
+	static CClientFog* FogCreate(void);
 };
 
-class CRainModify : public CBaseEntity
+//=======================
+// CItemProp
+//=======================
+class CItemProp : public CBaseAnimating
 {
 public:
-	void Spawn() override;
-	bool KeyValue(KeyValueData* pkvd) override;
-	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
+	void Spawn(void);
+	void Precache(void);
+	bool KeyValue(KeyValueData* pkvd);
 
-	int ObjectCaps() override { return (CBaseEntity ::ObjectCaps() & ~FCAP_ACROSS_TRANSITION); }
+	virtual int ObjectCaps(void) { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
-	bool Save(CSave& save) override;
-	bool Restore(CRestore& restore) override;
+	virtual bool Save(CSave& save);
+	virtual bool Restore(CRestore& restore);
 	static TYPEDESCRIPTION m_SaveData[];
 
-	int Rain_Drips;
-	float Rain_windX, Rain_windY;
-	float Rain_randX, Rain_randY;
-	float fadeTime;
+	bool m_fDisableShadows;
+	bool m_fDisableDrawing;
 };
+// RENDERERS END

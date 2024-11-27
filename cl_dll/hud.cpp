@@ -32,7 +32,23 @@
 #include "demo.h"
 #include "demo_api.h"
 #include "vgui_ScorePanel.h"
-#include "rain.h"
+
+// RENDERERS START
+#include "renderer/bsprenderer.h"
+#include "renderer/propmanager.h"
+#include "renderer/textureloader.h"
+#include "renderer/particle_engine.h"
+#include "renderer/watershader.h"
+#include "renderer/mirrormanager.h"
+#include "r_efx.h"
+
+#include "studio.h"
+#include "StudioModelRenderer.h"
+#include "GameStudioModelRenderer.h"
+
+extern CGameStudioModelRenderer g_StudioRenderer;
+extern engine_studio_api_t IEngineStudio;
+// RENDERERS END
 
 hud_player_info_t g_PlayerInfoList[MAX_PLAYERS_HUD + 1];	// player info from the engine
 extra_player_info_t g_PlayerExtraInfo[MAX_PLAYERS_HUD + 1]; // additional player info sent directly to the client dll
@@ -106,23 +122,9 @@ int __MsgFunc_HUDColor(const char* pszName, int iSize, void* pbuf)
 }
 
 //LRC
-int __MsgFunc_SetFog(const char* pszName, int iSize, void* pbuf)
-{
-	gHUD.MsgFunc_SetFog(pszName, iSize, pbuf);
-	return 1;
-}
-
-//LRC
 int __MsgFunc_KeyedDLight(const char* pszName, int iSize, void* pbuf)
 {
 	gHUD.MsgFunc_KeyedDLight(pszName, iSize, pbuf);
-	return 1;
-}
-
-//LRC
-int __MsgFunc_AddShine(const char* pszName, int iSize, void* pbuf)
-{
-	gHUD.MsgFunc_AddShine(pszName, iSize, pbuf);
 	return 1;
 }
 
@@ -136,12 +138,6 @@ int __MsgFunc_SetSky(const char* pszName, int iSize, void* pbuf)
 {
 	gHUD.MsgFunc_SetSky(pszName, iSize, pbuf);
 	return 1;
-}
-
-// G-Cont. rain message
-int __MsgFunc_RainData(const char* pszName, int iSize, void* pbuf)
-{
-	return gHUD.MsgFunc_RainData(pszName, iSize, pbuf);
 }
 
 //LRC 1.8
@@ -364,6 +360,53 @@ int __MsgFunc_AllowSpec(const char* pszName, int iSize, void* pbuf)
 	return 0;
 }
 
+// RENDERERS START
+int __MsgFunc_SetFog(const char* pszName, int iSize, void* pbuf)
+{
+	return gHUD.MsgFunc_SetFog(pszName, iSize, pbuf);
+}
+
+int __MsgFunc_LightStyle(const char* pszName, int iSize, void* pbuf)
+{
+	return gHUD.MsgFunc_LightStyle(pszName, iSize, pbuf);
+}
+
+int __MsgFunc_CreateDecal(const char* pszName, int iSize, void* pbuf)
+{
+	return gBSPRenderer.MsgCustomDecal(pszName, iSize, pbuf);
+}
+
+int __MsgFunc_StudioDecal(const char* pszName, int iSize, void* pbuf)
+{
+	return gHUD.MsgFunc_StudioDecal(pszName, iSize, pbuf);
+}
+
+int __MsgFunc_SkyMark_S(const char* pszName, int iSize, void* pbuf)
+{
+	return gBSPRenderer.MsgSkyMarker_Sky(pszName, iSize, pbuf);
+}
+
+int __MsgFunc_SkyMark_W(const char* pszName, int iSize, void* pbuf)
+{
+	return gBSPRenderer.MsgSkyMarker_World(pszName, iSize, pbuf);
+}
+
+int __MsgFunc_DynLight(const char* pszName, int iSize, void* pbuf)
+{
+	return gBSPRenderer.MsgDynLight(pszName, iSize, pbuf);
+}
+
+int __MsgFunc_FreeEnt(const char* pszName, int iSize, void* pbuf)
+{
+	return gHUD.MsgFunc_FreeEnt(pszName, iSize, pbuf);
+}
+
+int __MsgFunc_Particle(const char* pszName, int iSize, void* pbuf)
+{
+	return gParticleEngine.MsgCreateSystem(pszName, iSize, pbuf);
+}
+// RENDERERS END
+
 // This is called every time the DLL is loaded
 void CHud::Init()
 {
@@ -379,14 +422,9 @@ void CHud::Init()
 	HOOK_MESSAGE(Concuss);
 	HOOK_MESSAGE(Weapons);
 	HOOK_MESSAGE(HUDColor);	   //LRC
-	HOOK_MESSAGE(SetFog);	   //LRC
-	HOOK_MESSAGE(KeyedDLight); //LRC
-							   //	HOOK_MESSAGE( KeyedELight ); //LRC
-	HOOK_MESSAGE(AddShine);	   //LRC
 	HOOK_MESSAGE(Test);		   //LRC
 	HOOK_MESSAGE(SetSky);	   //LRC
 	HOOK_MESSAGE(CamData);	   //G-Cont. for new camera style
-	HOOK_MESSAGE(RainData);	   //G-Cont. for rain control
 	HOOK_MESSAGE(Inventory);   //AJH Inventory system
 	HOOK_MESSAGE(ClampView);   //LRC 1.8
 
@@ -424,6 +462,20 @@ void CHud::Init()
 	// VGUI Menus
 	HOOK_MESSAGE(VGUIMenu);
 
+// RENDERERS START
+	HOOK_MESSAGE(SetFog);
+	HOOK_MESSAGE(LightStyle);
+	HOOK_MESSAGE(CreateDecal);
+	HOOK_MESSAGE(StudioDecal);
+	HOOK_MESSAGE(SkyMark_S);
+	HOOK_MESSAGE(SkyMark_W);
+	HOOK_MESSAGE(DynLight);
+	HOOK_MESSAGE(FreeEnt);
+	HOOK_MESSAGE(Particle);
+
+	R_Init();
+// RENDERERS END
+
 	CVAR_CREATE("hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO); // controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE("hud_takesshots", "0", FCVAR_ARCHIVE);					   // controls whether or not to automatically take screenshots at the end of a round
 
@@ -439,7 +491,6 @@ void CHud::Init()
 	viewFlags = 0;
 	m_iLogo = 0;
 	m_iFOV = 0;
-	numMirrors = 0;
 	m_iHUDColor = 0x00FFA000; //255,160,0 -- LRC
 
 	CVAR_CREATE("zoom_sensitivity_ratio", "1.2", FCVAR_ARCHIVE);
@@ -453,9 +504,7 @@ void CHud::Init()
 	cl_bobtilt = CVAR_CREATE("cl_bobtilt", "0", FCVAR_ARCHIVE);
 	r_decals = gEngfuncs.pfnGetCvarPointer("r_decals");
 
-	RainInfo = gEngfuncs.pfnRegisterVariable("cl_raininfo", "0", 0);
 	m_pSpriteList = NULL;
-	m_pShinySurface = NULL; //LRC
 
 	// Clear any old HUD list
 	if (m_pHudList)
@@ -488,10 +537,8 @@ void CHud::Init()
 	m_TextMessage.Init();
 	m_StatusIcons.Init();
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
-	m_Particle.Init(); // (LRC) -- 30/08/02 November235: Particles to Order
 
 	m_Menu.Init();
-	InitRain();
 
 	MsgFunc_ResetHUD(0, 0, NULL);
 
@@ -512,13 +559,6 @@ CHud::~CHud()
 	delete[] m_rgrcRects;
 	delete[] m_rgszSpriteNames;
 	gMP3.Shutdown();
-	ResetRain();
-	//LRC - clear all shiny surfaces
-	if (m_pShinySurface)
-	{
-		delete m_pShinySurface;
-		m_pShinySurface = NULL;
-	}
 
 	if (m_pHudList)
 	{
@@ -531,6 +571,10 @@ CHud::~CHud()
 		}
 		m_pHudList = NULL;
 	}
+
+// RENDERERS START
+	R_Shutdown();
+// RENDERERS END
 }
 
 // GetSpriteIndex()
@@ -564,16 +608,7 @@ void CHud::VidInit()
 
 	m_hsprLogo = 0;
 	m_hsprCursor = 0;
-	numMirrors = 0;
-	ResetRain();
-
-	//LRC - clear all shiny surfaces
-	if (m_pShinySurface)
-	{
-		delete m_pShinySurface;
-		m_pShinySurface = NULL;
-	}
-
+	
 	if (ScreenWidth > 2560 && ScreenHeight > 1600)
 		m_iRes = 2560;
 	else if (ScreenWidth >= 1280 && ScreenHeight > 720)
@@ -667,7 +702,10 @@ void CHud::VidInit()
 	m_TextMessage.VidInit();
 	m_StatusIcons.VidInit();
 	GetClientVoiceMgr()->VidInit();
-	m_Particle.VidInit(); // (LRC) -- 30/08/02 November235: Particles to Order
+
+	// RENDERERS START
+	R_VidInit();
+	// RENDERERS_END
 }
 
 bool CHud::MsgFunc_Logo(const char* pszName, int iSize, void* pbuf)
