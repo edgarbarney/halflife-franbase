@@ -142,7 +142,7 @@ public:
 	RandomRange m_WindStrength;
 	RandomRange m_WindYaw;
 
-	HSPRITE m_hSprite;
+	SpriteHandle_t m_hSprite;
 	ParticleType* m_pOverlayType;
 
 	RandomRange m_Drag;

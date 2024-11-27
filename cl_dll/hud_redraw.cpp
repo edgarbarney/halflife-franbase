@@ -171,7 +171,7 @@ bool CHud::Redraw(float flTime, bool intermission)
 
 		int r, g, b, x, y, a;
 		//wrect_t rc;
-		HSPRITE m_hCam1;
+		SpriteHandle_t m_hCam1;
 		int HUD_camera_active;
 		int HUD_camera_rect;
 

@@ -196,7 +196,7 @@ public:
 	bool MsgFunc_Train(const char* pszName, int iSize, void* pbuf);
 
 private:
-	HSPRITE m_hSprite;
+	SpriteHandle_t m_hSprite;
 	int m_iPos;
 };
 
@@ -330,8 +330,8 @@ public:
 	bool MsgFunc_Battery(const char* pszName, int iSize, void* pbuf);
 
 private:
-	HSPRITE m_hSprite1;
-	HSPRITE m_hSprite2;
+	SpriteHandle_t m_hSprite1;
+	SpriteHandle_t m_hSprite2;
 	Rect* m_prc1;
 	Rect* m_prc2;
 	int m_iBat;
@@ -368,9 +368,9 @@ public:
 	bool MsgFunc_FlashBat(const char* pszName, int iSize, void* pbuf);
 
 private:
-	HSPRITE m_hSprite1;
-	HSPRITE m_hSprite2;
-	HSPRITE m_hBeam;
+	SpriteHandle_t m_hSprite1;
+	SpriteHandle_t m_hSprite2;
+	SpriteHandle_t m_hBeam;
 	Rect* m_prc1;
 	Rect* m_prc2;
 	Rect* m_prcBeam;
@@ -483,7 +483,7 @@ private:
 	typedef struct
 	{
 		char szSpriteName[MAX_ICONSPRITENAME_LENGTH];
-		HSPRITE spr;
+		SpriteHandle_t spr;
 		Rect rc;
 		unsigned char r, g, b;
 	} icon_sprite_t;
@@ -503,7 +503,7 @@ class CShinySurface
 	float m_fMinX, m_fMinY, m_fMaxX, m_fMaxY, m_fZ;
 	char m_fScale;
 	float m_fAlpha; // texture scale and brighness
-	HSPRITE m_hsprSprite;
+	SpriteHandle_t m_hsprSprite;
 	char m_szSprite[128];
 
 public:
@@ -542,7 +542,7 @@ class CHud
 {
 private:
 	HUDLIST* m_pHudList;
-	HSPRITE m_hsprLogo;
+	SpriteHandle_t m_hsprLogo;
 	int m_iLogo;
 	client_sprite_t* m_pSpriteList;
 	int m_iSpriteCount;
@@ -551,7 +551,7 @@ private:
 	int m_iConcussionEffect;
 
 public:
-	HSPRITE m_hsprCursor;
+	SpriteHandle_t m_hsprCursor;
 	float m_flTime;		  // the current client time
 	float m_fOldTime;	  // the time at which the HUD was last redrawn
 	double m_flTimeDelta; // the difference between flTime and fOldTime
@@ -605,14 +605,14 @@ public:
 private:
 	// the memory for these arrays are allocated in the first call to CHud::VidInit(), when the hud.txt and associated sprites are loaded.
 	// freed in ~CHud()
-	HSPRITE* m_rghSprites; /*[HUD_SPRITE_COUNT]*/ // the sprites loaded from hud.txt
+	SpriteHandle_t* m_rghSprites; /*[HUD_SPRITE_COUNT]*/ // the sprites loaded from hud.txt
 	Rect* m_rgrcRects;							  /*[HUD_SPRITE_COUNT]*/
 	char* m_rgszSpriteNames;					  /*[HUD_SPRITE_COUNT][MAX_SPRITE_NAME_LENGTH]*/
 
 	struct cvar_s* default_fov;
 
 public:
-	HSPRITE GetSprite(int index)
+	SpriteHandle_t GetSprite(int index)
 	{
 		return (index < 0) ? 0 : m_rghSprites[index];
 	}
