@@ -50,14 +50,18 @@
 #include <cstdlib>
 #include <cstring>
 
+// For std::size
+#include <iterator>
+
 using byte = unsigned char;
 using string_t = unsigned int;
 using qboolean = int;
 
-#define ARRAYSIZE(p) (sizeof(p) / sizeof(p[0]))
+// Arraysize macro is deprecated. Use std::size instead.
+// #define ARRAYSIZE(p) (sizeof(p) / sizeof(p[0]))
 
 #ifdef WIN32
-//Avoid the ISO conformant warning
+// Avoid the ISO conformant warning
 #define stricmp _stricmp
 #define strnicmp _strnicmp
 #define itoa _itoa
@@ -72,7 +76,7 @@ using qboolean = int;
 
 #define DLLEXPORT __attribute__((visibility("default")))
 #define DLLHIDDEN __attribute__((visibility("hidden")))
-#endif //WIN32
+#endif // WIN32
 
 #define V_min(a, b) (((a) < (b)) ? (a) : (b))
 #define V_max(a, b) (((a) > (b)) ? (a) : (b))

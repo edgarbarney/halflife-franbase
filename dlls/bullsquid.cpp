@@ -389,14 +389,14 @@ bool CBullsquid::CheckMeleeAttack2(float flDot, float flDist)
 //=========================================================
 bool CBullsquid::FValidateHintType(short sHint)
 {
-	int i;
+	size_t i;
 
 	static short sSquidHints[] =
 		{
 			HINT_WORLD_HUMAN_BLOOD,
 		};
 
-	for (i = 0; i < ARRAYSIZE(sSquidHints); i++)
+	for (i = 0; i < std::size(sSquidHints); i++)
 	{
 		if (sSquidHints[i] == sHint)
 		{
@@ -843,7 +843,7 @@ Task_t tlSquidRangeAttack1[] =
 Schedule_t slSquidRangeAttack1[] =
 	{
 		{tlSquidRangeAttack1,
-			ARRAYSIZE(tlSquidRangeAttack1),
+			std::size(tlSquidRangeAttack1),
 			bits_COND_NEW_ENEMY |
 				bits_COND_ENEMY_DEAD |
 				bits_COND_HEAVY_DAMAGE |
@@ -865,7 +865,7 @@ Task_t tlSquidChaseEnemy1[] =
 Schedule_t slSquidChaseEnemy[] =
 	{
 		{tlSquidChaseEnemy1,
-			ARRAYSIZE(tlSquidChaseEnemy1),
+			std::size(tlSquidChaseEnemy1),
 			bits_COND_NEW_ENEMY |
 				bits_COND_ENEMY_DEAD |
 				bits_COND_SMELL_FOOD |
@@ -891,7 +891,7 @@ Task_t tlSquidHurtHop[] =
 Schedule_t slSquidHurtHop[] =
 	{
 		{tlSquidHurtHop,
-			ARRAYSIZE(tlSquidHurtHop),
+			std::size(tlSquidHurtHop),
 			0,
 			0,
 			"SquidHurtHop"}};
@@ -907,7 +907,7 @@ Task_t tlSquidSeeCrab[] =
 Schedule_t slSquidSeeCrab[] =
 	{
 		{tlSquidSeeCrab,
-			ARRAYSIZE(tlSquidSeeCrab),
+			std::size(tlSquidSeeCrab),
 			bits_COND_LIGHT_DAMAGE |
 				bits_COND_HEAVY_DAMAGE,
 			0,
@@ -935,7 +935,7 @@ Task_t tlSquidEat[] =
 Schedule_t slSquidEat[] =
 	{
 		{tlSquidEat,
-			ARRAYSIZE(tlSquidEat),
+			std::size(tlSquidEat),
 			bits_COND_LIGHT_DAMAGE |
 				bits_COND_HEAVY_DAMAGE |
 				bits_COND_NEW_ENEMY,
@@ -970,7 +970,7 @@ Task_t tlSquidSniffAndEat[] =
 Schedule_t slSquidSniffAndEat[] =
 	{
 		{tlSquidSniffAndEat,
-			ARRAYSIZE(tlSquidSniffAndEat),
+			std::size(tlSquidSniffAndEat),
 			bits_COND_LIGHT_DAMAGE |
 				bits_COND_HEAVY_DAMAGE |
 				bits_COND_NEW_ENEMY,
@@ -1001,7 +1001,7 @@ Task_t tlSquidWallow[] =
 Schedule_t slSquidWallow[] =
 	{
 		{tlSquidWallow,
-			ARRAYSIZE(tlSquidWallow),
+			std::size(tlSquidWallow),
 			bits_COND_LIGHT_DAMAGE |
 				bits_COND_HEAVY_DAMAGE |
 				bits_COND_NEW_ENEMY,

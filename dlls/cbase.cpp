@@ -848,9 +848,9 @@ bool CBaseEntity::Save(CSave& save)
 	if (save.WriteEntVars("ENTVARS", pev))
 	{
 		if (pev->targetname)
-			return save.WriteFields(STRING(pev->targetname), "BASE", this, m_SaveData, ARRAYSIZE(m_SaveData));
+			return save.WriteFields(STRING(pev->targetname), "BASE", this, m_SaveData, std::size(m_SaveData));
 		else
-			return save.WriteFields(STRING(pev->classname), "BASE", this, m_SaveData, ARRAYSIZE(m_SaveData));
+			return save.WriteFields(STRING(pev->classname), "BASE", this, m_SaveData, std::size(m_SaveData));
 	}
 
 	return false;
@@ -862,7 +862,7 @@ bool CBaseEntity::Restore(CRestore& restore)
 
 	status = restore.ReadEntVars("ENTVARS", pev);
 	if (status)
-		status = restore.ReadFields("BASE", this, m_SaveData, ARRAYSIZE(m_SaveData));
+		status = restore.ReadFields("BASE", this, m_SaveData, std::size(m_SaveData));
 
 	if (pev->modelindex != 0 && !FStringNull(pev->model))
 	{

@@ -318,7 +318,7 @@ void CAGrunt::PrescheduleThink()
 
 			do
 			{
-				num = RANDOM_LONG(0, ARRAYSIZE(pIdleSounds) - 1);
+				num = RANDOM_LONG(0, std::size(pIdleSounds) - 1);
 			} while (num == m_iLastWord);
 
 			m_iLastWord = num;
@@ -676,7 +676,7 @@ Task_t tlAGruntFail[] =
 Schedule_t slAGruntFail[] =
 	{
 		{tlAGruntFail,
-			ARRAYSIZE(tlAGruntFail),
+			std::size(tlAGruntFail),
 			bits_COND_CAN_RANGE_ATTACK1 |
 				bits_COND_CAN_MELEE_ATTACK1,
 			0,
@@ -697,7 +697,7 @@ Task_t tlAGruntCombatFail[] =
 Schedule_t slAGruntCombatFail[] =
 	{
 		{tlAGruntCombatFail,
-			ARRAYSIZE(tlAGruntCombatFail),
+			std::size(tlAGruntCombatFail),
 			bits_COND_CAN_RANGE_ATTACK1 |
 				bits_COND_CAN_MELEE_ATTACK1,
 			0,
@@ -719,7 +719,7 @@ Task_t tlAGruntStandoff[] =
 Schedule_t slAGruntStandoff[] =
 	{
 		{tlAGruntStandoff,
-			ARRAYSIZE(tlAGruntStandoff),
+			std::size(tlAGruntStandoff),
 			bits_COND_CAN_RANGE_ATTACK1 |
 				bits_COND_CAN_MELEE_ATTACK1 |
 				bits_COND_SEE_ENEMY |
@@ -742,7 +742,7 @@ Schedule_t slAGruntSuppress[] =
 	{
 		{
 			tlAGruntSuppressHornet,
-			ARRAYSIZE(tlAGruntSuppressHornet),
+			std::size(tlAGruntSuppressHornet),
 			0,
 			0,
 			"AGrunt Suppress Hornet",
@@ -762,7 +762,7 @@ Task_t tlAGruntRangeAttack1[] =
 Schedule_t slAGruntRangeAttack1[] =
 	{
 		{tlAGruntRangeAttack1,
-			ARRAYSIZE(tlAGruntRangeAttack1),
+			std::size(tlAGruntRangeAttack1),
 			bits_COND_NEW_ENEMY |
 				bits_COND_ENEMY_DEAD |
 				bits_COND_HEAVY_DAMAGE,
@@ -784,7 +784,7 @@ Task_t tlAGruntHiddenRangeAttack1[] =
 Schedule_t slAGruntHiddenRangeAttack[] =
 	{
 		{tlAGruntHiddenRangeAttack1,
-			ARRAYSIZE(tlAGruntHiddenRangeAttack1),
+			std::size(tlAGruntHiddenRangeAttack1),
 			bits_COND_NEW_ENEMY |
 				bits_COND_HEAVY_DAMAGE |
 				bits_COND_HEAR_SOUND,
@@ -811,7 +811,7 @@ Task_t tlAGruntTakeCoverFromEnemy[] =
 Schedule_t slAGruntTakeCoverFromEnemy[] =
 	{
 		{tlAGruntTakeCoverFromEnemy,
-			ARRAYSIZE(tlAGruntTakeCoverFromEnemy),
+			std::size(tlAGruntTakeCoverFromEnemy),
 			bits_COND_NEW_ENEMY,
 			0,
 			"AGruntTakeCoverFromEnemy"},
@@ -846,7 +846,7 @@ Task_t tlAGruntVictoryDance[] =
 Schedule_t slAGruntVictoryDance[] =
 	{
 		{tlAGruntVictoryDance,
-			ARRAYSIZE(tlAGruntVictoryDance),
+			std::size(tlAGruntVictoryDance),
 			bits_COND_NEW_ENEMY |
 				bits_COND_LIGHT_DAMAGE |
 				bits_COND_HEAVY_DAMAGE,
@@ -866,7 +866,7 @@ Task_t tlAGruntThreatDisplay[] =
 Schedule_t slAGruntThreatDisplay[] =
 	{
 		{tlAGruntThreatDisplay,
-			ARRAYSIZE(tlAGruntThreatDisplay),
+			std::size(tlAGruntThreatDisplay),
 			bits_COND_NEW_ENEMY |
 				bits_COND_LIGHT_DAMAGE |
 				bits_COND_HEAVY_DAMAGE,

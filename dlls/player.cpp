@@ -3343,7 +3343,7 @@ bool CBasePlayer::Save(CSave& save)
 	if (!CBaseMonster::Save(save))
 		return false;
 
-	return save.WriteFields("cPLAYER", "PLAYER", this, m_playerSaveData, ARRAYSIZE(m_playerSaveData));
+	return save.WriteFields("cPLAYER", "PLAYER", this, m_playerSaveData, std::size(m_playerSaveData));
 }
 
 
@@ -3360,7 +3360,7 @@ bool CBasePlayer::Restore(CRestore& restore)
 	if (!CBaseMonster::Restore(restore))
 		return false;
 
-	bool status = restore.ReadFields("PLAYER", this, m_playerSaveData, ARRAYSIZE(m_playerSaveData));
+	bool status = restore.ReadFields("PLAYER", this, m_playerSaveData, std::size(m_playerSaveData));
 
 	SAVERESTOREDATA* pSaveData = (SAVERESTOREDATA*)gpGlobals->pSaveData;
 	// landmark isn't present.

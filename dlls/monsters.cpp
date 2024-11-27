@@ -113,16 +113,16 @@ bool CBaseMonster::Save(CSave& save)
 	if (!CBaseToggle::Save(save))
 		return false;
 	if (pev->targetname)
-		return save.WriteFields(STRING(pev->targetname), "CBaseMonster", this, m_SaveData, ARRAYSIZE(m_SaveData));
+		return save.WriteFields(STRING(pev->targetname), "CBaseMonster", this, m_SaveData, std::size(m_SaveData));
 	else
-		return save.WriteFields(STRING(pev->classname), "CBaseMonster", this, m_SaveData, ARRAYSIZE(m_SaveData));
+		return save.WriteFields(STRING(pev->classname), "CBaseMonster", this, m_SaveData, std::size(m_SaveData));
 }
 
 bool CBaseMonster::Restore(CRestore& restore)
 {
 	if (!CBaseToggle::Restore(restore))
 		return false;
-	bool status = restore.ReadFields("CBaseMonster", this, m_SaveData, ARRAYSIZE(m_SaveData));
+	bool status = restore.ReadFields("CBaseMonster", this, m_SaveData, std::size(m_SaveData));
 
 	// We don't save/restore routes yet
 	RouteClear();
@@ -2915,7 +2915,7 @@ void CBaseMonster::ReportAIState()
 	static const char* pStateNames[] = {"None", "Idle", "Combat", "Alert", "Hunt", "Prone", "Scripted", "PlayDead", "Dead"};
 
 	ALERT(level, "%s: ", STRING(pev->classname));
-	if ((int)m_MonsterState < ARRAYSIZE(pStateNames))
+	if ((size_t)m_MonsterState < std::size(pStateNames))
 		ALERT(level, "State: %s, ", pStateNames[m_MonsterState]);
 	int i = 0;
 	while (activity_map[i].type != 0)

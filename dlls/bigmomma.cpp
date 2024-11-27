@@ -870,7 +870,7 @@ Task_t tlBigNode[] =
 Schedule_t slBigNode[] =
 	{
 		{tlBigNode,
-			ARRAYSIZE(tlBigNode),
+			std::size(tlBigNode),
 			0,
 			0,
 			"Big Node"},
@@ -886,7 +886,7 @@ Task_t tlNodeFail[] =
 Schedule_t slNodeFail[] =
 	{
 		{tlNodeFail,
-			ARRAYSIZE(tlNodeFail),
+			std::size(tlNodeFail),
 			0,
 			0,
 			"NodeFail"},

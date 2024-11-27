@@ -79,7 +79,7 @@ Task_t tlIdleResponse[] =
 Schedule_t slIdleResponse[] =
 	{
 		{tlIdleResponse,
-			ARRAYSIZE(tlIdleResponse),
+			std::size(tlIdleResponse),
 			bits_COND_NEW_ENEMY |
 				bits_COND_LIGHT_DAMAGE |
 				bits_COND_HEAVY_DAMAGE,
@@ -102,7 +102,7 @@ Task_t tlIdleSpeak[] =
 Schedule_t slIdleSpeak[] =
 	{
 		{tlIdleSpeak,
-			ARRAYSIZE(tlIdleSpeak),
+			std::size(tlIdleSpeak),
 			bits_COND_NEW_ENEMY |
 				bits_COND_CLIENT_PUSH |
 				bits_COND_LIGHT_DAMAGE |
@@ -122,7 +122,7 @@ Task_t tlIdleSpeakWait[] =
 Schedule_t slIdleSpeakWait[] =
 	{
 		{tlIdleSpeakWait,
-			ARRAYSIZE(tlIdleSpeakWait),
+			std::size(tlIdleSpeakWait),
 			bits_COND_NEW_ENEMY |
 				bits_COND_CLIENT_PUSH |
 				bits_COND_LIGHT_DAMAGE |
@@ -152,7 +152,7 @@ Task_t tlIdleHello[] =
 Schedule_t slIdleHello[] =
 	{
 		{tlIdleHello,
-			ARRAYSIZE(tlIdleHello),
+			std::size(tlIdleHello),
 			bits_COND_NEW_ENEMY |
 				bits_COND_CLIENT_PUSH |
 				bits_COND_LIGHT_DAMAGE |
@@ -173,7 +173,7 @@ Task_t tlIdleStopShooting[] =
 Schedule_t slIdleStopShooting[] =
 	{
 		{tlIdleStopShooting,
-			ARRAYSIZE(tlIdleStopShooting),
+			std::size(tlIdleStopShooting),
 			bits_COND_NEW_ENEMY |
 				bits_COND_LIGHT_DAMAGE |
 				bits_COND_HEAVY_DAMAGE |
@@ -195,7 +195,7 @@ Task_t tlMoveAway[] =
 Schedule_t slMoveAway[] =
 	{
 		{tlMoveAway,
-			ARRAYSIZE(tlMoveAway),
+			std::size(tlMoveAway),
 			0,
 			0,
 			"MoveAway"},
@@ -211,7 +211,7 @@ Task_t tlMoveAwayFail[] =
 Schedule_t slMoveAwayFail[] =
 	{
 		{tlMoveAwayFail,
-			ARRAYSIZE(tlMoveAwayFail),
+			std::size(tlMoveAwayFail),
 			0,
 			0,
 			"MoveAwayFail"},
@@ -232,7 +232,7 @@ Task_t tlMoveAwayFollow[] =
 Schedule_t slMoveAwayFollow[] =
 	{
 		{tlMoveAwayFollow,
-			ARRAYSIZE(tlMoveAwayFollow),
+			std::size(tlMoveAwayFollow),
 			0,
 			0,
 			"MoveAwayFollow"},
@@ -260,7 +260,7 @@ Task_t tlTlkIdleWatchClientStare[] =
 Schedule_t slTlkIdleWatchClient[] =
 	{
 		{tlTlkIdleWatchClient,
-			ARRAYSIZE(tlTlkIdleWatchClient),
+			std::size(tlTlkIdleWatchClient),
 			bits_COND_NEW_ENEMY |
 				bits_COND_LIGHT_DAMAGE |
 				bits_COND_HEAVY_DAMAGE |
@@ -281,7 +281,7 @@ Schedule_t slTlkIdleWatchClient[] =
 			"TlkIdleWatchClient"},
 
 		{tlTlkIdleWatchClientStare,
-			ARRAYSIZE(tlTlkIdleWatchClientStare),
+			std::size(tlTlkIdleWatchClientStare),
 			bits_COND_NEW_ENEMY |
 				bits_COND_LIGHT_DAMAGE |
 				bits_COND_HEAVY_DAMAGE |
@@ -314,7 +314,7 @@ Task_t tlTlkIdleEyecontact[] =
 Schedule_t slTlkIdleEyecontact[] =
 	{
 		{tlTlkIdleEyecontact,
-			ARRAYSIZE(tlTlkIdleEyecontact),
+			std::size(tlTlkIdleEyecontact),
 			bits_COND_NEW_ENEMY |
 				bits_COND_CLIENT_PUSH |
 				bits_COND_LIGHT_DAMAGE |
