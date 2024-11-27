@@ -4304,8 +4304,10 @@ void CStudioModelRenderer::StudioSetChromeVectors( void )
 	mstudiobone_t *pbones = (mstudiobone_t *)((byte *)m_pStudioHeader + m_pStudioHeader->boneindex);
 	for(int i = 0; i < m_pStudioHeader->numbones; i++)
 	{
-		if(!(pbones[i].flags & STUDIO_HAS_CHROME) && !m_bChromeShell)
-			continue;
+		// TODO: OPTIMISE THIS
+		//
+		// if(!(pbones[i].flags & STUDIO_HAS_CHROME) && !m_bChromeShell)
+		// 	continue;
 
 		VectorScale(gBSPRenderer.m_vRenderOrigin, -1, tmp);
 		tmp[0] += (*m_pbonetransform)[i][0][3];
@@ -4495,9 +4497,10 @@ void CStudioModelRenderer::StudioDrawMesh ( mstudiomesh_t *pmesh, mstudiotexture
 
 	if(ptex->flags & STUDIO_NF_FULLBRIGHT)
 	{
+		gEngfuncs.Con_Printf("Fullbright: %s \n", ptex->name);
 		glColor4f(0.5, 0.5, 0.5, m_fAlpha);
 
-		if(m_pCvarModelShaders->value && gBSPRenderer.m_bShaderSupport)
+		if (m_pCvarModelShaders->value > 0 && gBSPRenderer.m_bShaderSupport)
 		{
 			glDisable(GL_VERTEX_PROGRAM_ARB);
 			glDisable(GL_VERTEX_PROGRAM_ARB);
