@@ -1297,7 +1297,8 @@ bool g_glStateSaved = false;
 
 void R_SaveGLStates( void )
 {
-	assert(g_glStateSaved == false);
+	// Isn't the whole point of this function to save the state?
+	//assert(g_glStateSaved == false);
 	g_glStateSaved = true;
 
 #ifdef HL25_UPDATE

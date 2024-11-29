@@ -23,11 +23,16 @@
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
+#include "UserMessages.h"
+
+//RENDERERS START
+#include "player.h"
+//RENDERERS END
 
 //LRC
 int GetStdLightStyle(int iStyle)
 {
-	// Fran: Trinity uses fullbright everytime. Idk why.
+	// Fran: Trinity uses fullbright everytime, because it uses its own styles in bsprenderer.cpp
 	
 //RENDERERS START
 	return MAKE_STRING("m");
@@ -133,6 +138,11 @@ public:
 	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
 	void Think() override;
 
+// RENDERERS START
+	virtual void SendInitMessage(CBasePlayer* player);
+	void EXPORT LightStyleThink();
+// RENDERERS END
+
 	bool Save(CSave& save) override;
 	bool Restore(CRestore& restore) override;
 	STATE GetState() override { return m_iState; }; //LRC
@@ -154,6 +164,11 @@ private:
 	int m_iTurnOffTime;	   // time taken to turn off
 	int m_iszPattern;	   // custom style to use while on
 	int m_iszCurrentStyle; // current style string
+
+// RENDERERS START
+	bool m_bAlreadySent;   // State Message
+	bool m_bSpawnDone;     // Don't send message before spawn
+	// RENDERERS END
 };
 LINK_ENTITY_TO_CLASS(light, CLight);
 
@@ -168,6 +183,10 @@ TYPEDESCRIPTION CLight::m_SaveData[] =
 		DEFINE_FIELD(CLight, m_iTurnOffStyle, FIELD_INTEGER),
 		DEFINE_FIELD(CLight, m_iTurnOnTime, FIELD_INTEGER),
 		DEFINE_FIELD(CLight, m_iTurnOffTime, FIELD_INTEGER),
+
+// RENDERERS START
+		DEFINE_FIELD(CLight, m_bAlreadySent, FIELD_BOOLEAN),
+// RENDERERS END
 };
 
 IMPLEMENT_SAVERESTORE(CLight, CPointEntity);
@@ -233,6 +252,20 @@ void CLight::SetStyle(int iszPattern)
 		return;
 	m_iszCurrentStyle = iszPattern;
 	//	ALERT(at_console, "SetStyle %d \"%s\"\n", m_iStyle, (char *)STRING( iszPattern ));
+
+	if (m_bSpawnDone)
+	{
+		MESSAGE_BEGIN(MSG_ALL, gmsgLightStyle, NULL);
+			WRITE_BYTE(m_iStyle);
+			WRITE_STRING(STRING(m_iszCurrentStyle));
+		MESSAGE_END();
+		
+	}
+	else 
+	{
+		SetNextThink(0.1f); // Retry until spawn is done
+	}
+
 	LIGHT_STYLE(m_iStyle, (char*)STRING(iszPattern));
 }
 
@@ -293,6 +326,33 @@ void CLight::Think()
 	SetCorrectStyle();
 }
 
+void CLight::SendInitMessage(CBasePlayer* player)
+{
+	char szPattern[64];
+	memset(szPattern, 0, sizeof(szPattern));
+
+	if (m_iStyle >= 32)
+	{
+		if (FBitSet(pev->spawnflags, SF_LIGHT_START_OFF))
+			strcpy(szPattern, "a");
+		else if (m_iszPattern)
+			strcpy(szPattern, (char*)STRING(m_iszPattern));
+		else
+			strcpy(szPattern, "m");
+
+		if (player)
+			MESSAGE_BEGIN(MSG_ONE, gmsgLightStyle, NULL, player->pev);
+		else
+			MESSAGE_BEGIN(MSG_ALL, gmsgLightStyle, NULL);
+
+			WRITE_BYTE(m_iStyle);
+			WRITE_STRING(STRING(m_iszPattern));
+		MESSAGE_END();
+	}
+
+	m_bAlreadySent = true;
+}
+
 /*QUAKED light (0 1 0) (-8 -8 -8) (8 8 8) LIGHT_START_OFF
 Non-displayed light.
 Default light value is 300
@@ -302,6 +362,8 @@ If targeted, it will toggle between on or off.
 
 void CLight::Spawn()
 {
+	m_bSpawnDone = false;
+
 	if (FStringNull(pev->targetname))
 	{ // inert light
 		REMOVE_ENTITY(ENT(pev));
@@ -313,6 +375,8 @@ void CLight::Spawn()
 	else
 		m_iState = STATE_ON;
 	SetCorrectStyle();
+
+	m_bSpawnDone = true;
 }
 
 

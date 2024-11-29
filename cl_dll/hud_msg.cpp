@@ -311,7 +311,7 @@ int CHud ::MsgFunc_SetFog(const char* pszName, int iSize, void* pbuf)
 
 	return 1;
 }
-int CHud ::MsgFunc_LightStyle(const char* pszName, int iSize, void* pbuf)
+int CHud::MsgFunc_LightStyle(const char* pszName, int iSize, void* pbuf)
 {
 	BEGIN_READ(pbuf, iSize);
 

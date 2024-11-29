@@ -319,6 +319,27 @@ void CBSPRenderer::Init( void )
 	// 12 UNDERWATER LIGHT MUTATION
 	AddLightStyle(12, "mmnnmmnnnmmnn");
 
+	// 13 OFF (LRC)
+	AddLightStyle(13, "a");
+
+	// 14 SLOW FADE IN (LRC)
+	AddLightStyle(14, "aabbccddeeffgghhiijjkkllmmmmmmmmmmmmmm");
+
+	// 15 MED FADE IN (LRC)
+	AddLightStyle(15, "abcdefghijklmmmmmmmmmmmmmmmmmmmmmmmmmm");
+
+	// 16 FAST FADE IN (LRC)
+	AddLightStyle(16, "acegikmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm");
+
+	// 17 SLOW FADE OUT (LRC)
+	AddLightStyle(17, "llkkjjiihhggffeeddccbbaaaaaaaaaaaaaaaa");
+
+	// 18 MED FADE OUT (LRC)
+	AddLightStyle(18, "lkjihgfedcbaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
+	// 19 FAST FADE OUT (LRC)
+	AddLightStyle(19, "kigecaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
 	m_iFrameCount					= 0;
 	m_iVisFrame						= 0;
 	m_bDontPromptShadersError		= true;

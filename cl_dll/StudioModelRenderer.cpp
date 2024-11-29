@@ -4497,7 +4497,6 @@ void CStudioModelRenderer::StudioDrawMesh ( mstudiomesh_t *pmesh, mstudiotexture
 
 	if(ptex->flags & STUDIO_NF_FULLBRIGHT)
 	{
-		gEngfuncs.Con_Printf("Fullbright: %s \n", ptex->name);
 		glColor4f(0.5, 0.5, 0.5, m_fAlpha);
 
 		if (m_pCvarModelShaders->value > 0 && gBSPRenderer.m_bShaderSupport)
