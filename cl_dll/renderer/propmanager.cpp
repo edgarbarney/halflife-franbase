@@ -2,8 +2,8 @@
 Trinity Rendering Engine - Copyright Andrew Lucas 2009-2012
 
 The Trinity Engine is free software, distributed in the hope th-
-at it will be useful, but WITHOUT ANY WARRANTY; without even the 
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+at it will be useful, but WITHOUT ANY WARRANTY; without even the
+implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 PURPOSE. See the GNU Lesser General Public License for more det-
 ails.
 
@@ -49,7 +49,7 @@ Shutdown
 
 ====================
 */
-void CPropManager::Shutdown( void )
+void CPropManager::Shutdown(void)
 {
 	Reset();
 }
@@ -60,27 +60,27 @@ Reset
 
 ====================
 */
-void CPropManager::Reset( void )
+void CPropManager::Reset(void)
 {
-	if ( m_iNumEntities )
+	if (m_iNumEntities)
 	{
 		memset(m_pEntities, 0, sizeof(m_pEntities));
 		m_iNumEntities = 0;
 	}
 
-	if ( m_iNumModelLights )
+	if (m_iNumModelLights)
 	{
 		memset(m_pModelLights, 0, sizeof(m_pModelLights));
 		m_iNumModelLights = 0;
 	}
 
-	if ( m_iNumDecals )
+	if (m_iNumDecals)
 	{
 		memset(m_pDecals, 0, sizeof(m_pDecals));
 		m_iNumDecals = 0;
 	}
 
-	if ( m_iNumExtraData )
+	if (m_iNumExtraData)
 	{
 		memset(m_pExtraData, 0, sizeof(m_pExtraData));
 		memset(m_pExtraInfo, 0, sizeof(m_pExtraInfo));
@@ -88,57 +88,57 @@ void CPropManager::Reset( void )
 		m_iNumExtraData = 0;
 	}
 
-	if(m_iNumHeaders)
+	if (m_iNumHeaders)
 	{
-		for ( int i = 0; i < m_iNumHeaders; i++ )
+		for (int i = 0; i < m_iNumHeaders; i++)
 		{
-			if(m_pHeaders[i].pHdr)
+			if (m_pHeaders[i].pHdr)
 			{
-				for(int j = 0; j < m_pHeaders[i].pVBOHeader.numsubmodels; j++)
-					delete [] m_pHeaders[i].pVBOHeader.submodels[j].meshes;
+				for (int j = 0; j < m_pHeaders[i].pVBOHeader.numsubmodels; j++)
+					delete[] m_pHeaders[i].pVBOHeader.submodels[j].meshes;
 
-				delete [] m_pHeaders[i].pVBOHeader.submodels;
+				delete[] m_pHeaders[i].pVBOHeader.submodels;
 			}
 
-			if(m_pHeaders[i].pVBOHeader.pBufferData)
+			if (m_pHeaders[i].pVBOHeader.pBufferData)
 			{
-				delete [] m_pHeaders[i].pVBOHeader.pBufferData;
+				delete[] m_pHeaders[i].pVBOHeader.pBufferData;
 				m_pHeaders[i].pVBOHeader.pBufferData = NULL;
 			}
 
-			if(m_pHeaders[i].pVBOHeader.indexes)
+			if (m_pHeaders[i].pVBOHeader.indexes)
 			{
-				delete [] m_pHeaders[i].pVBOHeader.indexes;
+				delete[] m_pHeaders[i].pVBOHeader.indexes;
 				m_pHeaders[i].pVBOHeader.indexes = NULL;
 			}
 		}
-				
+
 		memset(m_pHeaders, 0, sizeof(m_pHeaders));
 		m_iNumHeaders = NULL;
 	}
 
 	ClearEntityData();
 
-	if(m_pEntData)
+	if (m_pEntData)
 	{
 		m_pEntData = NULL;
 		m_iEntDataSize = NULL;
 	}
 
-	if(m_pVertexData)
+	if (m_pVertexData)
 	{
-		delete [] m_pVertexData;
+		delete[] m_pVertexData;
 		m_pVertexData = NULL;
 		m_iNumTotalVerts = NULL;
 	}
 
-	if(m_pIndexBuffer)
+	if (m_pIndexBuffer)
 	{
-		delete [] m_pIndexBuffer;
+		delete[] m_pIndexBuffer;
 		m_pIndexBuffer = NULL;
 	}
 
-	if(m_iNumCables)
+	if (m_iNumCables)
 	{
 		memset(m_pCables, 0, sizeof(m_pCables));
 		m_iNumCables = NULL;
@@ -151,9 +151,9 @@ Init
 
 ====================
 */
-void CPropManager::Init( void )
+void CPropManager::Init(void)
 {
-	m_pCvarDrawClientEntities = CVAR_CREATE( "te_client_entities", "1", 0 );
+	m_pCvarDrawClientEntities = CVAR_CREATE("te_client_entities", "1", 0);
 }
 
 /*
@@ -162,7 +162,7 @@ VidInit
 
 ====================
 */
-void CPropManager::VidInit( void )
+void CPropManager::VidInit(void)
 {
 	Reset();
 }
@@ -173,22 +173,22 @@ ClearEntityData
 
 ====================
 */
-void CPropManager::ClearEntityData( void )
+void CPropManager::ClearEntityData(void)
 {
-	if(!m_iNumBSPEntities)
+	if (!m_iNumBSPEntities)
 		return;
 
-	for(int i = 0; i < m_iNumBSPEntities; i++)
+	for (int i = 0; i < m_iNumBSPEntities; i++)
 	{
-		epair_t *pPair = m_pBSPEntities[i].epairs;
-		while(pPair)
+		epair_t* pPair = m_pBSPEntities[i].epairs;
+		while (pPair)
 		{
-			epair_t *pFree = pPair;
+			epair_t* pFree = pPair;
 			pPair = pFree->next;
 
-			delete [] pFree->key;
-			delete [] pFree->value;
-			delete [] pFree;
+			delete[] pFree->key;
+			delete[] pFree->value;
+			delete[] pFree;
 		}
 	}
 	memset(m_pBSPEntities, 0, sizeof(m_pBSPEntities));
@@ -201,16 +201,16 @@ LoadBSPFile
 
 ====================
 */
-void CPropManager::GenerateEntityList ( void )
+void CPropManager::GenerateEntityList(void)
 {
 	// reset all entity data
 	Reset();
 
 	// get pointer to world model
-	model_t *pWorld = IEngineStudio.GetModelByIndex(1);
-	if(!pWorld)
+	model_t* pWorld = IEngineStudio.GetModelByIndex(1);
+	if (!pWorld)
 	{
-		gEngfuncs.pfnClientCmd("escape\n");	
+		gEngfuncs.pfnClientCmd("escape\n");
 		MessageBox(NULL, "FATAL ERROR: Failed to get world!\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
 		exit(-1);
 	}
@@ -230,13 +230,13 @@ GetHeader
 
 ====================
 */
-modeldata_t *CPropManager::GetHeader( const char *name )
+modeldata_t* CPropManager::GetHeader(const char* name)
 {
-	if ( m_iNumHeaders )
+	if (m_iNumHeaders)
 	{
-		for(int i = 0; i < m_iNumHeaders; i++)
+		for (int i = 0; i < m_iNumHeaders; i++)
 		{
-			if (!strcmp( m_pHeaders[i].name, name ))
+			if (!strcmp(m_pHeaders[i].name, name))
 				return &m_pHeaders[i];
 		}
 	}
@@ -249,14 +249,14 @@ ValueForKey
 
 ====================
 */
-char *CPropManager::ValueForKey (entity_t *ent, char *key)
+char* CPropManager::ValueForKey(entity_t* ent, char* key)
 {
-   for (epair_t  *pEPair = ent->epairs; pEPair; pEPair = pEPair->next)
-   {
-      if (!strcmp (pEPair->key, key) )
-         return pEPair->value;
-   }
-   return NULL;
+	for (epair_t* pEPair = ent->epairs; pEPair; pEPair = pEPair->next)
+	{
+		if (!strcmp(pEPair->key, key))
+			return pEPair->value;
+	}
+	return NULL;
 }
 
 /*
@@ -265,41 +265,41 @@ ParseEntities
 
 ====================
 */
-void CPropManager::ParseEntities ( void )
+void CPropManager::ParseEntities(void)
 {
 	// Entity parser done by me, parses nicely, no errors detected ever.
-	char *pCurText = m_pEntData;
-	while(pCurText && pCurText - m_pEntData < m_iEntDataSize)
+	char* pCurText = m_pEntData;
+	while (pCurText && pCurText - m_pEntData < m_iEntDataSize)
 	{
-		if(m_iNumBSPEntities == MAXRENDERENTS)
+		if (m_iNumBSPEntities == MAXRENDERENTS)
 			break;
 
-		while(1)
+		while (1)
 		{
-			if(pCurText[0] == '{')
+			if (pCurText[0] == '{')
 				break;
-			
-			if(pCurText - m_pEntData >= m_iEntDataSize)
+
+			if (pCurText - m_pEntData >= m_iEntDataSize)
 				break;
 
 			pCurText++;
 		}
 
-		if(pCurText - m_pEntData >= m_iEntDataSize)
+		if (pCurText - m_pEntData >= m_iEntDataSize)
 			break;
 
-		entity_t *pEntity = &m_pBSPEntities[m_iNumBSPEntities];
+		entity_t* pEntity = &m_pBSPEntities[m_iNumBSPEntities];
 		m_iNumBSPEntities++;
 
-		while(1)
+		while (1)
 		{
 			// skip to next token
-			while(1)
+			while (1)
 			{
-				if(pCurText[0] == '}')
+				if (pCurText[0] == '}')
 					break;
 
-				if(pCurText[0] == '"')
+				if (pCurText[0] == '"')
 				{
 					pCurText++;
 					break;
@@ -309,25 +309,25 @@ void CPropManager::ParseEntities ( void )
 			}
 
 			// end of ent
-			if(pCurText[0] == '}')
+			if (pCurText[0] == '}')
 				break;
 
-			epair_t *pEPair = new epair_t;
+			epair_t* pEPair = new epair_t;
 			memset(pEPair, 0, sizeof(epair_t));
 
-			if(pEntity->epairs)
+			if (pEntity->epairs)
 				pEPair->next = pEntity->epairs;
-				
+
 			pEntity->epairs = pEPair;
 
 			int iLength = 0;
-			char *pTemp = pCurText;
-			while(1)
+			char* pTemp = pCurText;
+			while (1)
 			{
-				if(pTemp[0] == '"')
+				if (pTemp[0] == '"')
 					break;
-				
-				if(pCurText[0] == '}')
+
+				if (pCurText[0] == '}')
 				{
 					gEngfuncs.Con_Printf("BSP LOADER ERROR :: Entity data is corrupt!\n");
 					m_bAvailable = false;
@@ -338,23 +338,23 @@ void CPropManager::ParseEntities ( void )
 				pTemp++;
 			}
 
-			pEPair->key = new char[iLength+1];
+			pEPair->key = new char[iLength + 1];
 			pEPair->key[iLength] = NULL; // terminator
 
-			memcpy(pEPair->key, pCurText, sizeof(char)*iLength);
-			pCurText += iLength+1;
+			memcpy(pEPair->key, pCurText, sizeof(char) * iLength);
+			pCurText += iLength + 1;
 
 			// skip to next token
-			while(1)
+			while (1)
 			{
-				if(pCurText[0] == '}')
+				if (pCurText[0] == '}')
 				{
 					gEngfuncs.Con_Printf("BSP LOADER ERROR :: Entity data is corrupt!\n");
 					m_bAvailable = false;
 					return;
 				}
 
-				if(pCurText[0] == '"')
+				if (pCurText[0] == '"')
 				{
 					pCurText++;
 					break;
@@ -365,42 +365,42 @@ void CPropManager::ParseEntities ( void )
 
 			iLength = 0;
 			pTemp = pCurText;
-			while(1)
+			while (1)
 			{
-				if(pCurText[0] == '}')
+				if (pCurText[0] == '}')
 				{
 					gEngfuncs.Con_Printf("BSP LOADER ERROR :: Entity data is corrupt!\n");
 					m_bAvailable = false;
 					return;
 				}
 
-				if(pTemp[0] == '"')
+				if (pTemp[0] == '"')
 					break;
-				
+
 				iLength++;
 				pTemp++;
 			}
 
-			pEPair->value = new char[iLength+1];
+			pEPair->value = new char[iLength + 1];
 			pEPair->value[iLength] = NULL;
 
-			memcpy(pEPair->value, pCurText, sizeof(char)*iLength);
-			pCurText += iLength+1;
+			memcpy(pEPair->value, pCurText, sizeof(char) * iLength);
+			pCurText += iLength + 1;
 		}
 	}
 
 	// Get sky name for bsp renderer
-	char *szSky = ValueForKey(&m_pBSPEntities[0], "skyname");
+	char* szSky = ValueForKey(&m_pBSPEntities[0], "skyname");
 
-	if(szSky)
+	if (szSky)
 		strcpy(gBSPRenderer.m_szSkyName, szSky);
 	else
 		sprintf(gBSPRenderer.m_szSkyName, "desert");
 
 	// See if special fog is set
-	char *szSpecial = ValueForKey(&m_pBSPEntities[0], "specialfog");
+	char* szSpecial = ValueForKey(&m_pBSPEntities[0], "specialfog");
 
-	if(szSpecial)
+	if (szSpecial)
 		gBSPRenderer.m_bSpecialFog = true;
 }
 
@@ -410,20 +410,20 @@ LoadEntVars
 
 ====================
 */
-void CPropManager::LoadEntVars( void )
+void CPropManager::LoadEntVars(void)
 {
-	for(int i = 0; i < m_iNumBSPEntities; i++)
+	for (int i = 0; i < m_iNumBSPEntities; i++)
 	{
-		char *pValue = ValueForKey(&m_pBSPEntities[i], "classname");
+		char* pValue = ValueForKey(&m_pBSPEntities[i], "classname");
 
-		if(!pValue)
+		if (!pValue)
 			continue;
 
-		if(!strcmp( pValue, "env_elight"))
+		if (!strcmp(pValue, "env_elight"))
 		{
 			pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
-			if(pValue)
+			if (pValue)
 				continue;
 
 			memset(&m_pModelLights[m_iNumModelLights], 0, sizeof(cl_entity_t));
@@ -447,33 +447,33 @@ void CPropManager::LoadEntVars( void )
 			pValue = ValueForKey(&m_pBSPEntities[i], "rendercolor");
 			if (pValue)
 			{
-				int  iColR, iColG, iColB;
+				int iColR, iColG, iColB;
 				sscanf(pValue, "%d %d %d", &iColR, &iColG, &iColB);
 				m_pModelLights[m_iNumModelLights].curstate.rendercolor.r = iColR;
 				m_pModelLights[m_iNumModelLights].curstate.rendercolor.g = iColG;
 				m_pModelLights[m_iNumModelLights].curstate.rendercolor.b = iColB;
 			}
 
-			model_t *pWorld = IEngineStudio.GetModelByIndex(1);
-			mleaf_t *pLeaf = Mod_PointInLeaf(m_pModelLights[m_iNumModelLights].origin, pWorld);
+			model_t* pWorld = IEngineStudio.GetModelByIndex(1);
+			mleaf_t* pLeaf = Mod_PointInLeaf(m_pModelLights[m_iNumModelLights].origin, pWorld);
 
-			if(pLeaf)
+			if (pLeaf)
 			{
 				// In-void entities can go eat a dick
-				m_pModelLights[m_iNumModelLights].visframe = pLeaf-pWorld->leafs-1;
+				m_pModelLights[m_iNumModelLights].visframe = pLeaf - pWorld->leafs - 1;
 				m_iNumModelLights++;
 			}
 		}
-		if(!strcmp( pValue, "env_cable"))
+		if (!strcmp(pValue, "env_cable"))
 		{
-			if(SetupCable(&m_pCables[m_iNumCables], &m_pBSPEntities[i]))
+			if (SetupCable(&m_pCables[m_iNumCables], &m_pBSPEntities[i]))
 				m_iNumCables++;
 		}
-		else if(!strcmp( pValue, "env_decal"))
+		else if (!strcmp(pValue, "env_decal"))
 		{
 			pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
-			if(pValue)
+			if (pValue)
 				continue;
 
 			// Always TRUE
@@ -492,39 +492,39 @@ void CPropManager::LoadEntVars( void )
 			if (!pValue)
 				continue;
 
-			if(!strlen(pValue))
+			if (!strlen(pValue))
 				continue;
 
 			strcpy(m_pDecals[m_iNumDecals].name, pValue);
 			m_iNumDecals++;
 		}
-		else if(!strcmp( pValue, "item_generic"))
+		else if (!strcmp(pValue, "item_generic"))
 		{
 			pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
-			if(pValue)
+			if (pValue)
 				continue;
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "model");
 
-			if(!pValue)
+			if (!pValue)
 				continue;
 
-			if(!stristr(pValue, ".mdl"))
+			if (!stristr(pValue, ".mdl"))
 				continue;
 
 			m_pCurrentExtraData = &m_pExtraData[m_iNumExtraData];
-			entextrainfo_t *pExtraInfo = &m_pExtraInfo[m_iNumExtraData];
+			entextrainfo_t* pExtraInfo = &m_pExtraInfo[m_iNumExtraData];
 
-			if ( !LoadMDL( pValue, &m_pEntities[m_iNumEntities], &m_pBSPEntities[i] ) )
+			if (!LoadMDL(pValue, &m_pEntities[m_iNumEntities], &m_pBSPEntities[i]))
 			{
 				gEngfuncs.Con_Printf("BSP Loader: Failed to model load %s on the client!\n", pValue);
 				continue;
 			}
 
 			memset(&m_pEntities[m_iNumEntities], 0, sizeof(cl_entity_t));
-			m_pEntities[m_iNumEntities].index = m_iNumEntities+4096;
-			m_pEntities[m_iNumEntities].topnode = (struct mnode_s *)pExtraInfo;
+			m_pEntities[m_iNumEntities].index = m_iNumEntities + 4096;
+			m_pEntities[m_iNumEntities].topnode = (struct mnode_s*)pExtraInfo;
 			m_pEntities[m_iNumEntities].visframe = -1;
 
 			pExtraInfo->pExtraData = m_pCurrentExtraData;
@@ -537,7 +537,7 @@ void CPropManager::LoadEntVars( void )
 					&m_pEntities[m_iNumEntities].origin[1],
 					&m_pEntities[m_iNumEntities].origin[2]);
 
-				VectorCopy(m_pEntities[m_iNumEntities].origin,m_pEntities[m_iNumEntities].curstate.origin);
+				VectorCopy(m_pEntities[m_iNumEntities].origin, m_pEntities[m_iNumEntities].curstate.origin);
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "angles");
@@ -545,8 +545,8 @@ void CPropManager::LoadEntVars( void )
 			{
 				// set the yaw angle...
 				sscanf(pValue, "%f %f %f", &m_pEntities[m_iNumEntities].angles[0],
-										&m_pEntities[m_iNumEntities].angles[1],
-										&m_pEntities[m_iNumEntities].angles[2]);
+					&m_pEntities[m_iNumEntities].angles[1],
+					&m_pEntities[m_iNumEntities].angles[2]);
 				m_pEntities[m_iNumEntities].curstate.angles = m_pEntities[m_iNumEntities].angles;
 			}
 
@@ -591,7 +591,7 @@ void CPropManager::LoadEntVars( void )
 			pValue = ValueForKey(&m_pBSPEntities[i], "rendercolor");
 			if (pValue)
 			{
-				int  iColR, iColG, iColB;
+				int iColR, iColG, iColB;
 				sscanf(pValue, "%d %d %d", &iColR, &iColG, &iColB);
 				m_pEntities[m_iNumEntities].curstate.rendercolor.r = iColR;
 				m_pEntities[m_iNumEntities].curstate.rendercolor.g = iColG;
@@ -599,24 +599,24 @@ void CPropManager::LoadEntVars( void )
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "lightorigin");
-			if(pValue && strlen(pValue))
+			if (pValue && strlen(pValue))
 			{
 				char szLightTarget[32];
 				strcpy(szLightTarget, pValue);
 
 				int j = 0;
-				for(; j < m_iNumBSPEntities; j++)
+				for (; j < m_iNumBSPEntities; j++)
 				{
 					pValue = ValueForKey(&m_pBSPEntities[j], "classname");
 
-					if (strcmp( pValue, "info_light_origin"))
+					if (strcmp(pValue, "info_light_origin"))
 						continue;
-					
+
 					pValue = ValueForKey(&m_pBSPEntities[j], "targetname");
-					
-					if(pValue)
+
+					if (pValue)
 					{
-						if(!strcmp(pValue, szLightTarget))
+						if (!strcmp(pValue, szLightTarget))
 						{
 							pValue = ValueForKey(&m_pBSPEntities[j], "origin");
 							if (pValue)
@@ -631,7 +631,7 @@ void CPropManager::LoadEntVars( void )
 					}
 				}
 
-				if(j == m_iNumBSPEntities)
+				if (j == m_iNumBSPEntities)
 				{
 					m_pCurrentExtraData->lightorigin = m_pEntities[m_iNumEntities].origin;
 				}
@@ -658,41 +658,41 @@ SetupVBO
 
 ====================
 */
-void CPropManager::SetupVBO( void )
+void CPropManager::SetupVBO(void)
 {
-	if(!m_iNumHeaders)
+	if (!m_iNumHeaders)
 		return;
 
 	m_iNumTotalVerts = NULL;
-	for(int i = 0; i < m_iNumHeaders; i++)
+	for (int i = 0; i < m_iNumHeaders; i++)
 		m_iNumTotalVerts += m_pHeaders[i].pVBOHeader.numverts;
 
 	int iTotalIndexes = 0;
-	for(int i = 0; i < m_iNumHeaders; i++)
+	for (int i = 0; i < m_iNumHeaders; i++)
 		iTotalIndexes += m_pHeaders[i].pVBOHeader.numindexes;
 
 	m_pVertexData = new brushvertex_t[m_iNumTotalVerts];
-	memset(m_pVertexData, 0, sizeof(brushvertex_t)*m_iNumTotalVerts);
+	memset(m_pVertexData, 0, sizeof(brushvertex_t) * m_iNumTotalVerts);
 
 	m_pIndexBuffer = new unsigned int[iTotalIndexes];
-	memset(m_pIndexBuffer, 0, sizeof(unsigned int)*iTotalIndexes);
+	memset(m_pIndexBuffer, 0, sizeof(unsigned int) * iTotalIndexes);
 
 	int iVertexOffset = 0;
 	int iIndexOffset = 0;
-	for(int i = 0; i < m_iNumHeaders; i++)
+	for (int i = 0; i < m_iNumHeaders; i++)
 	{
-		memcpy(&m_pVertexData[iVertexOffset], m_pHeaders[i].pVBOHeader.pBufferData, 
-			sizeof(brushvertex_t)*m_pHeaders[i].pVBOHeader.numverts);
+		memcpy(&m_pVertexData[iVertexOffset], m_pHeaders[i].pVBOHeader.pBufferData,
+			sizeof(brushvertex_t) * m_pHeaders[i].pVBOHeader.numverts);
 
-		for(int j = 0; j < m_pHeaders[i].pVBOHeader.numindexes; j++)
+		for (int j = 0; j < m_pHeaders[i].pVBOHeader.numindexes; j++)
 			m_pHeaders[i].pVBOHeader.indexes[j] += iVertexOffset;
 
 		memcpy(&m_pIndexBuffer[iIndexOffset], m_pHeaders[i].pVBOHeader.indexes,
-			sizeof(unsigned int)*m_pHeaders[i].pVBOHeader.numindexes);
+			sizeof(unsigned int) * m_pHeaders[i].pVBOHeader.numindexes);
 
-		for(int j = 0; j < m_pHeaders[i].pVBOHeader.numsubmodels; j++)
+		for (int j = 0; j < m_pHeaders[i].pVBOHeader.numsubmodels; j++)
 		{
-			for(int k = 0; k < m_pHeaders[i].pVBOHeader.submodels[j].nummeshes; k++)
+			for (int k = 0; k < m_pHeaders[i].pVBOHeader.submodels[j].nummeshes; k++)
 			{
 				m_pHeaders[i].pVBOHeader.submodels[j].meshes[k].start_vertex += iIndexOffset;
 			}
@@ -704,7 +704,7 @@ void CPropManager::SetupVBO( void )
 
 	gBSPRenderer.glGenBuffersARB(1, &m_uiIndexBuffer);
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, m_uiIndexBuffer);
-	gBSPRenderer.glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, iTotalIndexes*sizeof(unsigned int), m_pIndexBuffer, GL_STATIC_DRAW_ARB);
+	gBSPRenderer.glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, iTotalIndexes * sizeof(unsigned int), m_pIndexBuffer, GL_STATIC_DRAW_ARB);
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 }
 
@@ -714,47 +714,47 @@ RenderModels
 
 ====================
 */
-void CPropManager::RenderProps( void )
+void CPropManager::RenderProps(void)
 {
-	if(m_pCvarDrawClientEntities->value < 1)
+	if (m_pCvarDrawClientEntities->value < 1)
 		return;
 
 	if (g_StudioRenderer.m_pCvarDrawModels->value < 1)
 		return;
 
-	if(g_StudioRenderer.m_pCvarDrawEntities->value < 1)
+	if (g_StudioRenderer.m_pCvarDrawEntities->value < 1)
 		return;
 
-	if(m_pCvarDrawClientEntities->value == 2)
+	if (m_pCvarDrawClientEntities->value == 2)
 		glDisable(GL_DEPTH_TEST);
 
 	gBSPRenderer.glClientActiveTextureARB(GL_TEXTURE0_ARB);
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, m_uiIndexBuffer);
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(brushvertex_t), OFFSET(brushvertex_t, texcoord) );
+	glTexCoordPointer(2, GL_FLOAT, sizeof(brushvertex_t), OFFSET(brushvertex_t, texcoord));
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	
-	for ( int i = 0; i < m_iNumEntities; i++ )
+
+	for (int i = 0; i < m_iNumEntities; i++)
 	{
-		if(m_pEntities[i].curstate.renderfx == 70)
+		if (m_pEntities[i].curstate.renderfx == 70)
 			continue;
 
-		entextradata_t *pExtraData = ((entextrainfo_t *)m_pEntities[i].topnode)->pExtraData;
+		entextradata_t* pExtraData = ((entextrainfo_t*)m_pEntities[i].topnode)->pExtraData;
 
-		if(!pExtraData)
+		if (!pExtraData)
 			return;
 
 		int j = 0;
 		for (; j < pExtraData->num_leafs; j++)
-			if (gBSPRenderer.m_pPVS[pExtraData->leafnums[j] >> 3] & (1 << (pExtraData->leafnums[j]&7) ))
+			if (gBSPRenderer.m_pPVS[pExtraData->leafnums[j] >> 3] & (1 << (pExtraData->leafnums[j] & 7)))
 				break;
-			
+
 		if (j == pExtraData->num_leafs)
 			continue;
 
-		g_StudioRenderer.StudioDrawExternalEntity( &m_pEntities[i] );
+		g_StudioRenderer.StudioDrawExternalEntity(&m_pEntities[i]);
 	}
 
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
@@ -763,7 +763,7 @@ void CPropManager::RenderProps( void )
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-	if(m_pCvarDrawClientEntities->value == 2)
+	if (m_pCvarDrawClientEntities->value == 2)
 		glEnable(GL_DEPTH_TEST);
 }
 
@@ -773,22 +773,22 @@ PostLoadModel
 
 ====================
 */
-bool CPropManager::PostLoadModel( char *modelname, studiohdr_t *hdr, cl_entity_t *pEntity )
+bool CPropManager::PostLoadModel(char* modelname, studiohdr_t* hdr, cl_entity_t* pEntity)
 {
 	// preload textures
 	if (hdr->numtextures == 0)
 	{
 		char texturename[256];
 
-		strcpy( texturename, modelname );
-		strcpy( &texturename[strlen(texturename) - 4], "T.mdl" );
+		strcpy(texturename, modelname);
+		strcpy(&texturename[strlen(texturename) - 4], "T.mdl");
 
-		model_t *pModel = g_StudioRenderer.Mod_LoadModel(texturename);
+		model_t* pModel = g_StudioRenderer.Mod_LoadModel(texturename);
 
-		if(!pModel)
+		if (!pModel)
 			return false;
 
-		m_pHeaders[m_iNumHeaders].pTexHdr = (studiohdr_t *)pModel->cache.data;
+		m_pHeaders[m_iNumHeaders].pTexHdr = (studiohdr_t*)pModel->cache.data;
 	}
 	else
 	{
@@ -803,38 +803,38 @@ LoadMDL
 
 ====================
 */
-bool CPropManager::LoadMDL( char *name, cl_entity_t *pEntity, entity_t *pBSPEntity )
+bool CPropManager::LoadMDL(char* name, cl_entity_t* pEntity, entity_t* pBSPEntity)
 {
-	if( m_pCurrentExtraData->pModelData = GetHeader( name ))
+	if (m_pCurrentExtraData->pModelData = GetHeader(name))
 		return true;
 
-	if ( m_iNumHeaders == MAXRENDERENTS )
+	if (m_iNumHeaders == MAXRENDERENTS)
 	{
 		gEngfuncs.Con_Printf("BSP Loader: The client side limit of 4096 models has been reached!\n Not caching.\n");
 		return false;
 	}
 
-	model_t *pModel = g_StudioRenderer.Mod_LoadModel(name);
+	model_t* pModel = g_StudioRenderer.Mod_LoadModel(name);
 
-	if(!pModel)
+	if (!pModel)
 		return false;
-	
-	m_pHeaders[m_iNumHeaders].pHdr = (studiohdr_t *)pModel->cache.data;
+
+	m_pHeaders[m_iNumHeaders].pHdr = (studiohdr_t*)pModel->cache.data;
 	strcpy(m_pHeaders[m_iNumHeaders].name, name);
 
-	if ( m_iNumHeaders == MAXRENDERENTS )
+	if (m_iNumHeaders == MAXRENDERENTS)
 	{
 		gEngfuncs.Con_Printf("BSP Loader: The client side limit of 4096 models has been reached!\n Not caching.\n");
 		return false;
 	}
 
-	if ( !PostLoadModel( name, m_pHeaders[m_iNumHeaders].pHdr, pEntity ) )
+	if (!PostLoadModel(name, m_pHeaders[m_iNumHeaders].pHdr, pEntity))
 		return false;
 
 	// not very nice, but we don't support animations anyway
-	cl_entity_t *pTempEnt = new cl_entity_t;
+	cl_entity_t* pTempEnt = new cl_entity_t;
 	memset(pTempEnt, 0, sizeof(cl_entity_t));
-	model_t *pTempModel = new model_t;
+	model_t* pTempModel = new model_t;
 	memset(pTempModel, 0, sizeof(model_t));
 	strcpy(pTempModel->name, name);
 
@@ -863,7 +863,7 @@ SetupCable
 
 ====================
 */
-bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
+bool CPropManager::SetupCable(cabledata_t* cable, entity_t* entity)
 {
 	char sz[64];
 	Vector vdroppoint;
@@ -874,9 +874,9 @@ bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
 	Vector vendpoint;
 
 	// Get our origin
-	char *pValue = ValueForKey(entity, "origin");
+	char* pValue = ValueForKey(entity, "origin");
 
-	if(!pValue)
+	if (!pValue)
 		return false;
 
 	sscanf(pValue, "%f %f %f", &vposition1[0], &vposition1[1], &vposition1[2]);
@@ -884,19 +884,19 @@ bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
 	// Find our target entity
 	pValue = ValueForKey(entity, "target");
 
-	if(!pValue)
+	if (!pValue)
 		return false;
 
 	strcpy(sz, pValue);
 
-	for(int i = 0; i < m_iNumBSPEntities; i++)
+	for (int i = 0; i < m_iNumBSPEntities; i++)
 	{
 		pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
-		if(!pValue)
+		if (!pValue)
 			continue;
 
-		if(!strcmp(pValue, sz))
+		if (!strcmp(pValue, sz))
 		{
 			pValue = ValueForKey(&m_pBSPEntities[i], "origin");
 
@@ -911,7 +911,7 @@ bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
 	// Get our falling depth
 	pValue = ValueForKey(entity, "falldepth");
 
-	if(!pValue)
+	if (!pValue)
 		return false;
 
 	// Calculate dropping point
@@ -922,7 +922,7 @@ bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
 	// Get sprite width
 	pValue = ValueForKey(entity, "spritewidth");
 
-	if(!pValue)
+	if (!pValue)
 		return false;
 
 	cable->iwidth = atoi(pValue);
@@ -930,35 +930,35 @@ bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
 	// Get segment count
 	pValue = ValueForKey(entity, "segments");
 
-	if(!pValue)
+	if (!pValue)
 		return false;
 
 	cable->isegments = atoi(pValue);
-	cable->inumpoints = cable->isegments+1;
+	cable->inumpoints = cable->isegments + 1;
 
 	cable->vmins = Vector(4096, 4096, 4096);
 	cable->vmaxs = Vector(-4096, -4096, -4096);
 
-	for(int i = 0; i < cable->inumpoints; i++)
+	for (int i = 0; i < cable->inumpoints; i++)
 	{
-		float f = (float)i/(float)cable->isegments;
-		cable->vpoints[i][0] = vposition1[0]*((1-f)*(1-f))+vdroppoint[0]*((1-f)*f*2)+vposition2[0]*(f*f);
-		cable->vpoints[i][1] = vposition1[1]*((1-f)*(1-f))+vdroppoint[1]*((1-f)*f*2)+vposition2[1]*(f*f);
-		cable->vpoints[i][2] = vposition1[2]*((1-f)*(1-f))+vdroppoint[2]*((1-f)*f*2)+vposition2[2]*(f*f);
-	
-		for(int j = 0; j < 3; j++)
+		float f = (float)i / (float)cable->isegments;
+		cable->vpoints[i][0] = vposition1[0] * ((1 - f) * (1 - f)) + vdroppoint[0] * ((1 - f) * f * 2) + vposition2[0] * (f * f);
+		cable->vpoints[i][1] = vposition1[1] * ((1 - f) * (1 - f)) + vdroppoint[1] * ((1 - f) * f * 2) + vposition2[1] * (f * f);
+		cable->vpoints[i][2] = vposition1[2] * ((1 - f) * (1 - f)) + vdroppoint[2] * ((1 - f) * f * 2) + vposition2[2] * (f * f);
+
+		for (int j = 0; j < 3; j++)
 		{
-			if((cable->vpoints[i][j]+cable->iwidth) > cable->vmaxs[j])
-				cable->vmaxs[j] = cable->vpoints[i][j]+cable->iwidth;
+			if ((cable->vpoints[i][j] + cable->iwidth) > cable->vmaxs[j])
+				cable->vmaxs[j] = cable->vpoints[i][j] + cable->iwidth;
 
-			if((cable->vpoints[i][j]-cable->iwidth) > cable->vmaxs[j])
-				cable->vmaxs[j] = cable->vpoints[i][j]-cable->iwidth;
+			if ((cable->vpoints[i][j] - cable->iwidth) > cable->vmaxs[j])
+				cable->vmaxs[j] = cable->vpoints[i][j] - cable->iwidth;
 
-			if((cable->vpoints[i][j]+cable->iwidth) < cable->vmins[j])
-				cable->vmins[j] = cable->vpoints[i][j]+cable->iwidth;
+			if ((cable->vpoints[i][j] + cable->iwidth) < cable->vmins[j])
+				cable->vmins[j] = cable->vpoints[i][j] + cable->iwidth;
 
-			if((cable->vpoints[i][j]-cable->iwidth) < cable->vmins[j])
-				cable->vmins[j] = cable->vpoints[i][j]-cable->iwidth;
+			if ((cable->vpoints[i][j] - cable->iwidth) < cable->vmins[j])
+				cable->vmins[j] = cable->vpoints[i][j] - cable->iwidth;
 		}
 	}
 
@@ -969,7 +969,7 @@ bool CPropManager::SetupCable ( cabledata_t *cable, entity_t *entity )
 	VectorCopy(cable->vmins, pdata.absmin);
 	SV_FindTouchedLeafs(&pdata, gBSPRenderer.m_pWorld->nodes);
 
-	memcpy(cable->leafnums, pdata.leafnums, sizeof(short)*MAX_ENT_LEAFS);
+	memcpy(cable->leafnums, pdata.leafnums, sizeof(short) * MAX_ENT_LEAFS);
 	cable->num_leafs = pdata.num_leafs;
 
 	return true;
@@ -981,14 +981,14 @@ DrawCables
 
 ====================
 */
-void CPropManager::DrawCables( void )
+void CPropManager::DrawCables(void)
 {
 	Vector vVertex;
 	Vector vTangent;
 	Vector vDir;
 	Vector vRight;
 
-	if(m_pCvarDrawClientEntities->value < 1)
+	if (m_pCvarDrawClientEntities->value < 1)
 		return;
 
 	glDisable(GL_TEXTURE_2D);
@@ -997,30 +997,37 @@ void CPropManager::DrawCables( void )
 	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB, GL_PRIMARY_COLOR_ARB);
 
-	for ( int i = 0; i < m_iNumCables; i++ )
+	for (int i = 0; i < m_iNumCables; i++)
 	{
 		int j = 0;
 		for (; j < m_pCables[i].num_leafs; j++)
-			if (gBSPRenderer.m_pPVS[m_pCables[i].leafnums[j] >> 3] & (1 << (m_pCables[i].leafnums[j]&7) ))
+			if (gBSPRenderer.m_pPVS[m_pCables[i].leafnums[j] >> 3] & (1 << (m_pCables[i].leafnums[j] & 7)))
 				break;
-			
+
 		if (j == m_pCables[i].num_leafs)
 			continue;
 
-		if(gHUD.viewFrustum.CullBox(m_pCables[i].vmins, m_pCables[i].vmaxs))
+		if (gHUD.viewFrustum.CullBox(m_pCables[i].vmins, m_pCables[i].vmaxs))
 			continue;
 
 		glBegin(GL_TRIANGLE_STRIP);
-		for(int j = 0; j < m_pCables[i].inumpoints; j++)
+		for (int j = 0; j < m_pCables[i].inumpoints; j++)
 		{
-			if(j == 0){VectorSubtract(m_pCables[i].vpoints[0], m_pCables[i].vpoints[1], vTangent);}
-			else {VectorSubtract(m_pCables[i].vpoints[0], m_pCables[i].vpoints[j], vTangent);}
-			
+			if (j == 0)
+			{
+				VectorSubtract(m_pCables[i].vpoints[0], m_pCables[i].vpoints[1], vTangent);
+			}
+			else
+			{
+				VectorSubtract(m_pCables[i].vpoints[0], m_pCables[i].vpoints[j], vTangent);
+			}
+
 			VectorSubtract(m_pCables[i].vpoints[j], gBSPRenderer.m_vRenderOrigin, vDir);
-			vRight = CrossProduct(vTangent, -vDir); VectorNormalizeFast(vRight);
+			vRight = CrossProduct(vTangent, -vDir);
+			VectorNormalizeFast(vRight);
 
 			glColor3f(GL_ZERO, GL_ZERO, GL_ZERO);
-			VectorMASSE(m_pCables[i].vpoints[j], m_pCables[i].iwidth, vRight, vVertex);			
+			VectorMASSE(m_pCables[i].vpoints[j], m_pCables[i].iwidth, vRight, vVertex);
 			glVertex3fv(vVertex);
 
 			VectorMASSE(m_pCables[i].vpoints[j], -m_pCables[i].iwidth, vRight, vVertex);
@@ -1028,7 +1035,7 @@ void CPropManager::DrawCables( void )
 		}
 		glEnd();
 	}
-	
+
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_2D);
 	glColor3f(GL_ONE, GL_ONE, GL_ONE);
@@ -1040,45 +1047,45 @@ RenderPropsSolid
 
 ====================
 */
-void CPropManager::RenderPropsSolid( void )
+void CPropManager::RenderPropsSolid(void)
 {
-	if(m_pCvarDrawClientEntities->value < 1)
+	if (m_pCvarDrawClientEntities->value < 1)
 		return;
 
 	if (g_StudioRenderer.m_pCvarDrawModels->value < 1)
 		return;
 
-	if(g_StudioRenderer.m_pCvarDrawEntities->value < 1)
+	if (g_StudioRenderer.m_pCvarDrawEntities->value < 1)
 		return;
 
 	gBSPRenderer.glClientActiveTextureARB(GL_TEXTURE0_ARB);
 	gBSPRenderer.glActiveTextureARB(GL_TEXTURE0_ARB);
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, m_uiIndexBuffer);
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(brushvertex_t), OFFSET(brushvertex_t, texcoord) );
+	glTexCoordPointer(2, GL_FLOAT, sizeof(brushvertex_t), OFFSET(brushvertex_t, texcoord));
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	
-	for ( int i = 0; i < m_iNumEntities; i++ )
+
+	for (int i = 0; i < m_iNumEntities; i++)
 	{
-		if(m_pEntities[i].curstate.renderfx == 70)
+		if (m_pEntities[i].curstate.renderfx == 70)
 			continue;
 
-		entextradata_t *pExtraData = ((entextrainfo_t *)m_pEntities[i].topnode)->pExtraData;
+		entextradata_t* pExtraData = ((entextrainfo_t*)m_pEntities[i].topnode)->pExtraData;
 
-		if(!pExtraData)
+		if (!pExtraData)
 			return;
 
 		int j = 0;
 		for (; j < pExtraData->num_leafs; j++)
-			if (gBSPRenderer.m_pPVS[pExtraData->leafnums[j] >> 3] & (1 << (pExtraData->leafnums[j]&7) ))
+			if (gBSPRenderer.m_pPVS[pExtraData->leafnums[j] >> 3] & (1 << (pExtraData->leafnums[j] & 7)))
 				break;
-			
+
 		if (j == pExtraData->num_leafs)
 			continue;
 
-		g_StudioRenderer.StudioDrawExternalEntitySolid( &m_pEntities[i] );
+		g_StudioRenderer.StudioDrawExternalEntitySolid(&m_pEntities[i]);
 	}
 
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
@@ -1094,32 +1101,32 @@ RenderSkyProps
 
 ====================
 */
-void CPropManager::RenderSkyProps( void )
+void CPropManager::RenderSkyProps(void)
 {
-	if(m_pCvarDrawClientEntities->value < 1)
+	if (m_pCvarDrawClientEntities->value < 1)
 		return;
 
 	if (g_StudioRenderer.m_pCvarDrawModels->value < 1)
 		return;
 
-	if(g_StudioRenderer.m_pCvarDrawEntities->value < 1)
+	if (g_StudioRenderer.m_pCvarDrawEntities->value < 1)
 		return;
 
 	gBSPRenderer.glClientActiveTextureARB(GL_TEXTURE0_ARB);
 	gBSPRenderer.glActiveTextureARB(GL_TEXTURE0_ARB);
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, m_uiIndexBuffer);
-	glTexCoordPointer( 2, GL_FLOAT, sizeof(brushvertex_t), OFFSET(brushvertex_t, texcoord) );
+	glTexCoordPointer(2, GL_FLOAT, sizeof(brushvertex_t), OFFSET(brushvertex_t, texcoord));
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	
-	for ( int i = 0; i < m_iNumEntities; i++ )
+
+	for (int i = 0; i < m_iNumEntities; i++)
 	{
-		if(m_pEntities[i].curstate.renderfx != 70)
+		if (m_pEntities[i].curstate.renderfx != 70)
 			continue;
 
-		g_StudioRenderer.StudioDrawExternalEntity( &m_pEntities[i] );
+		g_StudioRenderer.StudioDrawExternalEntity(&m_pEntities[i]);
 	}
 
 	gBSPRenderer.glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);

@@ -2,8 +2,8 @@
 Trinity Rendering Engine - Copyright Andrew Lucas 2009-2012
 
 The Trinity Engine is free software, distributed in the hope th-
-at it will be useful, but WITHOUT ANY WARRANTY; without even the 
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+at it will be useful, but WITHOUT ANY WARRANTY; without even the
+implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 PURPOSE. See the GNU Lesser General Public License for more det-
 ails.
 
@@ -11,9 +11,9 @@ Particle Engine
 Written by Andrew Lucas
 */
 
-#if !defined ( PARTICLE_ENGINE_H )
+#if !defined(PARTICLE_ENGINE_H)
 #define PARTICLE_ENGINE_H
-#if defined( _WIN32 )
+#if defined(_WIN32)
 #pragma once
 #endif
 
@@ -37,50 +37,50 @@ CParticleEngine
 class CParticleEngine
 {
 public:
-	void Init( void );
-	void VidInit( void );
-	void Shutdown( void );
+	void Init(void);
+	void VidInit(void);
+	void Shutdown(void);
 
-	void CreateCluster( char *szPath, Vector origin, Vector dir, int iId );
-	particle_system_t *CreateSystem( char *szPath, Vector origin, Vector dir, int iId, particle_system_t *parent = NULL );
-	void RemoveSystem( int iId );
+	void CreateCluster(char* szPath, Vector origin, Vector dir, int iId);
+	particle_system_t* CreateSystem(char* szPath, Vector origin, Vector dir, int iId, particle_system_t* parent = NULL);
+	void RemoveSystem(int iId);
 
-	particle_system_t *AllocSystem( void );
-	cl_particle_t *AllocParticle( particle_system_t *pSystem );
+	particle_system_t* AllocSystem(void);
+	cl_particle_t* AllocParticle(particle_system_t* pSystem);
 
-	void Update( void );
-	void DrawParticles( void );
-	void CullSystems( void );
-	void UpdateSystems( void );
+	void Update(void);
+	void DrawParticles(void);
+	void CullSystems(void);
+	void UpdateSystems(void);
 
-	Vector LightForParticle( cl_particle_t *pParticle );
-	bool CheckLightBBox( cl_particle_t *pParticle, cl_dlight_t *pLight );
+	Vector LightForParticle(cl_particle_t* pParticle);
+	bool CheckLightBBox(cl_particle_t* pParticle, cl_dlight_t* pLight);
 
-	void EnvironmentCreateFirst( particle_system_t *pSystem );
+	void EnvironmentCreateFirst(particle_system_t* pSystem);
 
-	void CreateParticle( particle_system_t *pSystem, float *flOrigin = NULL, float *flNormal = NULL );
-	bool UpdateParticle( cl_particle_t *pParticle );
-	void RenderParticle( cl_particle_t *pParticle, float flUp, float flRight );
+	void CreateParticle(particle_system_t* pSystem, float* flOrigin = NULL, float* flNormal = NULL);
+	bool UpdateParticle(cl_particle_t* pParticle);
+	void RenderParticle(cl_particle_t* pParticle, float flUp, float flRight);
 
-	int MsgCreateSystem( const char *pszName, int iSize, void *pbuf );
+	int MsgCreateSystem(const char* pszName, int iSize, void* pbuf);
 
 public:
-	particle_system_t	*m_pSystemHeader;
+	particle_system_t* m_pSystemHeader;
 
-	cvar_t *m_pCvarDrawParticles;
-	cvar_t *m_pCvarParticleDebug;
-	cvar_t *m_pCvarGravity;
+	cvar_t* m_pCvarDrawParticles;
+	cvar_t* m_pCvarParticleDebug;
+	cvar_t* m_pCvarGravity;
 
 	float m_flLastDraw;
 	float m_flFrameTime;
 
 	int m_iNumParticles;
 
-	int	m_iNumFreedParticles;
-	int	m_iNumCreatedParticles;
+	int m_iNumFreedParticles;
+	int m_iNumCreatedParticles;
 
 	int m_iNumFreedSystems;
-	int	m_iNumCreatedSystems;
+	int m_iNumCreatedSystems;
 
 	Vector m_vForward;
 	Vector m_vRight;
