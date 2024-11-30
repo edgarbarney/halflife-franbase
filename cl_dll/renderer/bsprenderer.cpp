@@ -2301,7 +2301,7 @@ void CBSPRenderer::DrawDetails(void)
 
 				if (m_pCurrentDynLight->cone_size)
 				{
-					if (m_pCurrentDynLight->frustum.CullBox(static_cast<float*>(pCurObject->mins), static_cast<float*>(pCurObject->maxs)))
+					if (m_pCurrentDynLight->frustum.CullBox(pCurObject->mins, pCurObject->maxs))
 						continue;
 				}
 				else
@@ -5458,7 +5458,7 @@ bool CBSPRenderer::DynamicLighted(const Vector& vmins, const Vector& vmaxs)
 
 		if (m_pCurrentDynLight->cone_size)
 		{
-			if (m_pCurrentDynLight->frustum.CullBox(const_cast<float*>(static_cast<const float*>(vmins)), const_cast<float*>(static_cast<const float*>(vmins))))
+			if (m_pCurrentDynLight->frustum.CullBox(vmins, vmaxs))
 				continue;
 		}
 		else

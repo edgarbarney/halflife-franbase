@@ -60,9 +60,9 @@ SetupFrustum
 
 =====================
 */
-void FrustumCheck::SetFrustum(Q_vec3_t vAngles, Q_vec3_t vOrigin, float flFOV_x, float flFarDist, bool bView)
+void FrustumCheck::SetFrustum(Vector vAngles, Vector vOrigin, float flFOV_x, float flFarDist, bool bView)
 {
-	Q_vec3_t vVpn, vUp, vRight;
+	Vector vVpn, vUp, vRight;
 	Q_AngleVectors(vAngles, vVpn, vRight, vUp);
 
 	if (flFOV_x == 90)
@@ -121,7 +121,7 @@ void FrustumCheck::SetFrustum(Q_vec3_t vAngles, Q_vec3_t vOrigin, float flFOV_x,
 		}
 		else
 		{
-			Q_vec3_t vFarPoint;
+			Vector vFarPoint;
 			VectorCopy(vVpn, vFarPoint);
 
 			vFarPoint[0] *= flFarDist;
@@ -150,7 +150,7 @@ SetExtraCullBox
 
 =====================
 */
-void FrustumCheck::SetExtraCullBox(Q_vec3_t vMins, Q_vec3_t vMaxs)
+void FrustumCheck::SetExtraCullBox(Vector vMins, Vector vMaxs)
 {
 	VectorCopy(vMins, m_vExtraCullMins);
 	VectorCopy(vMaxs, m_vExtraCullMaxs);
@@ -174,7 +174,7 @@ RadialCullBox
 
 =====================
 */
-bool FrustumCheck::RadialCullBox(Q_vec3_t vMins, Q_vec3_t vMaxs)
+bool FrustumCheck::RadialCullBox(Vector vMins, Vector vMaxs)
 {
 	if (m_vCullBoxMins[0] > vMaxs[0])
 		return true;
@@ -199,7 +199,7 @@ ExtraCullBox
 
 =====================
 */
-bool FrustumCheck::ExtraCullBox(Q_vec3_t vMins, Q_vec3_t vMaxs)
+bool FrustumCheck::ExtraCullBox(Vector vMins, Vector vMaxs)
 {
 	if (m_vExtraCullMins[0] > vMaxs[0])
 		return true;
@@ -224,7 +224,7 @@ CullBox
 
 =====================
 */
-bool FrustumCheck::CullBox(Q_vec3_t vMins, Q_vec3_t vMaxs)
+bool FrustumCheck::CullBox(Vector vMins, Vector vMaxs)
 {
 	if (m_bExtraCull)
 	{
@@ -258,7 +258,7 @@ Q_AngleVectors
 
 =====================
 */
-void FrustumCheck::Q_AngleVectors(Q_vec3_t vAngles, Q_vec3_t vForward, Q_vec3_t vRight, Q_vec3_t vUp)
+void FrustumCheck::Q_AngleVectors(Vector vAngles, Vector vForward, Vector vRight, Vector vUp)
 {
 	float angle;
 	float sr, sp, sy, cr, cp, cy;
@@ -290,7 +290,7 @@ Q_BoxOnPlaneSide
 
 ==================
 */
-int FrustumCheck::Q_BoxOnPlaneSide(Q_vec3_t emins, Q_vec3_t emaxs, Q_mplane_t* p)
+int FrustumCheck::Q_BoxOnPlaneSide(Vector emins, Vector emaxs, Q_mplane_t* p)
 {
 	float dist1, dist2;
 	int sides;
@@ -369,7 +369,7 @@ Q_RotatePointAroundVector
 
 ==========================
 */
-void FrustumCheck::Q_RotatePointAroundVector(Q_vec3_t vDest, const Q_vec3_t vDir, Q_vec3_t vPoint, float flDegrees)
+void FrustumCheck::Q_RotatePointAroundVector(Vector vDest, const Vector vDir, Vector vPoint, float flDegrees)
 {
 	float q[3];
 	float q3;
@@ -401,7 +401,7 @@ Q_CrossProduct
 
 =================
 */
-void FrustumCheck::Q_CrossProduct(Q_vec3_t v1, Q_vec3_t v2, Q_vec3_t cross)
+void FrustumCheck::Q_CrossProduct(Vector v1, Vector v2, Vector cross)
 {
 	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
 	cross[1] = v1[2] * v2[0] - v1[0] * v2[2];
