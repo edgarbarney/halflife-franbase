@@ -11,7 +11,9 @@ Water Shader
 Written by Andrew Lucas
 */
 
+#if defined(_WIN32)
 #include "windows.h"
+#endif
 #include "hud.h"
 #include "cl_util.h"
 #include <gl/glu.h>

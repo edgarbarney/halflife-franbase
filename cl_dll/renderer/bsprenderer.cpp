@@ -12,7 +12,9 @@ Original code by Buzer and Id Software
 Extended and/or recoded by Andrew Lucas
 */
 
+#if defined(_WIN32)
 #include "windows.h"
+#endif
 #include "hud.h"
 #include "cl_util.h"
 #include <gl/glu.h>

@@ -16,9 +16,9 @@ Extended and/or recoded by Andrew Lucas
 #define BSPRENDERER_H
 #if defined(_WIN32)
 #pragma once
+#include "windows.h"
 #endif
 
-#include "windows.h"
 #include "gl/gl.h"
 #include "pm_defs.h"
 #include "cl_entity.h"

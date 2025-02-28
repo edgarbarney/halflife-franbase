@@ -12,7 +12,9 @@ Code by Andrew Lucas
 Additional code taken from Id Software
 */
 
+#if defined(_WIN32)
 #include "windows.h"
+#endif
 #include "hud.h"
 #include "cl_util.h"
 #include <gl/glu.h>

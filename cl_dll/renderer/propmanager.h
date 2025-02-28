@@ -16,9 +16,9 @@ Transparency code by Neil "Jed" Jedrzejewski
 #define BSPLOADER_H
 #if defined(_WIN32)
 #pragma once
+#include "windows.h"
 #endif
 
-#include "windows.h"
 #include "gl/gl.h"
 #include "pm_defs.h"
 #include "cl_entity.h"

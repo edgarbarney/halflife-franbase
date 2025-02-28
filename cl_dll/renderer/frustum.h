@@ -6,7 +6,9 @@
 #ifndef FRUSTUM_H
 #define FRUSTUM_H
 
+#if defined(_WIN32)
 #include "windows.h"
+#endif
 #include "gl/gl.h"
 #include "pm_defs.h"
 #include "cl_entity.h"

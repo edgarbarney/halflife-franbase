@@ -12,7 +12,9 @@ Written by Andrew Lucas
 Transparency code by Neil "Jed" Jedrzejewski
 */
 
+#if defined(_WIN32)
 #include "windows.h"
+#endif
 #include "hud.h"
 #include "cl_util.h"
 #include <gl/glu.h>
