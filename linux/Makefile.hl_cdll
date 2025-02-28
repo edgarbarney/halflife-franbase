@@ -5,6 +5,7 @@
 
 HL_SRC_DIR=$(SOURCE_DIR)/cl_dll
 HL_SERVER_SRC_DIR=$(SOURCE_DIR)/dlls
+RENDERER_DIR=$(SOURCE_DIR)/cl_dll/renderer
 
 HL1_OBJ_DIR=$(BUILD_OBJ_DIR)/hl1_client
 PUBLIC_OBJ_DIR=$(HL1_OBJ_DIR)/public
@@ -12,6 +13,7 @@ COMMON_OBJ_DIR=$(HL1_OBJ_DIR)/common
 GAME_SHARED_OBJ_DIR=$(HL1_OBJ_DIR)/game_shared
 HL1_SERVER_OBJ_DIR=$(HL1_OBJ_DIR)/server
 PM_SHARED_OBJ_DIR=$(HL1_OBJ_DIR)/pm_shared
+RENDERER_OBJ_DIR=$(HL1_OBJ_DIR)/renderer
 
 CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) -DCLIENT_DLL
 
@@ -57,9 +59,6 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/menu.o \
 	$(HL1_OBJ_DIR)/message.o \
 	$(HL1_OBJ_DIR)/mp3.o \
-	$(HL1_OBJ_DIR)/particlemgr.o \
-	$(HL1_OBJ_DIR)/particlemsg.o \
-	$(HL1_OBJ_DIR)/particlesys.o \
 	$(HL1_OBJ_DIR)/saytext.o \
 	$(HL1_OBJ_DIR)/status_icons.o \
 	$(HL1_OBJ_DIR)/statusbar.o \
@@ -80,6 +79,14 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/vgui_SpectatorPanel.o \
 	$(HL1_OBJ_DIR)/vgui_teammenu.o \
 	$(HL1_OBJ_DIR)/voice_status.o \
+	$(HL1_OBJ_DIR)/renderer/bsprenderer.o \
+	$(HL1_OBJ_DIR)/renderer/frustum.o \
+	$(HL1_OBJ_DIR)/renderer/mirrormanager.o \
+	$(HL1_OBJ_DIR)/renderer/particle_engine.o \
+	$(HL1_OBJ_DIR)/renderer/propmanager.o  \
+	$(HL1_OBJ_DIR)/renderer/rendererdefs.o \
+	$(HL1_OBJ_DIR)/renderer/textureloader.o \
+	$(HL1_OBJ_DIR)/renderer/watershader.o \
 	
 DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/crossbow.o \
@@ -133,6 +140,7 @@ $(HL1_OBJ_DIR):
 	mkdir -p $(HL1_OBJ_DIR)/hl
 	mkdir -p $(HL1_OBJ_DIR)/dlls/wpn_shared
 	mkdir -p $(HL1_OBJ_DIR)/VGUI
+	mkdir -p $(HL1_OBJ_DIR)/renderer
 
 $(HL1_SERVER_OBJ_DIR):
 	mkdir -p $(HL1_SERVER_OBJ_DIR)
@@ -149,6 +157,9 @@ $(GAME_SHARED_OBJ_DIR):
 
 $(PM_SHARED_OBJ_DIR):
 	mkdir -p $(PM_SHARED_OBJ_DIR)
+	
+$(RENDERER_OBJ_DIR):
+	mkdir -p $(RENDERER_OBJ_DIR)
 
 $(HL1_OBJ_DIR)/%.o: $(HL_SRC_DIR)/%.cpp $(filter-out $(wildcard  $(HL1_OBJ_DIR)),  $(HL1_OBJ_DIR))
 	$(DO_CC)
@@ -175,6 +186,9 @@ $(GAME_SHARED_OBJ_DIR)/%.o : $(GAME_SHARED_SRC_DIR)/%.cpp $(filter-out $(wildcar
 	$(DO_CC)
 
 $(PM_SHARED_OBJ_DIR)/%.o : $(PM_SRC_DIR)/%.cpp $(filter-out $(wildcard  $(PM_SHARED_OBJ_DIR)),  $(PM_SHARED_OBJ_DIR))
+	$(DO_CC)
+	
+$(RENDERER_OBJ_DIR)/%.o : $(RENDERER_DIR)/%.cpp $(filter-out $(wildcard  $(RENDERER_OBJ_DIR)),  $(RENDERER_OBJ_DIR))
 	$(DO_CC)
 
 clean:
