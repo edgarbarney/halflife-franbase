@@ -13,9 +13,12 @@ Additional code written by Andrew Lucas
 Transparency code by Neil "Jed" Jedrzejewski
 */
 
-#include <windows.h>
-#include <gl/gl.h>
-#include "gl/glext.h"
+#if defined( _WIN32 )
+#include "windows.h"
+#endif
+
+#include "GL/gl.h"
+#include "GL/glext.h"
 
 #include "hud.h"
 #include "cl_util.h"

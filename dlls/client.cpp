@@ -28,7 +28,7 @@
 #include <vector>
 
 #if !_WIN32
-#include <dlsym.h>
+#include <dlfcn.h>
 #endif
 #include "extdll.h"
 #include "util.h"
