@@ -13,10 +13,10 @@ Written by Andrew Lucas
 
 #if defined(_WIN32)
 #include "windows.h"
+#include <GL/glu.h>
 #endif
 #include "hud.h"
 #include "cl_util.h"
-#include <GL/glu.h>
 
 #include "const.h"
 #include "studio.h"
