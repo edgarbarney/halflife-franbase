@@ -17,11 +17,11 @@ Transparency code by Neil "Jed" Jedrzejewski
 #define STUDIOMODELRENDERER_H
 #if defined( _WIN32 )
 #pragma once
+#include "windows.h"
 #endif
 
-#include "windows.h"
-#include "gl/gl.h"
-#include "gl/glext.h"
+#include "GL/gl.h"
+#include "GL/glext.h"
 #include "dlight.h"
 
 #include "renderer/rendererdefs.h"

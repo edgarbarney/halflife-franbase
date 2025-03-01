@@ -18,7 +18,7 @@ Written by Andrew Lucas, Richard Rohac, BUzer, Laurie, Botman and Id Software
 #include "windows.h"
 #endif
 
-#include "gl/gl.h"
+#include "GL/gl.h"
 #include "gl/glext.h"
 #include "dlight.h"
 #include "com_model.h"

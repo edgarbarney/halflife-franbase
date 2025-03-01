@@ -27,6 +27,9 @@
 #include <string>
 #include <vector>
 
+#if !_WIN32
+#include <dlsym.h>
+#endif
 #include "extdll.h"
 #include "util.h"
 #include "filesystem_utils.h"
@@ -95,12 +98,12 @@ unsigned int ByteToInt(byte* byte)
 	return iValue;
 }
 
-#ifdef WIN32
 typedef void(__cdecl* CLGETMDL)(int, void**);
 void ExportDetails()
 {
 	CLGETMDL ClientGetModelByIndex;
 
+#ifdef _WIN32
 	HMODULE hClient = GetModuleHandleA("client.dll");
 
 	if (!hClient)
@@ -108,9 +111,15 @@ void ExportDetails()
 
 	// Get pointer to model func
 	ClientGetModelByIndex = (CLGETMDL)GetProcAddress(hClient, "CL_GetModelByIndex");
+#else
+	ClientGetModelByIndex = dlsym(RTLD_NEXT, "CL_GetModelByIndex");
+#endif
 
 	if (!ClientGetModelByIndex)
+	{
+		ALERT(at_console, "Can't find CL_GetModelByIndex export!\n");
 		return;
+	}
 
 	char szPath[64];
 	edict_t* pEdicts[512];
@@ -228,13 +237,6 @@ void ExportDetails()
 	delete[] pWriteData;
 	fclose(pFile);
 }
-#else
-// TODO: Port To Linux
-void ExportDetails()
-{
-	return;
-}
-#endif
 // RENDERERS END
 
 

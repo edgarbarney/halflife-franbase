@@ -17,7 +17,7 @@ Transparency code by Neil "Jed" Jedrzejewski
 #endif
 #include "hud.h"
 #include "cl_util.h"
-#include <gl/glu.h>
+#include <GL/glu.h>
 
 #include "const.h"
 #include "studio.h"

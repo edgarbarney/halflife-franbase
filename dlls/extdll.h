@@ -36,3 +36,18 @@
 
 // Shared header between the client DLL and the game DLLs
 #include "cdll_dll.h"
+
+// Linux Stuff
+#ifndef _WIN32
+// No need to define cdecl on Linux
+#define __cdecl
+#define _cdecl
+
+[[deprecated("strupr is deprecated. Use FranUtils::UpperCase instead.")]]
+static inline void strupr(char* buf) {}
+//{
+//	for( ; buf && *buf; buf++ )
+//		*buf = toupper( *buf );
+//}
+
+#endif

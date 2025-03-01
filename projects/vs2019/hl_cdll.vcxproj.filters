@@ -64,6 +64,9 @@
     <Filter Include="Header Files\cl_dll\renderer">
       <UniqueIdentifier>{75d6dc13-b9ff-4324-a088-354882875c8b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\common\FranUtils">
+      <UniqueIdentifier>{c15fe27e-24dd-4739-9196-34b3db30db54}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\dlls\crossbow.cpp">
@@ -631,6 +634,24 @@
     </ClInclude>
     <ClInclude Include="..\..\cl_dll\renderer\watershader.h">
       <Filter>Header Files\cl_dll\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\FranUtils\FranUtils_String.hpp">
+      <Filter>Header Files\common\FranUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\FranUtils\FranUtils_Maths.hpp">
+      <Filter>Header Files\common\FranUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\FranUtils\FranUtils_Debug.hpp">
+      <Filter>Header Files\common\FranUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\FranUtils\FranUtils_FileSystem.hpp">
+      <Filter>Header Files\common\FranUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\FranUtils\FranUtils_Globals.hpp">
+      <Filter>Header Files\common\FranUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\FranUtils\FranUtils.hpp">
+      <Filter>Header Files\common\FranUtils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

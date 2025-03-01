@@ -263,6 +263,12 @@ cmd /c ""$(ProjectDir)..\..\filecopy.bat" "$(SolutionDir)../../network" "" "delt
     <ClInclude Include="..\..\common\event_api.h" />
     <ClInclude Include="..\..\common\event_args.h" />
     <ClInclude Include="..\..\common\event_flags.h" />
+    <ClInclude Include="..\..\common\FranUtils\FranUtils.hpp" />
+    <ClInclude Include="..\..\common\FranUtils\FranUtils_FileSystem.hpp" />
+    <ClInclude Include="..\..\common\FranUtils\FranUtils_Globals.hpp" />
+    <ClInclude Include="..\..\common\FranUtils\FranUtils_Maths.hpp" />
+    <ClInclude Include="..\..\common\FranUtils\FranUtils_Debug.hpp" />
+    <ClInclude Include="..\..\common\FranUtils\FranUtils_String.hpp" />
     <ClInclude Include="..\..\common\hltv.h" />
     <ClInclude Include="..\..\common\in_buttons.h" />
     <ClInclude Include="..\..\common\ivoicetweak.h" />

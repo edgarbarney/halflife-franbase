@@ -46,6 +46,9 @@
     <Filter Include="Header Files\public">
       <UniqueIdentifier>{ccda2445-0302-44ae-a537-be89f5811329}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\common\FranUtils">
+      <UniqueIdentifier>{10e2da84-313a-4a71-8321-cf2c80790b01}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\dlls\aflock.cpp">

@@ -9,7 +9,7 @@
 #if defined(_WIN32)
 #include "windows.h"
 #endif
-#include "gl/gl.h"
+#include "GL/gl.h"
 #include "pm_defs.h"
 #include "cl_entity.h"
 #include "com_model.h"
