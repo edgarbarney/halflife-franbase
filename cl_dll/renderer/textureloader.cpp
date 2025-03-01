@@ -15,7 +15,9 @@ Written by Andrew Lucas
 #include "textureloader.h"
 #include "bsprenderer.h"
 #include "propmanager.h"
-#include <windows.h>
+#if defined(_WIN32)
+#include "windows.h"
+#endif
 #include "gl/glext.h"
 
 #pragma warning(disable : 4018)

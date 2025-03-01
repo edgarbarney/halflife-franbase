@@ -46,7 +46,7 @@ Written by Andrew Lucas
 #include "GameStudioModelRenderer.h"
 extern CGameStudioModelRenderer g_StudioRenderer;
 
-extern inline float sgn(float a);
+extern float sgn(float a);
 
 //===========================================
 //	ARB SHADERS
