@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Half-Life Debugging",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${env:HOME}/.steam/steam/steamapps/common/Half-Life/hl_linux",
+      "args": ["-dev", "-console", "-windowed", "-w", "1280", "-h", "720", "-game", "Spirinity"],
+      "stopAtEntry": false,
+      "cwd": "${env:HOME}/.steam/steam/steamapps/common/Half-Life",
+      "environment": [
+        {
+            "name": "LD_LIBRARY_PATH",
+            "value": "${env:HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/pinned_libs_32:${env:HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/pinned_libs_64:/usr/lib/x86_64-linux-gnu/libfakeroot:/lib/i386-linux-gnu:/usr/lib/wsl/lib:/usr/local/lib:/lib/x86_64-linux-gnu:/lib32:/libx32:/lib:${env:HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/lib/i386-linux-gnu:${env:HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/usr/lib/i386-linux-gnu:${env:HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/lib/x86_64-linux-gnu:${env:HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/usr/lib/x86_64-linux-gnu:${env:HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/lib:${env:HOME}/.steam/debian-installation/ubuntu12_32/steam-runtime/usr/lib:${env:HOME}/.steam/debian-installation/steamapps/common/Half-Life"
+        }
+      ],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "text": "-enable-pretty-printing",
+          "description": "Enable GDB pretty printing",
+          "ignoreFailures": true
+        },
+        {
+          "text": "set debug-file-directory ${workspaceFolder}/linux/release",
+          "ignoreFailures": false
+        }
+      ],
+      "preLaunchTask": "Build Spirinity",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "symbolLoadInfo": {
+        "loadAll": true
+      }
+    }
+  ]
+}
