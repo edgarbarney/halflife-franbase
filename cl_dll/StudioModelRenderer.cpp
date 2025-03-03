@@ -6046,7 +6046,7 @@ Mod_LoadModel
 
 ====================
 */
-model_t *CStudioModelRenderer::Mod_LoadModel( char *szName )
+model_t* CStudioModelRenderer::Mod_LoadModel(const char* szName)
 {
 	// Try and find it in our cache
 	for(int i = 0; i < m_iNumStudioModels; i++)
@@ -6099,7 +6099,7 @@ Mod_LoadTexture
 
 ====================
 */
-void CStudioModelRenderer::Mod_LoadTexture( mstudiotexture_t *ptexture, byte *pbuffer, char *szmodelname )
+void CStudioModelRenderer::Mod_LoadTexture( mstudiotexture_t* ptexture, byte* pbuffer, const char* szmodelname)
 {
 	int		i, j;
 	int		row1[1024], row2[1024], col1[1024], col2[1024];

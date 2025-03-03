@@ -131,7 +131,7 @@ public:
 	void AnimateLight(void);
 	void UploadLightmaps(void);
 	void BuildLightmap(msurface_t* surf, int surfindex, color24* out);
-	void AddLightStyle(int iNum, char* szStyle);
+	void AddLightStyle(int iNum, const char* szStyle);
 
 	void SetTexEnvs(int env0 = 0, int env1 = 0, int env2 = 0, int env3 = 0);
 	void SetTexEnv_Internal(int env);

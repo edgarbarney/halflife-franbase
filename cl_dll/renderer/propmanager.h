@@ -46,8 +46,8 @@ public:
 	void RenderPropsSolid(void);
 
 	// Models
-	bool PostLoadModel(char* modelname, studiohdr_t* hdr, cl_entity_t* pEntity);
-	bool LoadMDL(char* name, cl_entity_t* pEntity, entity_t* pBSPEntity);
+	bool PostLoadModel(const char* modelname, studiohdr_t* hdr, cl_entity_t* pEntity);
+	bool LoadMDL(const char* name, cl_entity_t* pEntity, entity_t* pBSPEntity);
 	modeldata_t* GetHeader(const char* name);
 
 	bool SetupCable(cabledata_t* cable, entity_t* entity);
@@ -55,7 +55,7 @@ public:
 
 	void ParseEntities(void);
 	void LoadEntVars(void);
-	char* ValueForKey(entity_t* ent, char* key);
+	char* ValueForKey(entity_t* ent, const char* key);
 
 public:
 	int m_iEntDataSize;

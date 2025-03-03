@@ -290,8 +290,8 @@ public:
 
 	int				m_iNumEngineCacheModels;
 public:
-	virtual model_t	*Mod_LoadModel( char *szName );
-	virtual void	Mod_LoadTexture( mstudiotexture_t *ptexture, byte *pbuffer, char *szmodelname );
+	virtual model_t* Mod_LoadModel( const char* szName );
+	virtual void	Mod_LoadTexture( mstudiotexture_t *ptexture, byte *pbuffer, const char *szmodelname );
 
 	model_t			m_pStudioModels[MAX_CACHE_MODELS];
 	int				m_iNumStudioModels;

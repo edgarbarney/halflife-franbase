@@ -192,7 +192,7 @@ CCustomMenu::CCustomMenu(int iTrans, int iRemoveMe, int x, int y, int wide, int 
 
 		// Open up the Class Briefing File
 		sprintf(sz, "classes/short_%s.txt", sTFClassSelection[i]);
-		char* cText = "Class Description not available.";
+		const char* cText = "Class Description not available.";
 		char* pfile = (char*)gEngfuncs.COM_LoadFile(sz, 5, NULL);
 		if (pfile)
 		{

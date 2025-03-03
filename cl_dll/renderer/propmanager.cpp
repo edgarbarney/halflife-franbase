@@ -251,7 +251,7 @@ ValueForKey
 
 ====================
 */
-char* CPropManager::ValueForKey(entity_t* ent, char* key)
+char* CPropManager::ValueForKey(entity_t* ent, const char* key)
 {
 	for (epair_t* pEPair = ent->epairs; pEPair; pEPair = pEPair->next)
 	{
@@ -775,7 +775,7 @@ PostLoadModel
 
 ====================
 */
-bool CPropManager::PostLoadModel(char* modelname, studiohdr_t* hdr, cl_entity_t* pEntity)
+bool CPropManager::PostLoadModel(const char* modelname, studiohdr_t* hdr, cl_entity_t* pEntity)
 {
 	// preload textures
 	if (hdr->numtextures == 0)
@@ -805,7 +805,7 @@ LoadMDL
 
 ====================
 */
-bool CPropManager::LoadMDL(char* name, cl_entity_t* pEntity, entity_t* pBSPEntity)
+bool CPropManager::LoadMDL(const char* name, cl_entity_t* pEntity, entity_t* pBSPEntity)
 {
 	if (m_pCurrentExtraData->pModelData = GetHeader(name))
 		return true;

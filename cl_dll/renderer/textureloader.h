@@ -116,16 +116,16 @@ public:
 	void LoadWADFiles(void);
 	void FreeWADFiles(void);
 
-	cl_texture_t* LoadTexture(char* szFile, int iAltIndex = 0, bool bPrompt = false, bool bNoMip = false, bool bBorder = false);
-	cl_texture_t* LoadWADTexture(char* szTexture, int iAltIndex = 0);
-	cl_texture_t* HasTexture(char* szFile);
+	cl_texture_t* LoadTexture(const char* szFile, int iAltIndex = 0, bool bPrompt = false, bool bNoMip = false, bool bBorder = false);
+	cl_texture_t* LoadWADTexture(const char* szTexture, int iAltIndex = 0);
+	cl_texture_t* HasTexture(const char* szFile);
 
 	bool LoadTGAFile(byte* pFile, cl_texture_t* pTexture, bool bNoMip, bool bBorder);
 	bool LoadDDSFile(byte* pFile, cl_texture_t* pTexture, bool bNoMip);
 	void LoadPallettedTexture(byte* data, byte* pal, cl_texture_t* pTexture);
 
 	void LoadTextureScript(void);
-	bool TextureHasFlag(char* szModel, char* szTexture, int iFlag);
+	bool TextureHasFlag(const char* szModel, const char* szTexture, int iFlag);
 
 public:
 	PFNGLCOMPRESSEDTEXIMAGE2DARBPROC glCompressedTexImage2DARB;

@@ -754,7 +754,7 @@ void *wglGetProcAddress(const char *name);
 extern engine_studio_api_t IEngineStudio;
 
 extern void ClampColor(int r, int g, int b, color24* out);
-extern void FilenameFromPath(char* szin, char* szout);
+extern void FilenameFromPath(const char* szin, char* szout);
 
 extern void MyLookAt(GLdouble eyex, GLdouble eyey, GLdouble eyez, GLdouble centerx, GLdouble centery, GLdouble centerz, GLdouble upx, GLdouble upy, GLdouble upz);
 extern mleaf_t* Mod_PointInLeaf(Vector p, model_t* model);

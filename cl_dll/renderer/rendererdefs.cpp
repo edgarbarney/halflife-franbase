@@ -118,7 +118,7 @@ char* strLower(char* str)
 // FilenameFromPath
 //
 //==========================
-void FilenameFromPath(char* szin, char* szout)
+void FilenameFromPath(const char* szin, char* szout)
 {
 	int lastdot = 0;
 	int lastbar = 0;

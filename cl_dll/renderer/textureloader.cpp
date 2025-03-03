@@ -94,7 +94,7 @@ LoadTexture
 
 ====================
 */
-cl_texture_t* CTextureLoader::LoadTexture(char* szFile, int iAltIndex, bool bPrompt, bool bNoMip, bool bBorder)
+cl_texture_t* CTextureLoader::LoadTexture(const char* szFile, int iAltIndex, bool bPrompt, bool bNoMip, bool bBorder)
 {
 	int iType = 0;
 	char szAlt[64];
@@ -460,7 +460,7 @@ HasTexture
 
 ====================
 */
-cl_texture_t* CTextureLoader::HasTexture(char* szFile)
+cl_texture_t* CTextureLoader::HasTexture(const char* szFile)
 {
 	for (int i = 0; i < m_iNumTextures; i++)
 	{
@@ -563,7 +563,7 @@ LoadWADTexture
 
 ====================
 */
-cl_texture_t* CTextureLoader::LoadWADTexture(char* szTexture, int iAltIndex)
+cl_texture_t* CTextureLoader::LoadWADTexture(const char* szTexture, int iAltIndex)
 {
 	char szName[32];
 	cl_texture_t* pTexture = NULL;
@@ -921,7 +921,7 @@ TextureHasFlag
 
 ====================
 */
-bool CTextureLoader::TextureHasFlag(char* szModel, char* szTexture, int iFlag)
+bool CTextureLoader::TextureHasFlag(const char* szModel, const char* szTexture, int iFlag)
 {
 	if (!m_iNumTextureEntries)
 		return false;
