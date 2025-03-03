@@ -5,6 +5,8 @@
 
 #include <string>
 
+//#include "FranUtils_Globals.hpp"
+
 namespace FranUtils::Debug
 {
 #ifndef CLIENT_WEAPONS

@@ -3,7 +3,12 @@
 #ifndef FRANUTILS_FILESYSTEM_H
 #define FRANUTILS_FILESYSTEM_H
 
+#include <filesystem>
+#include <fstream>
 #include <string>
+
+#include "FranUtils_Globals.hpp"
+#include "FranUtils_String.hpp"
 
 #ifdef CLIENT_DLL
 extern cl_enginefunc_t gEngfuncs;
@@ -30,10 +35,6 @@ namespace FranUtils::FileSystem
 		temp = temp + "//" + getGamedir + endLine;
 		return temp;
 	}
-
-	// Because of Valve's broken include order, we can't just include
-	// Filesystem header here. So we should inform the devs
-#if defined _FILESYSTEM_ || defined _GLIBCXX_FILESYSTEM
 
 	// Check if a file exists in mod dir or fallback dir.
 	inline bool Exists(const std::string& file)
@@ -66,11 +67,80 @@ namespace FranUtils::FileSystem
 		return false;
 	}
 
-#else
+	inline static void ParseLiblist(std::string& fallbackDir, std::string& startMap, std::string& trainMap, std::string& gameName)
+	{
+		// Because of Valve's broken include order, we can't just include
+		// Filesystem header here. So we should inform the devs
+		if (std::filesystem::exists(GetModDirectory() + "liblist.gam"))
+		{
+			std::ifstream fstream;
+			fstream.open(GetModDirectory() + "liblist.gam");
 
-#error "You are trying to use FranUtils.FileSystem but you didn't include standard library filesystem header. Please include it in an appropriate place."
+			int lineIteration = 0;
+			std::string line;
+			while (std::getline(fstream, line))
+			{
+				lineIteration++;
+				// line.erase(remove_if(line.begin(), line.end(), isspace), line.end()); // Remove whitespace
+				gEngfuncs.Con_DPrintf("\n liblist.gam - parsing %d", lineIteration);
+				if (line.empty()) // Ignore empty lines
+				{
+					continue;
+				}
+				else if (line[0] == '/') // Ignore comments
+				{
+					continue;
+				}
+				else if (line.substr(0, 13) == "fallback_dir ") // Fallback dir line
+				{
+					line = line.erase(0, 13);
+					auto words = FranUtils::StringUtils::SplitQuotedWords(line);
+					std::string& fbdir = words[0];
 
-#endif // _FILESYSTEM_
+					if (!fbdir.empty())
+					{
+						FranUtils::StringUtils::LowerCase_Ref(fbdir);
+						fallbackDir = fbdir;
+					}
+				}
+				else if (line.substr(0, 9) == "startmap ") // Startmap line
+				{
+					line = line.erase(0, 9);
+					auto words = FranUtils::StringUtils::SplitQuotedWords(line);
+					std::string& stMap = words[0];
+
+					if (!stMap.empty())
+					{
+						FranUtils::StringUtils::LowerCase_Ref(stMap);
+						startMap = stMap;
+					}
+				}
+				else if (line.substr(0, 9) == "trainmap ") // Trainmap line
+				{
+					line = line.erase(0, 9);
+					auto words = FranUtils::StringUtils::SplitQuotedWords(line);
+					std::string& trMap = words[0];
+
+					if (!trMap.empty())
+					{
+						FranUtils::StringUtils::LowerCase_Ref(trMap);
+						trainMap = trMap;
+					}
+				}
+				else if (line.substr(0, 5) == "game ") // Game line
+				{
+					line = line.erase(0, 5);
+					auto words = FranUtils::StringUtils::SplitQuotedWords(line);
+					std::string& gameStr = words[0];
+
+					if (!gameStr.empty())
+					{
+						gameName = gameStr;
+					}
+				}
+			}
+		}
+	}
 }
 
 #endif // FRANUTILS_FILESYSTEM_H

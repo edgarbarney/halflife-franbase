@@ -7,6 +7,8 @@
 #include <vector>
 #include <algorithm>
 
+#include "FranUtils_Globals.hpp"
+
 namespace FranUtils::StringUtils
 {
 	// Returns the first occurrence of a substring in a string

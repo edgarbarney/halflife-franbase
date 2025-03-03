@@ -5,6 +5,8 @@
 
 #include <cstdint>
 
+//#include "FranUtils_Globals.hpp"
+
 namespace FranUtils::Maths
 {
 	/**
