@@ -115,7 +115,7 @@ char* strLower(char* str)
 }
 
 //==========================
-// FilenameFromPath
+// FilenameFromPath (legacy)
 //
 //==========================
 void FilenameFromPath(const char* szin, char* szout)
@@ -142,6 +142,26 @@ void FilenameFromPath(const char* szin, char* szout)
 		pathlength++;
 	}
 	szout[pathlength] = 0;
+}
+
+//==========================
+// FilenameFromPath
+//
+//==========================
+std::string FilenameFromPath(const std::string& inputPath)
+{
+	size_t lastBar = inputPath.find_last_of("/\\");
+	size_t lastDot = inputPath.find_last_of('.');
+
+	if (lastBar == std::string::npos)
+		lastBar = 0;
+	else
+		lastBar += 1;
+
+	if (lastDot == std::string::npos || lastDot < lastBar)
+		lastDot = inputPath.length();
+
+	return inputPath.substr(lastBar, lastDot - lastBar);
 }
 
 #define shuffle(a, b, c) (((a) << 4) | ((b) << 2) | ((c)))

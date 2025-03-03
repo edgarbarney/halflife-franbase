@@ -41,6 +41,7 @@ Written by Andrew Lucas
 #include "studio_util.h"
 #include "event_api.h"
 #include "event_args.h"
+#include "FranUtils/FranUtils_FileSystem.hpp"
 
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
@@ -523,19 +524,18 @@ LoadScript
 */
 void CWaterShader::LoadScript(void)
 {
-	char szFile[64];
-	char szMapName[64];
-	const char* levelname = gEngfuncs.pfnGetLevelName();
+	const std::string& mapScriptName = std::string(std::string("scripts/water_") + FilenameFromPath(gEngfuncs.pfnGetLevelName()) + ".txt");
+	std::map<std::string, std::string> outputData;
 
-	FilenameFromPath((char*)levelname, szMapName);
-	sprintf(szFile, "scripts/water_%s.txt", szMapName);
+	bool result = FranUtils::FileSystem::ParseBasicFile(mapScriptName, outputData);
 
-	char* pFile = (char*)gEngfuncs.COM_LoadFile(szFile, 5, NULL);
+	if (!result)
+	{
+		gEngfuncs.Con_Printf("Could not load water definition file for map, falling back to default!\n");
+		result = FranUtils::FileSystem::ParseBasicFile("scripts/water_default.txt", outputData);
+	}
 
-	if (!pFile)
-		pFile = (char*)gEngfuncs.COM_LoadFile("scripts/water_default.txt", 5, NULL);
-
-	if (!pFile)
+	if (!result)
 	{
 		gEngfuncs.Con_Printf("Could not load default water definition file 'scripts/water_default.txt'!\n");
 
@@ -544,38 +544,18 @@ void CWaterShader::LoadScript(void)
 		return;
 	}
 
-	char* pToken = pFile;
-	while (1)
-	{
-		char szField[32];
-		char szValue[32];
-
-		pToken = gEngfuncs.COM_ParseFile(pToken, szField);
-
-		if (!pToken)
-			break;
-
-		pToken = gEngfuncs.COM_ParseFile(pToken, szValue);
-
-		if (!pToken)
-			break;
-
-		if (!strcmp(szField, "fresnel"))
-			m_flFresnelTerm = atof(szValue);
-		else if (!strcmp(szField, "colr"))
-			m_pWaterFogSettings.color[0] = atof(szValue) / 255.0;
-		else if (!strcmp(szField, "colg"))
-			m_pWaterFogSettings.color[1] = atof(szValue) / 255.0;
-		else if (!strcmp(szField, "colb"))
-			m_pWaterFogSettings.color[2] = atof(szValue) / 255.0;
-		else if (!strcmp(szField, "fogend"))
-			m_pWaterFogSettings.end = atof(szValue);
-		else if (!strcmp(szField, "fogstart"))
-			m_pWaterFogSettings.start = atof(szValue);
-		else
-			gEngfuncs.Con_Printf("Unknown field: %s\n", szField);
-	}
-	gEngfuncs.COM_FreeFile(pFile);
+	if (!outputData["fresnel"].empty())
+		m_flFresnelTerm = std::stof(outputData["fresnel"]);
+	if (!outputData["colr"].empty())
+		m_pWaterFogSettings.color[0] = std::stof(outputData["colr"]) / 255.0f;
+	if (!outputData["colg"].empty())
+		m_pWaterFogSettings.color[1] = std::stof(outputData["colg"]) / 255.0f;
+	if (!outputData["colb"].empty())
+		m_pWaterFogSettings.color[2] = std::stof(outputData["colb"]) / 255.0f;
+	if (!outputData["fogend"].empty())
+		m_pWaterFogSettings.end = std::stof(outputData["fogend"]);
+	if (!outputData["fogstart"].empty())
+		m_pWaterFogSettings.start = std::stof(outputData["fogstart"]);
 
 	// always true
 	m_pWaterFogSettings.affectsky = true;
