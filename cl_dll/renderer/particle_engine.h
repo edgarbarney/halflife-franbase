@@ -41,8 +41,8 @@ public:
 	void VidInit(void);
 	void Shutdown(void);
 
-	void CreateCluster(const char* szPath, Vector origin, Vector dir, int iId);
-	particle_system_t* CreateSystem(const char* szPath, Vector origin, Vector dir, int iId, particle_system_t* parent = NULL);
+	void CreateCluster(const std::string& szPath, Vector origin, Vector dir, int iId);
+	particle_system_t* CreateSystem(const std::string& szPath, Vector origin, Vector dir, int iId, particle_system_t* parent = NULL);
 	void RemoveSystem(int iId);
 
 	particle_system_t* AllocSystem(void);
