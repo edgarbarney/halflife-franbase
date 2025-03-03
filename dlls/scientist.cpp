@@ -105,7 +105,7 @@ public:
 
 	void TalkInit();
 
-	char* GetScientistModel() const;
+	const char* GetScientistModel() const;
 
 	void Killed(entvars_t* pevAttacker, int iGib) override;
 
@@ -132,7 +132,7 @@ TYPEDESCRIPTION CScientist::m_SaveData[] =
 
 IMPLEMENT_SAVERESTORE(CScientist, CTalkMonster);
 
-char* CScientist::GetScientistModel() const
+const char* CScientist::GetScientistModel() const
 {
 	char* pszOverride = (char*)CVAR_GET_STRING("_sv_override_scientist_mdl");
 	if (pszOverride && strlen(pszOverride) > 5) // at least requires ".mdl"
@@ -1180,7 +1180,7 @@ public:
 	int Classify() override { return CLASS_HUMAN_PASSIVE; }
 
 	// passed into Precache which is non-const
-	char* GetScientistModel() const;
+	const char* GetScientistModel() const;
 
 	bool KeyValue(KeyValueData* pkvd) override;
 	int m_iPose; // which sequence to display
@@ -1188,7 +1188,7 @@ public:
 };
 const char* CDeadScientist::m_szPoses[] = {"lying_on_back", "lying_on_stomach", "dead_sitting", "dead_hang", "dead_table1", "dead_table2", "dead_table3"};
 
-char* CDeadScientist::GetScientistModel() const
+const char* CDeadScientist::GetScientistModel() const
 {
 	char* pszOverride = (char*)CVAR_GET_STRING("_sv_override_scientist_mdl");
 	if (pszOverride && strlen(pszOverride) > 5) // at least requires ".mdl"

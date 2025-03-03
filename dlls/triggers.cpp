@@ -2010,7 +2010,7 @@ public:
 	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
 
 	void Affect(CBaseEntity* pTarget, USE_TYPE useType);
-	int GetActionFor(int iField, int iActive, USE_TYPE useType, char* szDebug);
+	int GetActionFor(int iField, int iActive, USE_TYPE useType, const char* szDebug);
 	void SetBoneController(float fController, int cnum, CBaseEntity* pTarget);
 
 	int ObjectCaps() override { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
@@ -2497,7 +2497,7 @@ void CEnvCustomize::Affect(CBaseEntity* pTarget, USE_TYPE useType)
 		ALERT(at_debug, " ]\n");
 }
 
-int CEnvCustomize::GetActionFor(int iField, int iActive, USE_TYPE useType, char* szDebug)
+int CEnvCustomize::GetActionFor(int iField, int iActive, USE_TYPE useType, const char* szDebug)
 {
 	int iAction = iField;
 

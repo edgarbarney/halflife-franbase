@@ -432,7 +432,7 @@ extern void DecalGunshot(TraceResult* pTrace, int iBulletType, const Vector& vec
 // RENDERERS END
 extern void SpawnBlood(Vector vecSpot, int bloodColor, float flDamage);
 // RENDERERS START
-extern char *DamageDecal( CBaseEntity *pEntity, int bitsDamageType );
+extern const char* DamageDecal(CBaseEntity* pEntity, int bitsDamageType);
 // RENDERERS END
 extern void RadiusDamage(Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType);
 

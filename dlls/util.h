@@ -204,7 +204,7 @@ typedef enum
 					// In_Use isn't very useful, I'll probably remove it.
 } STATE;
 
-extern char* GetStringForState(STATE state);
+extern const char* GetStringForState(STATE state);
 
 // Things that toggle (buttons/triggers/doors) need this
 typedef enum
@@ -270,7 +270,7 @@ inline void UTIL_MakeVectorsPrivate(const Vector& vecAngles, float* p_vForward, 
 }
 
 // RENDERERS START
-extern void UTIL_Particle(char* szName, const Vector& vecOrigin, const Vector& vDirection, int iType);
+extern void UTIL_Particle(const char* szName, const Vector& vecOrigin, const Vector& vDirection, int iType);
 extern void UTIL_CustomDecal(TraceResult* pTrace, const char* name, int persistent = 0);
 extern void UTIL_StudioDecal(const Vector& normal, const Vector& position, const char* name, int entindex);
 // RENDERERS END

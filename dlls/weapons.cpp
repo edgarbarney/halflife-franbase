@@ -129,7 +129,7 @@ void SpawnBlood(Vector vecSpot, int bloodColor, float flDamage)
 }
 
 // RENDERERS START
-char* DamageDecal(CBaseEntity* pEntity, int bitsDamageType, const Vector& vecSrc, const Vector& vecEnd)
+const char* DamageDecal(CBaseEntity* pEntity, int bitsDamageType, const Vector& vecSrc, const Vector& vecEnd)
 {
 	char chTextureType;
 	char szbuffer[64];

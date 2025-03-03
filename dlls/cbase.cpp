@@ -1025,7 +1025,7 @@ bool CBaseEntity::ShouldToggle(USE_TYPE useType)
 
 
 // RENDERERS START
-char* CBaseEntity::DamageDecal(int bitsDamageType)
+const char* CBaseEntity::DamageDecal(int bitsDamageType)
 {
 	if (pev->rendermode == kRenderTransAlpha)
 		return 0;

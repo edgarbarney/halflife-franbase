@@ -2096,7 +2096,7 @@ void UTIL_StripToken(const char* pKey, char* pDest, int nLen)
 }
 
 
-char* GetStringForUseType(USE_TYPE useType)
+const char* GetStringForUseType(USE_TYPE useType)
 {
 	switch (useType)
 	{
@@ -2115,7 +2115,7 @@ char* GetStringForUseType(USE_TYPE useType)
 	}
 }
 
-char* GetStringForState(STATE state)
+const char* GetStringForState(STATE state)
 {
 	switch (state)
 	{
@@ -3083,7 +3083,7 @@ void UTIL_StudioDecal(const Vector& normal, const Vector& position, const char* 
 	MESSAGE_END();
 }
 
-void UTIL_Particle(char* szName, const Vector& vecOrigin, const Vector& vDirection, int iType)
+void UTIL_Particle(const char* szName, const Vector& vecOrigin, const Vector& vDirection, int iType)
 {
 	MESSAGE_BEGIN(MSG_ALL, gmsgCreateSystem, NULL);
 	WRITE_COORD(vecOrigin.x);

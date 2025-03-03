@@ -144,7 +144,7 @@ const char* sTFClassSelection[] =
 		"civilian",
 };
 
-char* sLocalisedInventory[MAX_ITEMS] = //AJH Inventory system
+const char* sLocalisedInventory[MAX_ITEMS] = // AJH Inventory system
 	{
 		"#Item1",
 		"#Item2",
@@ -158,7 +158,7 @@ char* sLocalisedInventory[MAX_ITEMS] = //AJH Inventory system
 		"#Item10",
 };
 
-char* sInventorySelection[MAX_ITEMS] = //AJH Inventory system
+const char* sInventorySelection[MAX_ITEMS] = // AJH Inventory system
 	{
 		"inventory 1",
 		"inventory 2",

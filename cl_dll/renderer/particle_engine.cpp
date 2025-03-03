@@ -39,6 +39,7 @@ Written by Andrew Lucas
 #include "studio_util.h"
 #include "event_api.h"
 #include "event_args.h"
+#include "FranUtils/FranUtils_FileSystem.hpp"
 
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
@@ -162,28 +163,20 @@ void CParticleEngine::CreateCluster(const char* szPath, Vector origin, Vector di
 	strcpy(szFilePath, "/scripts/particles/");
 	strcat(szFilePath, szPath);
 
-	char* pFile = (char*)gEngfuncs.COM_LoadFile(szFilePath, 5, NULL);
+	std::map<std::string, std::string> outputData;
 
-	if (!pFile)
+	bool result = FranUtils::FileSystem::ParseBasicFile(szFilePath, outputData);
+
+	if (!result)
 	{
 		gEngfuncs.Con_Printf("Could not load particle cluster file: %s!\n", szPath);
 		return;
 	}
 
-	char* pToken = pFile;
-	while (1)
+	for (auto& data : outputData)
 	{
-		char szField[256];
-
-		pToken = gEngfuncs.COM_ParseFile(pToken, szField);
-
-		if (!pToken)
-			break;
-
-		CreateSystem(szField, origin, dir, iId);
+		CreateSystem(data.first.c_str(), origin, dir, iId);
 	}
-
-	gEngfuncs.COM_FreeFile(pFile);
 }
 /*
 ====================

@@ -60,10 +60,10 @@ char* GetVGUITGAName(const char* pszName);
 BitmapTGA* LoadTGAForRes(const char* pImageName);
 void ScaleColors(int& r, int& g, int& b, int a);
 extern const char* sTFClassSelection[];
-extern char* sInventorySelection[]; //AJH Inventory selection system
+extern const char* sInventorySelection[]; // AJH Inventory selection system
 extern int sTFValidClassInts[];
 extern const char* sLocalisedClasses[];
-extern char* sLocalisedInventory[]; //AJH Inventory selection system
+extern const char* sLocalisedInventory[]; // AJH Inventory selection system
 extern int iTeamColors[5][3];
 extern int iNumberOfTeamColors;
 extern TeamFortressViewport* gViewPort;

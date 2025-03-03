@@ -105,7 +105,7 @@ typedef enum
 	USE_NOT = 6,
 } USE_TYPE;
 
-extern char* GetStringForUseType(USE_TYPE useType);
+extern const char* GetStringForUseType(USE_TYPE useType);
 
 extern void FireTargets(const char* targetName, CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
 
@@ -353,7 +353,7 @@ public:
 	virtual void OverrideReset() {}
 
 // RENDERERS START
-	virtual char* DamageDecal(int bitsDamageType);
+	virtual const char* DamageDecal(int bitsDamageType);
 // RENDERERS END
 
 	// This is ONLY used by the node graph to test movement through a door

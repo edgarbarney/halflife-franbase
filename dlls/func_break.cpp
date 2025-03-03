@@ -1005,7 +1005,7 @@ bool CBreakable::IsBreakable()
 
 
 // RENDERERS START
-char* CBreakable::DamageDecal(int bitsDamageType)
+const char* CBreakable::DamageDecal(int bitsDamageType)
 {
 	if (m_Material == matGlass) // if (pev->rendermode == kRenderTransAlpha)
 		return 0;
@@ -1040,7 +1040,7 @@ public:
 	// breakables use an overridden takedamage
 	bool TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType) override;
 
-	char* DamageDecal(int bitsDamageType) override;
+	const char* DamageDecal(int bitsDamageType) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
 
@@ -1281,7 +1281,7 @@ bool CPushable::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, floa
 	return true;
 }
 
-char* CPushable::DamageDecal(int bitsDamageType)
+const char* CPushable::DamageDecal(int bitsDamageType)
 {
 	if (FBitSet(pev->spawnflags, SF_PUSH_BREAKABLE))
 		return CBreakable::DamageDecal(bitsDamageType);
