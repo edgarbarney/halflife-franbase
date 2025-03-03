@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
+#include <map>
 
 #include "FranUtils_Globals.hpp"
 #include "FranUtils_String.hpp"
@@ -67,10 +69,69 @@ namespace FranUtils::FileSystem
 		return false;
 	}
 
-	inline static void ParseLiblist(std::string& fallbackDir, std::string& startMap, std::string& trainMap, std::string& gameName)
+	// Splits the file into key-value pairs, separated by a space.
+	inline void ParseBasicFileStream(std::ifstream& fstream, std::map<std::string, std::string>& out)
 	{
-		// Because of Valve's broken include order, we can't just include
-		// Filesystem header here. So we should inform the devs
+		std::string line;
+		std::string key;
+		std::string value;
+		while (std::getline(fstream, line))
+		{
+			key.clear();
+			value.clear();
+
+			if (line.empty()) // Ignore empty lines
+			{
+				continue;
+			}
+			else if (line[0] == '/') // Ignore comments
+			{
+				continue;
+			}
+			// Split line into key and value with a space as a delimiter
+			else if (line.find(' ') != std::string::npos)
+			{
+				key = line.substr(0, line.find(' '));
+				value = line.substr(line.find(' ') + 1);
+			}
+			else
+			{
+				key = line;
+			}
+
+			// Remove quotation marks from the key and value if they exist
+			if (key[0] == '\"')
+			{
+				key = key.substr(1, key.size() - 2);
+			}
+			if (value[0] == '\"')
+			{
+				value = value.substr(1, value.size() - 2);
+			}
+
+			out[key] = value;
+		}
+	}
+
+	// Check if a file exists and parse if it does.
+	// Returns false if the file doesn't exist
+	//
+	// Splits the file into key-value pairs, separated by a space.
+	inline bool ParseBasicFile(const std::string& file, std::map<std::string, std::string>& out)
+	{
+		std::ifstream fstream;
+		if (OpenInputFile(file, fstream))
+		{
+			ParseBasicFileStream(fstream, out);
+			fstream.close();
+			return true;
+		}
+		return false;
+	}
+
+	// TODO: Rewrite this using ParseBasicFile
+	inline void ParseLiblist(std::string& fallbackDir, std::string& startMap, std::string& trainMap, std::string& gameName)
+	{
 		if (std::filesystem::exists(GetModDirectory() + "liblist.gam"))
 		{
 			std::ifstream fstream;
