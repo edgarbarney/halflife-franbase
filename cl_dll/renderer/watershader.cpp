@@ -525,7 +525,7 @@ LoadScript
 void CWaterShader::LoadScript(void)
 {
 	const std::string& mapScriptName = std::string(std::string("scripts/water_") + FilenameFromPath(gEngfuncs.pfnGetLevelName()) + ".txt");
-	std::map<std::string, std::string> outputData;
+	FranUtils::FileSystem::StringMap outputData;
 
 	bool result = FranUtils::FileSystem::ParseBasicFile(mapScriptName, outputData);
 
@@ -544,18 +544,18 @@ void CWaterShader::LoadScript(void)
 		return;
 	}
 
-	if (!outputData["fresnel"].empty())
-		m_flFresnelTerm = std::stof(outputData["fresnel"]);
-	if (!outputData["colr"].empty())
-		m_pWaterFogSettings.color[0] = std::stof(outputData["colr"]) / 255.0f;
-	if (!outputData["colg"].empty())
-		m_pWaterFogSettings.color[1] = std::stof(outputData["colg"]) / 255.0f;
-	if (!outputData["colb"].empty())
-		m_pWaterFogSettings.color[2] = std::stof(outputData["colb"]) / 255.0f;
-	if (!outputData["fogend"].empty())
-		m_pWaterFogSettings.end = std::stof(outputData["fogend"]);
-	if (!outputData["fogstart"].empty())
-		m_pWaterFogSettings.start = std::stof(outputData["fogstart"]);
+	if (!outputData.contains("fresnel"))
+		m_flFresnelTerm = std::stof(outputData.at("fresnel"));
+	if (!outputData.contains("colr"))
+		m_pWaterFogSettings.color[0] = std::stof(outputData.at("colr")) / 255.0f;
+	if (!outputData.contains("colg"))
+		m_pWaterFogSettings.color[1] = std::stof(outputData.at("colg")) / 255.0f;
+	if (!outputData.contains("colb"))
+		m_pWaterFogSettings.color[2] = std::stof(outputData.at("colb")) / 255.0f;
+	if (!outputData.contains("fogend"))
+		m_pWaterFogSettings.end = std::stof(outputData.at("fogend"));
+	if (!outputData.contains("fogstart"))
+		m_pWaterFogSettings.start = std::stof(outputData.at("fogstart"));
 
 	// always true
 	m_pWaterFogSettings.affectsky = true;
