@@ -3,6 +3,15 @@
 #ifndef FRANUTILS_MATHS_H
 #define FRANUTILS_MATHS_H
 
+// To prevent conflicts with min and max macros in Windows.h and minwindef.h
+#ifdef min
+#undef min
+#endif
+
+#ifdef max
+#undef max
+#endif
+
 #include <cstdint>
 
 //#include "FranUtils_Globals.hpp"
@@ -43,6 +52,38 @@ namespace FranUtils::Maths
 	inline float Lerp(float lerpfactor, float A, float B) 
 	{ 
 		return A + lerpfactor * (B - A); 
+	}
+
+	/**
+	* Fast linear interpolation.
+	* - Fast : No precision checks, no extrapolation prevention.
+	* 
+	* @see FranUtils::Lerp
+	* @param lerpfactor : Factor of Interpolation
+	* @param start : Starting Point
+	* @param end : Ending Point
+	* @return Interpolated Value
+	*/
+	inline float FastLerp(float lerpfactor, float start, float end)
+	{
+		// If start and end have opposite signs, ensure precision by distributing frac correctly.
+		// This avoids potential floating-point precision issues when interpolating across zero.
+		if ((start <= 0 && end >= 0) || (start >= 0 && end <= 0))
+		{
+			return lerpfactor * end + (1 - lerpfactor) * start;
+		}
+
+		// If Lerp Factor is exactly 1, return the end value directly to ensure accuracy.
+		if (lerpfactor == 1)
+			return end;
+
+		// Compute the standard linear interpolation.
+		const float x = start + lerpfactor * (end - start);
+
+		// If Lerp Factor > 1, prevent overshooting beyond 'end' when extrapolating.
+		// If Lerp Factor < 0, prevent undershooting beyond 'start'.
+		// Uses clamping to ensure monotonic behaviour near lerpfactor = 1.
+		return (lerpfactor > 1) == (end > start) ? std::min(end, x) : std::max(end, x);
 	}
 
 	/**
@@ -90,6 +131,7 @@ namespace FranUtils::Maths
 			return A + lerpfactor * (B - A);
 		}
 	}
+
 
 	/**
 	* (C - A) / (B - A) || Ensured calculation of a float in between 2 floats as a decimal in the range [0,1].

@@ -1,5 +1,6 @@
 /*
 Trinity Rendering Engine - Copyright Andrew Lucas 2009-2012
+Spirinity Rendering Engine - Copyright FranticDreamer 2020-2025
 
 The Trinity Engine is free software, distributed in the hope th-
 at it will be useful, but WITHOUT ANY WARRANTY; without even the
@@ -45,16 +46,25 @@ Written by Andrew Lucas
 #include "GameStudioModelRenderer.h"
 extern CGameStudioModelRenderer g_StudioRenderer;
 
+enum ParticleQuality
+{
+	verylow = 0,
+	low = 1,
+	medium = 2,
+	high = 3,
+};
+
 /*
 ====================
 Init
 
 ====================
 */
-void CParticleEngine::Init(void)
+void CParticleEngine::Init()
 {
-	m_pCvarDrawParticles = CVAR_CREATE("te_particles", "1", 0);
+	m_pCvarDrawParticles = CVAR_CREATE("te_particles", "1", FCVAR_ARCHIVE);
 	m_pCvarParticleDebug = CVAR_CREATE("te_particles_debug", "0", 0);
+	m_pCvarParticleMaxPart = CVAR_CREATE("te_particle_quality", "2", FCVAR_ARCHIVE);
 	m_pCvarGravity = gEngfuncs.pfnGetCvarPointer("sv_gravity");
 };
 
@@ -64,7 +74,7 @@ Shutdown
 
 ====================
 */
-void CParticleEngine::Shutdown(void)
+void CParticleEngine::Shutdown()
 {
 	VidInit();
 }
@@ -75,7 +85,7 @@ VidInit
 
 ====================
 */
-void CParticleEngine::VidInit(void)
+void CParticleEngine::VidInit()
 {
 	if (m_pSystemHeader)
 	{
@@ -99,7 +109,7 @@ void CParticleEngine::VidInit(void)
 			delete[] pfree;
 		}
 
-		m_pSystemHeader = NULL;
+		m_pSystemHeader = nullptr;
 	}
 };
 
@@ -109,7 +119,7 @@ AllocSystem
 
 ====================
 */
-particle_system_t* CParticleEngine::AllocSystem(void)
+particle_system_t* CParticleEngine::AllocSystem()
 {
 	// Allocate memory
 	particle_system_t* pSystem = new particle_system_t;
@@ -179,8 +189,8 @@ void CParticleEngine::CreateCluster(const std::string& szPath, Vector origin, Ve
 ====================
 CreateSystem
 
-TODO:	Rewrite this function to use the 
-		FranUtils::FileSystem::ParseBasicFile function and 
+TODO:	Rewrite this function to use the
+		FranUtils::FileSystem::ParseBasicFile function and
 		std::string instead of char* and c functions.
 
 TODO:	Add a caching system to prevent re-reading the same file
@@ -198,12 +208,12 @@ particle_system_t* CParticleEngine::CreateSystem(const std::string& szPathString
 	strcpy(szFilePath, "/scripts/particles/");
 	strcat(szFilePath, szPath);
 
-	char* pFile = (char*)gEngfuncs.COM_LoadFile(szFilePath, 5, NULL);
+	char* pFile = (char*)gEngfuncs.COM_LoadFile(szFilePath, 5, nullptr);
 
 	if (!pFile)
 	{
 		gEngfuncs.Con_Printf("Could not load particle definitions file: %s!\n", szPath);
-		return NULL;
+		return nullptr;
 	}
 
 	particle_system_t* pSystem = AllocSystem();
@@ -212,7 +222,7 @@ particle_system_t* CParticleEngine::CreateSystem(const std::string& szPathString
 	{
 		gEngfuncs.Con_Printf("Warning! Exceeded max number of particle systems!\n");
 		gEngfuncs.COM_FreeFile(pFile);
-		return NULL;
+		return nullptr;
 	}
 
 	// Fill in default values
@@ -388,11 +398,11 @@ particle_system_t* CParticleEngine::CreateSystem(const std::string& szPathString
 			{
 				// Remove system
 				m_pSystemHeader = pSystem->next;
-				m_pSystemHeader->prev = NULL;
+				m_pSystemHeader->prev = nullptr;
 				delete[] pSystem;
 
 				gEngfuncs.COM_FreeFile(pFile);
-				return NULL;
+				return nullptr;
 			}
 
 			glBindTexture(GL_TEXTURE_2D, pSystem->texture->iIndex);
@@ -404,6 +414,24 @@ particle_system_t* CParticleEngine::CreateSystem(const std::string& szPathString
 			gEngfuncs.Con_Printf("Warning! Unknown field: %s\n", szField);
 	}
 	gEngfuncs.COM_FreeFile(pFile);
+
+	if (m_pCvarParticleMaxPart->value == ParticleQuality::verylow)
+	{
+		pSystem->maxparticles = 1;
+	}
+	else if (m_pCvarParticleMaxPart->value == ParticleQuality::low)
+	{
+		pSystem->maxparticles = 2;
+	}
+	else if (m_pCvarParticleMaxPart->value == ParticleQuality::medium)
+	{
+		pSystem->maxparticles = 4;
+	}
+	else if (m_pCvarParticleMaxPart->value == ParticleQuality::high) // Placeholder
+	{
+		// pSystem->maxparticles = 4;
+	}
+	// pSystem->maxparticles = m_pCvarParticleMaxPart->value;
 
 	if (pSystem->shapetype != SYSTEM_SHAPE_PLANE_ABOVE_PLAYER)
 	{
@@ -424,16 +452,16 @@ particle_system_t* CParticleEngine::CreateSystem(const std::string& szPathString
 	{
 		pmtrace_t tr;
 		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
-		gEngfuncs.pEventAPI->EV_PlayerTrace(origin, origin + Vector(0, 0, 8496), PM_WORLD_ONLY, -1, &tr);
+		gEngfuncs.pEventAPI->EV_PlayerTrace(origin, origin + Vector(0, 0, 160000), PM_STUDIO_IGNORE, -1, &tr);
 
-		if (tr.fraction == 1.0 || gEngfuncs.PM_PointContents(tr.endpos, NULL) != CONTENTS_SKY)
+		if (tr.fraction == 1.0)
 		{
 			// Remove system
 			m_pSystemHeader = pSystem->next;
-			m_pSystemHeader->prev = NULL;
+			m_pSystemHeader->prev = nullptr;
 			delete[] pSystem;
 
-			return NULL;
+			return nullptr;
 		}
 
 		pSystem->skyheight = tr.endpos.z;
@@ -463,7 +491,7 @@ particle_system_t* CParticleEngine::CreateSystem(const std::string& szPathString
 	}
 	else
 	{
-		if (pSystem->shapetype != SYSTEM_SHAPE_PLANE_ABOVE_PLAYER)
+		if ((pSystem->shapetype != SYSTEM_SHAPE_PLANE_ABOVE_PLAYER) && (pSystem->shapetype != SYSTEM_SHAPE_BOX_AROUND_PLAYER))
 		{
 			// create all starting particles
 			for (int i = 0; i < pSystem->startparticles; i++)
@@ -494,29 +522,46 @@ void CParticleEngine::EnvironmentCreateFirst(particle_system_t* pSystem)
 	// Spawn particles inbetween the view origin and maxheight
 	for (int i = 0; i < iNumParticles; i++)
 	{
-		vOrigin[0] = vPlayer[0] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
-		vOrigin[1] = vPlayer[1] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
-
-		if (pSystem->maxheight)
+		if (pSystem->shapetype == SYSTEM_SHAPE_PLANE_ABOVE_PLAYER)
 		{
-			vOrigin[2] = vPlayer[2] + pSystem->maxheight;
+			vOrigin[0] = vPlayer[0] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+			vOrigin[1] = vPlayer[1] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
 
-			if (vOrigin[2] > pSystem->skyheight)
+			if (pSystem->maxheight)
+			{
+				vOrigin[2] = vPlayer[2] + pSystem->maxheight;
+
+				if (vOrigin[2] > pSystem->skyheight)
+					vOrigin[2] = pSystem->skyheight;
+			}
+			else
+			{
 				vOrigin[2] = pSystem->skyheight;
+			}
+
+			vOrigin[2] = gEngfuncs.pfnRandomFloat(vPlayer[2], vOrigin[2]);
+
+			pmtrace_t pmtrace;
+			gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+			gEngfuncs.pEventAPI->EV_PlayerTrace(vOrigin, Vector(vOrigin[0], vOrigin[1], pSystem->skyheight - 8), PM_STUDIO_IGNORE, -1, &pmtrace);
+
+			if (pmtrace.allsolid || pmtrace.fraction != 1.0)
+				continue;
 		}
-		else
+		else if (pSystem->shapetype == SYSTEM_SHAPE_BOX_AROUND_PLAYER)
 		{
-			vOrigin[2] = pSystem->skyheight;
+			if (gEngfuncs.GetLocalPlayer() && gHUD.pparams)
+			{
+				Vector vPlayer = gEngfuncs.GetLocalPlayer()->origin;
+				Vector vSpeed = gHUD.pparams->simvel;
+
+				vOrigin[0] = vPlayer[0] + vSpeed[0] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+				vOrigin[1] = vPlayer[1] + vSpeed[1] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+				vOrigin[2] = vPlayer[2] + vSpeed[2] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+			}
+
+			// gEngfuncs.Con_Printf("idk if this works \n");
 		}
-
-		vOrigin[2] = gEngfuncs.pfnRandomFloat(vPlayer[2], vOrigin[2]);
-
-		pmtrace_t pmtrace;
-		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
-		gEngfuncs.pEventAPI->EV_PlayerTrace(vOrigin, Vector(vOrigin[0], vOrigin[1], pSystem->skyheight - 8), PM_WORLD_ONLY, -1, &pmtrace);
-
-		if (pmtrace.allsolid || pmtrace.fraction != 1.0)
-			continue;
 
 		CreateParticle(pSystem, vOrigin);
 	}
@@ -541,7 +586,7 @@ void CParticleEngine::CreateParticle(particle_system_t* pSystem, float* flOrigin
 	pParticle->spawntime = gEngfuncs.GetClientTime();
 	pParticle->frame = -1;
 
-	if (pSystem->shapetype == SYSTEM_SHAPE_PLANE_ABOVE_PLAYER)
+	if (pSystem->shapetype == SYSTEM_SHAPE_PLANE_ABOVE_PLAYER || pSystem->shapetype == SYSTEM_SHAPE_BOX_AROUND_PLAYER)
 	{
 		vForward[0] = 0;
 		vForward[1] = 0;
@@ -618,6 +663,19 @@ void CParticleEngine::CreateParticle(particle_system_t* pSystem, float* flOrigin
 		pParticle->origin[0] = vBaseOrigin[0] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
 		pParticle->origin[1] = vBaseOrigin[1] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
 		pParticle->origin[2] = vBaseOrigin[2] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+	}
+	else if (pSystem->shapetype == SYSTEM_SHAPE_BOX_AROUND_PLAYER)
+	{
+		if (!gHUD.pparams)
+			return;
+
+		Vector vPlayer = gEngfuncs.GetLocalPlayer()->origin;
+		Vector vSpeed = gHUD.pparams->simvel;
+		pParticle->origin[0] = vPlayer[0] + vSpeed[0] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+		pParticle->origin[1] = vPlayer[1] + vSpeed[1] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+		pParticle->origin[2] = vPlayer[2] + vSpeed[2] + gEngfuncs.pfnRandomLong(-pSystem->systemsize, pSystem->systemsize);
+
+		// gEngfuncs.Con_Printf("idk if this works \n");
 	}
 	else if (pSystem->shapetype == SYSTEM_SHAPE_PLANE_ABOVE_PLAYER)
 	{
@@ -746,13 +804,16 @@ Update
 
 ====================
 */
-void CParticleEngine::Update(void)
+void CParticleEngine::Update()
 {
-	if (m_pCvarParticleDebug->value)
+	// moved to imgui_manager.cpp
+	/*
+	if(m_pCvarParticleDebug->value)
 	{
 		gEngfuncs.Con_Printf("Created Particles: %i, Freed Particles %i, Active Particles: %i\nCreated Systems: %i, Freed Systems: %i, Active Systems: %i\n\n",
-			m_iNumCreatedParticles, m_iNumFreedParticles, m_iNumCreatedParticles - m_iNumFreedParticles, m_iNumCreatedSystems, m_iNumFreedSystems, m_iNumCreatedSystems - m_iNumFreedSystems);
+			m_iNumCreatedParticles, m_iNumFreedParticles,m_iNumCreatedParticles-m_iNumFreedParticles, m_iNumCreatedSystems, m_iNumFreedSystems, m_iNumCreatedSystems-m_iNumFreedSystems);
 	}
+	*/
 
 	if (m_pCvarDrawParticles->value < 1)
 		return;
@@ -788,7 +849,7 @@ void CParticleEngine::Update(void)
 				{
 					psystem->particleheader = pparticle;
 					if (pparticle)
-						pparticle->prev = NULL;
+						pparticle->prev = nullptr;
 				}
 				else
 				{
@@ -816,7 +877,7 @@ UpdateSystems
 
 ====================
 */
-void CParticleEngine::UpdateSystems(void)
+void CParticleEngine::UpdateSystems()
 {
 	float flTime = gEngfuncs.GetClientTime();
 
@@ -848,10 +909,10 @@ void CParticleEngine::UpdateSystems(void)
 
 		// Unparent these and let the engine handle them
 		if (next->createsystem)
-			next->createsystem->parentsystem = NULL;
+			next->createsystem->parentsystem = nullptr;
 
 		if (next->watersystem)
-			next->watersystem->parentsystem = NULL;
+			next->watersystem->parentsystem = nullptr;
 
 		particle_system_t* pfree = next;
 		next = pfree->next;
@@ -860,7 +921,7 @@ void CParticleEngine::UpdateSystems(void)
 		{
 			m_pSystemHeader = next;
 			if (next)
-				next->prev = NULL;
+				next->prev = nullptr;
 		}
 		else
 		{
@@ -977,7 +1038,7 @@ Vector CParticleEngine::LightForParticle(cl_particle_t* pParticle)
 	Vector vEndPos = pParticle->origin - Vector(0, 0, 8964);
 	Vector vColor = Vector(0, 0, 0);
 
-	g_StudioRenderer.StudioRecursiveLightPoint(NULL, pWorld->nodes, pParticle->origin, vEndPos, vColor);
+	g_StudioRenderer.StudioRecursiveLightPoint(nullptr, pWorld->nodes, pParticle->origin, vEndPos, vColor, false, true);
 	cl_dlight_t* pLight = gBSPRenderer.m_pDynLights;
 
 	for (int i = 0; i < MAX_DYNLIGHTS; i++, pLight++)
@@ -992,7 +1053,7 @@ Vector CParticleEngine::LightForParticle(cl_particle_t* pParticle)
 
 			Vector vAngles = pLight->angles;
 			FixVectorForSpotlight(vAngles);
-			AngleVectors(vAngles, vForward, NULL, NULL);
+			AngleVectors(vAngles, vForward, nullptr, nullptr);
 		}
 		else
 		{
@@ -1149,7 +1210,7 @@ bool CParticleEngine::UpdateParticle(cl_particle_t* pParticle)
 
 		if (pSystem->colwater)
 		{
-			if (gEngfuncs.PM_PointContents(pParticle->origin + vFinalVelocity * m_flFrameTime, 0) == CONTENTS_WATER)
+			if (gEngfuncs.PM_PointContents(pParticle->origin + vFinalVelocity * m_flFrameTime, nullptr) == CONTENTS_WATER)
 			{
 				pmtrace.endpos = pParticle->origin + vFinalVelocity * m_flFrameTime;
 				int iEntity = gEngfuncs.PM_WaterEntity(pParticle->origin + vFinalVelocity * m_flFrameTime);
@@ -1170,7 +1231,7 @@ bool CParticleEngine::UpdateParticle(cl_particle_t* pParticle)
 		{
 			if (pSystem->collision == PARTICLE_COLLISION_STUCK)
 			{
-				if (gEngfuncs.PM_PointContents(pmtrace.endpos, NULL) == CONTENTS_SKY)
+				if (gEngfuncs.PM_PointContents(pmtrace.endpos, nullptr) == CONTENTS_SKY)
 					return false;
 
 				if (pParticle->life == -1 && pSystem->stuckdie)
@@ -1217,7 +1278,12 @@ bool CParticleEngine::UpdateParticle(cl_particle_t* pParticle)
 					for (int i = 0; i < pSystem->watersystem->startparticles; i++)
 						CreateParticle(pSystem->watersystem, pmtrace.endpos, pmtrace.plane.normal);
 				}
-				if (gEngfuncs.PM_PointContents(pmtrace.endpos, NULL) != CONTENTS_SKY && pSystem->create[0] != 0)
+				if (pSystem->deathcreate[0] != 0)
+				{
+					// gEngfuncs.Con_Printf("CALLED!\n");
+					CreateSystem(pSystem->deathcreate, pParticle->origin, pParticle->velocity.Normalize(), 0);
+				}
+				if (gEngfuncs.PM_PointContents(pmtrace.endpos, nullptr) != CONTENTS_SKY && pSystem->create[0] != 0)
 				{
 					for (int i = 0; i < pSystem->createsystem->startparticles; i++)
 						CreateParticle(pSystem->createsystem, pmtrace.endpos, pmtrace.plane.normal);
@@ -1432,6 +1498,14 @@ void CParticleEngine::RenderParticle(cl_particle_t* pParticle, float flUp, float
 	if (pParticle->alpha == 0)
 		return;
 
+	/*
+	if (pParticle->pSystem->shapetype == SYSTEM_SHAPE_BOX_AROUND_PLAYER)
+	{
+		pParticle->velocity[0] = gHUD.pparams->simvel[0];
+		pParticle->velocity[1] = gHUD.pparams->simvel[1];
+	}
+	*/
+
 	VectorSubtract(pParticle->origin, gBSPRenderer.m_vRenderOrigin, vDir);
 	if (gHUD.m_pFogSettings.active)
 	{
@@ -1481,7 +1555,7 @@ void CParticleEngine::RenderParticle(cl_particle_t* pParticle, float flUp, float
 		if (pParticle->rotation)
 			vAngles[2] = pParticle->rotation;
 
-		AngleVectors(vAngles, NULL, m_vRRight, m_vRUp);
+		AngleVectors(vAngles, nullptr, m_vRRight, m_vRUp);
 	}
 
 	if (pParticle->pSystem->displaytype == SYSTEM_DISPLAY_PARALELL)
@@ -1600,7 +1674,7 @@ DrawParticles
 
 ====================
 */
-void CParticleEngine::DrawParticles(void)
+void CParticleEngine::DrawParticles()
 {
 	if (m_pCvarDrawParticles->value <= 0)
 		return;
@@ -1752,17 +1826,17 @@ void CParticleEngine::RemoveSystem(int iId)
 
 		// Unlink this
 		if (psystem->createsystem)
-			psystem->createsystem->parentsystem = NULL;
+			psystem->createsystem->parentsystem = nullptr;
 
 		// Unlink this
 		if (psystem->watersystem)
-			psystem->watersystem->parentsystem = NULL;
+			psystem->watersystem->parentsystem = nullptr;
 
 		if (!psystem->prev)
 		{
 			m_pSystemHeader = psystem->next;
 			if (psystem->next)
-				psystem->next->prev = NULL;
+				psystem->next->prev = nullptr;
 		}
 		else
 		{

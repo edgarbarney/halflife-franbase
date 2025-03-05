@@ -72,6 +72,7 @@ struct cl_texture_t
 #define SYSTEM_SHAPE_POINT 0
 #define SYSTEM_SHAPE_BOX 1
 #define SYSTEM_SHAPE_PLANE_ABOVE_PLAYER 2
+#define SYSTEM_SHAPE_BOX_AROUND_PLAYER 3
 
 #define SYSTEM_DISPLAY_NORMAL 0
 #define SYSTEM_DISPLAY_PARALELL 1
@@ -695,6 +696,7 @@ struct entextrainfo_t
 	int surfindex;
 	int lightstyles[4];
 	Vector prevpos;
+	int run_count = 0; // bacontsu - weird fucking workaround because static entities lightmap are shit the first time they take the value;
 
 	lighting_ext pLighting;
 	cl_entity_t* pEntity;

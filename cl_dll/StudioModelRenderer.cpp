@@ -46,8 +46,20 @@ Transparency code by Neil "Jed" Jedrzejewski
 #include "renderer/bsprenderer.h"
 #include "StudioModelRenderer.h"
 
+#include "FranUtils/FranUtils_Maths.hpp"
+
 // Global engine <-> studio model rendering code interface
 engine_studio_api_t IEngineStudio;
+
+cvar_t* te_render_distance = NULL;
+
+struct cl_stored_light
+{
+	int index = 0;
+	Vector color = 0;
+};
+
+std::vector<cl_stored_light> storedLightBuffer;
 
 //===========================================
 //	ARB SHADER
@@ -3820,102 +3832,112 @@ StudioSetupLighting
 
 ====================
 */
-void CStudioModelRenderer::StudioSetupLighting ( void )
+void CStudioModelRenderer::StudioSetupLighting(bool bStatic)
 {
 	int iret = 0;
 	Vector color;
 	Vector end;
 	Vector point;
 
-	entextrainfo_t *pInfo = (entextrainfo_t *)m_pCurrentEntity->topnode;
+	entextrainfo_t* pInfo = (entextrainfo_t*)m_pCurrentEntity->topnode;
 
 	Vector eorigin;
 	eorigin[0] = (*m_protationmatrix)[0][3];
 	eorigin[1] = (*m_protationmatrix)[1][3];
 	eorigin[2] = (*m_protationmatrix)[2][3];
 
-	if(!pInfo )
+	if (!pInfo)
 	{
-		if(m_pCurrentEntity->index > 0 && m_pCurrentEntity != gEngfuncs.GetViewModel())
+		if (m_pCurrentEntity->index > 0 && m_pCurrentEntity != gEngfuncs.GetViewModel())
 		{
 			pInfo = StudioAllocExtraInfo();
 			pInfo->pEntity = m_pCurrentEntity;
 
-			m_pCurrentEntity->topnode = (mnode_s *)pInfo;
+			m_pCurrentEntity->topnode = (mnode_s*)pInfo;
 		}
 	}
 	else
 	{
-		msurface_t *msurf =	&gBSPRenderer.m_pWorld->surfaces[pInfo->surfindex];
-		clientsurfdata_t *csurf = &gBSPRenderer.m_pSurfaces[pInfo->surfindex];
-		
+		msurface_t* msurf = &gBSPRenderer.m_pWorld->surfaces[pInfo->surfindex];
+		clientsurfdata_t* csurf = &gBSPRenderer.m_pSurfaces[pInfo->surfindex];
+
 		int i = 0;
-		for(; i < MAXLIGHTMAPS && msurf->styles[i] != 255; i++)
+		for (; i < MAXLIGHTMAPS && msurf->styles[i] != 255; i++)
 		{
-			if(csurf->cached_light[i] != pInfo->lightstyles[i])
+			if (csurf->cached_light[i] != pInfo->lightstyles[i])
 				break;
 		}
 
-		if(pInfo->prevpos == eorigin && i == MAXLIGHTMAPS)
+		if (pInfo->prevpos == eorigin && i == MAXLIGHTMAPS && pInfo->run_count >= 2)
 		{
 			memcpy(&m_pLighting, &pInfo->pLighting, sizeof(lighting_ext));
+			pInfo->run_count++;
 			return;
 		}
 	}
 
-	if(m_pCurrentEntity->model)
+	if (m_pCurrentEntity->model)
 	{
-		if (m_pCurrentEntity->curstate.effects & EF_INVLIGHT) point = eorigin - Vector(0, 0, 5);
-		else point = eorigin + Vector(0, 0, 5);
+		if (m_pCurrentEntity->curstate.effects & EF_INVLIGHT)
+			point = eorigin - Vector(0, 0, 5);
+		else
+			point = eorigin + Vector(0, 0, 5);
 	}
 	else
 	{
-		if (m_pCurrentEntity->curstate.effects & EF_INVLIGHT) point = pInfo->pExtraData->lightorigin - Vector(0, 0, 5);
-		else point = pInfo->pExtraData->lightorigin + Vector(0, 0, 5);
+		if (m_pCurrentEntity->curstate.effects & EF_INVLIGHT)
+			point = pInfo->pExtraData->lightorigin - Vector(0, 0, 5);
+		else
+			point = pInfo->pExtraData->lightorigin + Vector(0, 0, 5);
 	}
 
 	end.x = point.x;
 	end.y = point.y;
 
-	if (m_pCurrentEntity->curstate.effects & EF_INVLIGHT) end.z = point.z + 8136;
-	else end.z = point.z - 8136;
+	if (m_pCurrentEntity->curstate.effects & EF_INVLIGHT)
+		end.z = point.z + 8136;
+	else
+		end.z = point.z - 8136;
 
-	if(gBSPRenderer.m_pWorld->lightdata)
-		iret = StudioRecursiveLightPoint(pInfo, gBSPRenderer.m_pWorld->nodes, point, end, color);
+	if (gBSPRenderer.m_pWorld->lightdata)
+		iret = StudioRecursiveLightPoint(pInfo, gBSPRenderer.m_pWorld->nodes, point, end, color, bStatic);
 
-	if(!iret)
+	if (!iret)
 	{
-		m_pLighting.diffuselight.x = ((float)m_pCvarSkyColorX->value/255)*0.55;
-		m_pLighting.diffuselight.y = ((float)m_pCvarSkyColorY->value/255)*0.55;
-		m_pLighting.diffuselight.z = ((float)m_pCvarSkyColorZ->value/255)*0.55;
+		m_pLighting.diffuselight.x = ((float)m_pCvarSkyColorX->value / 255) * 0.55;
+		m_pLighting.diffuselight.y = ((float)m_pCvarSkyColorY->value / 255) * 0.55;
+		m_pLighting.diffuselight.z = ((float)m_pCvarSkyColorZ->value / 255) * 0.55;
 
-		m_pLighting.ambientlight.x = ((float)m_pCvarSkyColorX->value/255)*0.45;
-		m_pLighting.ambientlight.y = ((float)m_pCvarSkyColorY->value/255)*0.45;
-		m_pLighting.ambientlight.z = ((float)m_pCvarSkyColorZ->value/255)*0.45;
+		m_pLighting.ambientlight.x = ((float)m_pCvarSkyColorX->value / 255) * 0.45;
+		m_pLighting.ambientlight.y = ((float)m_pCvarSkyColorY->value / 255) * 0.45;
+		m_pLighting.ambientlight.z = ((float)m_pCvarSkyColorZ->value / 255) * 0.45;
 
 		m_pLighting.lightdir.x = m_pCvarSkyVecX->value;
 		m_pLighting.lightdir.y = m_pCvarSkyVecY->value;
 		m_pLighting.lightdir.z = m_pCvarSkyVecZ->value;
 		return;
 	}
-	
-	m_pLighting.diffuselight.x = color.x*0.55;
-	m_pLighting.diffuselight.y = color.y*0.55;
-	m_pLighting.diffuselight.z = color.z*0.55;
 
-	m_pLighting.ambientlight.x = color.x*0.45;
-	m_pLighting.ambientlight.y = color.y*0.45;
-	m_pLighting.ambientlight.z = color.z*0.45;
+
+	m_pLighting.diffuselight.x = color.x * 0.55;
+	m_pLighting.diffuselight.y = color.y * 0.55;
+	m_pLighting.diffuselight.z = color.z * 0.55;
+
+	m_pLighting.ambientlight.x = color.x * 0.45;
+	m_pLighting.ambientlight.y = color.y * 0.45;
+	m_pLighting.ambientlight.z = color.z * 0.45;
 
 	m_pLighting.lightdir.x = 0;
 	m_pLighting.lightdir.y = 0;
 	m_pLighting.lightdir.z = -1;
 
-	if(pInfo)
+	if (pInfo)
 	{
 		memcpy(&pInfo->pLighting, &m_pLighting, sizeof(lighting_ext));
-		if(!m_pCurrentEntity->model) pInfo->prevpos = eorigin;
-		else pInfo->prevpos = m_pCurrentEntity->origin;
+		if (!m_pCurrentEntity->model)
+			pInfo->prevpos = eorigin;
+		else
+			pInfo->prevpos = m_pCurrentEntity->origin;
 	}
 }
 
@@ -3925,63 +3947,63 @@ StudioRecursiveLightPoint
 
 ====================
 */
-int CStudioModelRenderer::StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_t *node, const Vector &start, const Vector &end, Vector &color )
+int CStudioModelRenderer::StudioRecursiveLightPoint(entextrainfo_t* ext, mnode_t* node, const Vector& start, const Vector& end, Vector& color, bool bStatic, bool isParticle)
 {
-	float		front, back, frac;
-	int			side;
-	mplane_t	*plane;
-	Vector		mid;
-	msurface_t	*surf;
-	int			s, t, ds, dt;
-	int			i;
-	mtexinfo_t	*tex;
-	color24		*lightmap;
+	float front, back, frac;
+	int side;
+	mplane_t* plane;
+	Vector mid;
+	msurface_t* surf;
+	int s, t, ds, dt;
+	int i;
+	mtexinfo_t* tex;
+	color24* lightmap;
 
 	if (node->contents < 0)
-		return FALSE;		// didn't hit anything
-	
-	plane = node->plane;
-	front = DotProduct (start, plane->normal) - plane->dist;
-	back = DotProduct (end, plane->normal) - plane->dist;
-	side = front < 0;
-	
-	if ( (back < 0) == side )
-		return StudioRecursiveLightPoint (ext, node->children[side], start, end, color);
-	
-	frac = front / (front-back);
-	mid[0] = start[0] + (end[0] - start[0])*frac;
-	mid[1] = start[1] + (end[1] - start[1])*frac;
-	mid[2] = start[2] + (end[2] - start[2])*frac;
-	
-// go down front side	
-	int r = StudioRecursiveLightPoint (ext, node->children[side], start, mid, color);
+		return FALSE; // didn't hit anything
 
-	if (r) 
+	plane = node->plane;
+	front = DotProduct(start, plane->normal) - plane->dist;
+	back = DotProduct(end, plane->normal) - plane->dist;
+	side = front < 0;
+
+	if ((back < 0) == side)
+		return StudioRecursiveLightPoint(ext, node->children[side], start, end, color, bStatic);
+
+	frac = front / (front - back);
+	mid[0] = start[0] + (end[0] - start[0]) * frac;
+	mid[1] = start[1] + (end[1] - start[1]) * frac;
+	mid[2] = start[2] + (end[2] - start[2]) * frac;
+
+	// go down front side
+	int r = StudioRecursiveLightPoint(ext, node->children[side], start, mid, color, bStatic);
+
+	if (r)
 		return TRUE;
-		
+
 	if ((back < 0) == side)
 		return FALSE;
-		
+
 	model_t* world = gBSPRenderer.m_pWorld;
 	surf = world->surfaces + node->firstsurface;
 	for (i = 0; i < node->numsurfaces; i++, surf++)
 	{
 		if (surf->flags & (SURF_DRAWTILED | SURF_DRAWSKY))
-			continue;	// no lightmaps
+			continue; // no lightmaps
 
-		int index = node->firstsurface+i;
+		int index = node->firstsurface + i;
 		tex = surf->texinfo;
-		s = DotProduct(mid, tex->vecs[0])+tex->vecs[0][3];
-		t = DotProduct(mid, tex->vecs[1])+tex->vecs[1][3];
+		s = DotProduct(mid, tex->vecs[0]) + tex->vecs[0][3];
+		t = DotProduct(mid, tex->vecs[1]) + tex->vecs[1][3];
 
 		if (s < surf->texturemins[0] ||
-		t < surf->texturemins[1])
+			t < surf->texturemins[1])
 			continue;
-		
+
 		ds = s - surf->texturemins[0];
 		dt = t - surf->texturemins[1];
-		
-		if ( ds > surf->extents[0] || dt > surf->extents[1] )
+
+		if (ds > surf->extents[0] || dt > surf->extents[1])
 			continue;
 
 		if (!surf->samples)
@@ -3991,40 +4013,73 @@ int CStudioModelRenderer::StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_
 		dt >>= 4;
 
 		lightmap = surf->samples;
-		if (lightmap)
+		if (lightmap && m_pCurrentEntity)
 		{
-			int surfindex = node->firstsurface+i;
-			int size = ((surf->extents[1]>>4)+1)*((surf->extents[0]>>4)+1);
-			lightmap += dt * ((surf->extents[0]>>4)+1) + ds;
+			int surfindex = node->firstsurface + i;
+			int size = ((surf->extents[1] >> 4) + 1) * ((surf->extents[0] >> 4) + 1);
+			lightmap += dt * ((surf->extents[0] >> 4) + 1) + ds;
 
-			float flIntensity = (lightmap->r + lightmap->g + lightmap->b)/3;
-			float flScale = flIntensity/50;
+			float flIntensity = (lightmap->r + lightmap->g + lightmap->b) / 3;
+			float flScale = flIntensity / 50;
 
-			if(flScale > 1.0) flScale = 1.0;
+			if (flScale > 1.0)
+				flScale = 1.0;
 
-			color[0] = (float)(lightmap->r * flScale)/255;
-			color[1] = (float)(lightmap->g * flScale)/255;
-			color[2] = (float)(lightmap->b * flScale)/255;
+			// bacontsu - smoothed lightmap while moving
+			// scan for existing index
+			bool bFoundStoredLight = false;
+			int iFoundIndex = 0;
 
-			if(ext)
-				ext->lightstyles[0] = gBSPRenderer.m_iLightStyleValue[surf->styles[0]];
-
-			for (int style = 1; style < MAXLIGHTMAPS && surf->styles[style] != 255; style++)
+			// make sure we're not lerping particles
+			if (!isParticle)
 			{
-				lightmap += size;// skip to next lightmap
-				float scale = (float)gBSPRenderer.m_iLightStyleValue[surf->styles[style]]/255;
+				for (int jaja = 0; jaja < storedLightBuffer.size(); jaja++)
+				{
+					if (storedLightBuffer[jaja].index == m_pCurrentEntity->index)
+					{
+						bFoundStoredLight = true;
+						iFoundIndex = jaja;
+					}
+				}
 
-				color.x += ((float)lightmap->r/255)*scale;
-				color.y += ((float)lightmap->g/255)*scale;
-				color.z += ((float)lightmap->b/255)*scale;
-
-				if(ext)
-					ext->lightstyles[style] = gBSPRenderer.m_iLightStyleValue[surf->styles[style]];
+				// not found? add!
+				if (!bFoundStoredLight)
+				{
+					cl_stored_light local;
+					local.index = m_pCurrentEntity->index;
+					local.color = Vector((float)(lightmap->r * flScale) / 255, (float)(lightmap->g * flScale) / 255, (float)(lightmap->b * flScale) / 255);
+					storedLightBuffer.push_back(local);
+				}
 			}
 
-			if(ext)
+
+			if (bFoundStoredLight)
+			{
+				storedLightBuffer[iFoundIndex].color.x = FranUtils::Maths::FastLerp(gHUD.m_flTimeDelta * 2.0f, storedLightBuffer[iFoundIndex].color.x, (float)(lightmap->r * flScale) / 255);
+				storedLightBuffer[iFoundIndex].color.y = FranUtils::Maths::FastLerp(gHUD.m_flTimeDelta * 2.0f, storedLightBuffer[iFoundIndex].color.y, (float)(lightmap->g * flScale) / 255);
+				storedLightBuffer[iFoundIndex].color.z = FranUtils::Maths::FastLerp(gHUD.m_flTimeDelta * 2.0f, storedLightBuffer[iFoundIndex].color.z, (float)(lightmap->b * flScale) / 255);
+
+				color.x = storedLightBuffer[iFoundIndex].color.x;
+				color.y = storedLightBuffer[iFoundIndex].color.y;
+				color.z = storedLightBuffer[iFoundIndex].color.z;
+			}
+			else
+			{
+				color[0] = (float)(lightmap->r * flScale) / 255;
+				color[1] = (float)(lightmap->g * flScale) / 255;
+				color[2] = (float)(lightmap->b * flScale) / 255;
+			}
+
+
+			// if(bStatic)
+			// gEngfuncs.Con_DPrintf("rgb val: %f %f %f\n", (float)(int)lightmap->r, (float)(int)lightmap->g, (float)(int)lightmap->b);
+
+			if (ext)
+				ext->lightstyles[0] = gBSPRenderer.m_iLightStyleValue[surf->styles[0]];
+
+			if (ext)
 				ext->surfindex = node->firstsurface + i;
-		}	
+		}
 		else
 		{
 			color[0] = color[1] = color[2] = 1.0;
@@ -4032,8 +4087,8 @@ int CStudioModelRenderer::StudioRecursiveLightPoint( entextrainfo_t *ext, mnode_
 		return TRUE;
 	}
 
-// go down back side
-	return StudioRecursiveLightPoint (ext, node->children[!side], mid, end, color);
+	// go down back side
+	return StudioRecursiveLightPoint(ext, node->children[!side], mid, end, color, bStatic);
 }
 
 /*
