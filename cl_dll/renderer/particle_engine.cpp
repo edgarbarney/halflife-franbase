@@ -40,7 +40,6 @@ Written by Andrew Lucas
 #include "studio_util.h"
 #include "event_api.h"
 #include "event_args.h"
-#include "FranUtils/FranUtils_FileSystem.hpp"
 
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
@@ -171,7 +170,7 @@ void CParticleEngine::CreateCluster(const std::string& szPath, Vector origin, Ve
 {
 	std::string szFilePath = "/scripts/particles/" + szPath;
 
-	std::map<std::string, std::string> outputData;
+	FranUtils::FileSystem::StringMap outputData;
 	bool result = FranUtils::FileSystem::ParseBasicFile(szFilePath, outputData);
 
 	if (!result)
@@ -198,22 +197,26 @@ TODO:	Add a caching system to prevent re-reading the same file
 
 ====================
 */
-particle_system_t* CParticleEngine::CreateSystem(const std::string& szPathString, Vector origin, Vector dir, int iId, particle_system_t* parent)
+particle_system_t* CParticleEngine::CreateSystem(const std::string& path, Vector origin, Vector dir, int iId, particle_system_t* parent)
 {
-	const char* szPath = szPathString.c_str();
-	if (!strlen(szPath))
+	if (path.empty())
 		return NULL;
 
-	char szFilePath[64];
-	strcpy(szFilePath, "/scripts/particles/");
-	strcat(szFilePath, szPath);
+	std::string filePath = "/scripts/particles/" + path;
 
-	char* pFile = (char*)gEngfuncs.COM_LoadFile(szFilePath, 5, nullptr);
-
-	if (!pFile)
+	// Parse if not already cached
+	if (!m_particleDataCache.contains(filePath))
 	{
-		gEngfuncs.Con_Printf("Could not load particle definitions file: %s!\n", szPath);
-		return nullptr;
+		FranUtils::FileSystem::StringMap outputData;
+		bool result = FranUtils::FileSystem::ParseBasicFile(filePath, outputData);
+
+		if (!result)
+		{
+			gEngfuncs.Con_Printf("Could not load particle definitions file: %s!\n", path);
+			return nullptr;
+		}
+
+		m_particleDataCache[filePath] = outputData;
 	}
 
 	particle_system_t* pSystem = AllocSystem();
@@ -221,7 +224,6 @@ particle_system_t* CParticleEngine::CreateSystem(const std::string& szPathString
 	if (!pSystem)
 	{
 		gEngfuncs.Con_Printf("Warning! Exceeded max number of particle systems!\n");
-		gEngfuncs.COM_FreeFile(pFile);
 		return nullptr;
 	}
 
@@ -229,205 +231,184 @@ particle_system_t* CParticleEngine::CreateSystem(const std::string& szPathString
 	pSystem->id = iId;
 	pSystem->mainalpha = 1;
 	pSystem->spawntime = gEngfuncs.GetClientTime();
-	VectorCopy(dir, pSystem->dir);
+	pSystem->dir = dir;
 
-	char* pToken = pFile;
-	while (1)
+	const auto& outputData = m_particleDataCache[filePath];
+
+	if (outputData.contains("systemshape"))
+		pSystem->shapetype = std::stoi(outputData.at("systemshape"));
+	if (outputData.contains("minvel"))
+		pSystem->minvel = std::stof(outputData.at("minvel"));
+	if (outputData.contains("maxvel"))
+		pSystem->maxvel = std::stof(outputData.at("maxvel"));
+	if (outputData.contains("maxofs"))
+		pSystem->maxofs = std::stof(outputData.at("maxofs"));
+	if (outputData.contains("fadein"))
+		pSystem->fadeintime = std::stof(outputData.at("fadein"));
+	if (outputData.contains("fadedelay"))
+		pSystem->fadeoutdelay = std::stof(outputData.at("fadedelay"));
+	if (outputData.contains("mainalpha"))
+		pSystem->mainalpha = std::stof(outputData.at("mainalpha"));
+	if (outputData.contains("veldamp"))
+		pSystem->velocitydamp = std::stof(outputData.at("veldamp"));
+	if (outputData.contains("veldampdelay"))
+		pSystem->veldampdelay = std::stof(outputData.at("veldampdelay"));
+	if (outputData.contains("life"))
+		pSystem->maxlife = std::stof(outputData.at("life"));
+	if (outputData.contains("lifevar"))
+		pSystem->maxlifevar = std::stof(outputData.at("lifevar"));
+	if (outputData.contains("pcolr"))
+		pSystem->primarycolor.x = std::stoi(outputData.at("pcolr")) / 255.0f;
+	if (outputData.contains("pcolg"))
+		pSystem->primarycolor.y = std::stoi(outputData.at("pcolg")) / 255.0f;
+	if (outputData.contains("pcolb"))
+		pSystem->primarycolor.z = std::stoi(outputData.at("pcolb")) / 255.0f;
+	if (outputData.contains("scolr"))
+		pSystem->secondarycolor.x = std::stoi(outputData.at("scolr")) / 255.0f;
+	if (outputData.contains("scolg"))
+		pSystem->secondarycolor.y = std::stoi(outputData.at("scolg")) / 255.0f;
+	if (outputData.contains("scolb"))
+		pSystem->secondarycolor.z = std::stoi(outputData.at("scolb")) / 255.0f;
+	if (outputData.contains("ctransd"))
+		pSystem->transitiondelay = std::stof(outputData.at("ctransd"));
+	if (outputData.contains("ctranst"))
+		pSystem->transitiontime = std::stof(outputData.at("ctranst"));
+	if (outputData.contains("ctransv"))
+		pSystem->transitionvar = std::stof(outputData.at("ctransv"));
+	if (outputData.contains("scale"))
+		pSystem->scale = std::stof(outputData.at("scale"));
+	if (outputData.contains("scalevar"))
+		pSystem->scalevar = std::stof(outputData.at("scalevar"));
+	if (outputData.contains("scaledampdelay"))
+		pSystem->scaledampdelay = std::stof(outputData.at("scaledampdelay"));
+	if (outputData.contains("scaledampfactor"))
+		pSystem->scaledampfactor = std::stof(outputData.at("scaledampfactor"));
+	if (outputData.contains("gravity"))
+		pSystem->gravity = std::stof(outputData.at("gravity"));
+	if (outputData.contains("systemsize"))
+		pSystem->systemsize = std::stoi(outputData.at("systemsize"));
+	if (outputData.contains("maxparticles"))
+		pSystem->maxparticles = std::stoi(outputData.at("maxparticles"));
+	if (outputData.contains("intensity"))
+		pSystem->particlefreq = std::stof(outputData.at("intensity"));
+	if (outputData.contains("startparticles"))
+		pSystem->startparticles = std::stoi(outputData.at("startparticles"));
+	if (outputData.contains("maxparticlevar"))
+		pSystem->maxparticlevar = std::stoi(outputData.at("maxparticlevar"));
+	if (outputData.contains("lightmaps"))
+		pSystem->lightcheck = std::stoi(outputData.at("lightmaps"));
+	if (outputData.contains("collision"))
+		pSystem->collision = std::stoi(outputData.at("collision"));
+	if (outputData.contains("colwater"))
+		pSystem->colwater = std::stoi(outputData.at("colwater"));
+	if (outputData.contains("rendermode"))
+		pSystem->rendermode = std::stoi(outputData.at("rendermode"));
+	if (outputData.contains("display"))
+		pSystem->displaytype = std::stoi(outputData.at("display"));
+	if (outputData.contains("impactdamp"))
+		pSystem->impactdamp = std::stof(outputData.at("impactdamp"));
+	if (outputData.contains("rotationvar"))
+		pSystem->rotationvar = std::stof(outputData.at("rotationvar"));
+	if (outputData.contains("rotationvel"))
+		pSystem->rotationvel = std::stof(outputData.at("rotationvel"));
+	if (outputData.contains("rotationdamp"))
+		pSystem->rotationdamp = std::stof(outputData.at("rotationdamp"));
+	if (outputData.contains("rotationdampdelay"))
+		pSystem->rotationdampdelay = std::stof(outputData.at("rotationdampdelay"));
+	if (outputData.contains("rotxvar"))
+		pSystem->rotxvar = std::stof(outputData.at("rotxvar"));
+	if (outputData.contains("rotxvel"))
+		pSystem->rotxvel = std::stof(outputData.at("rotxvel"));
+	if (outputData.contains("rotxdamp"))
+		pSystem->rotxdamp = std::stof(outputData.at("rotxdamp"));
+	if (outputData.contains("rotxdampdelay"))
+		pSystem->rotxdampdelay = std::stof(outputData.at("rotxdampdelay"));
+	if (outputData.contains("rotyvar"))
+		pSystem->rotyvar = std::stof(outputData.at("rotyvar"));
+	if (outputData.contains("rotyvel"))
+		pSystem->rotyvel = std::stof(outputData.at("rotyvel"));
+	if (outputData.contains("rotydamp"))
+		pSystem->rotydamp = std::stof(outputData.at("rotydamp"));
+	if (outputData.contains("rotydampdelay"))
+		pSystem->rotydampdelay = std::stof(outputData.at("rotydampdelay"));
+	if (outputData.contains("randomdir"))
+		pSystem->randomdir = std::stoi(outputData.at("randomdir"));
+	if (outputData.contains("overbright"))
+		pSystem->overbright = std::stoi(outputData.at("overbright"));
+	if (outputData.contains("create"))
+		std::strcpy(pSystem->create, outputData.at("create").c_str());
+	if (outputData.contains("deathcreate"))
+		std::strcpy(pSystem->deathcreate,outputData.at("deathcreate").c_str());
+	if (outputData.contains("watercreate"))
+		std::strcpy(pSystem->watercreate, outputData.at("watercreate").c_str());
+	if (outputData.contains("windx"))
+		pSystem->windx = std::stof(outputData.at("windx"));
+	if (outputData.contains("windy"))
+		pSystem->windy = std::stof(outputData.at("windy"));
+	if (outputData.contains("windvar"))
+		pSystem->windvar = std::stof(outputData.at("windvar"));
+	if (outputData.contains("windtype"))
+		pSystem->windtype = std::stoi(outputData.at("windtype"));
+	if (outputData.contains("windmult"))
+		pSystem->windmult = std::stof(outputData.at("windmult"));
+	if (outputData.contains("windmultvar"))
+		pSystem->windmultvar = std::stof(outputData.at("windmultvar"));
+	if (outputData.contains("stuckdie"))
+		pSystem->stuckdie = std::stof(outputData.at("stuckdie"));
+	if (outputData.contains("maxheight"))
+		pSystem->maxheight = std::stof(outputData.at("maxheight"));
+	if (outputData.contains("tracerdist"))
+		pSystem->tracerdist = std::stof(outputData.at("tracerdist"));
+	if (outputData.contains("fadedistnear"))
+		pSystem->fadedistnear = std::stoi(outputData.at("fadedistnear"));
+	if (outputData.contains("fadedistfar"))
+		pSystem->fadedistfar = std::stoi(outputData.at("fadedistfar"));
+	if (outputData.contains("numframes"))
+		pSystem->numframes = std::stoi(outputData.at("numframes"));
+	if (outputData.contains("framesizex"))
+		pSystem->framesizex = std::stoi(outputData.at("framesizex"));
+	if (outputData.contains("framesizey"))
+		pSystem->framesizey = std::stoi(outputData.at("framesizey"));
+	if (outputData.contains("framerate"))
+		pSystem->framerate = std::stoi(outputData.at("framerate"));
+	if (outputData.contains("texture"))
 	{
-		char szField[32];
-		pToken = gEngfuncs.COM_ParseFile(pToken, szField);
+		int iOriginalBind;
+		glGetIntegerv(GL_TEXTURE_BINDING_2D, &iOriginalBind);
 
-		if (!pToken)
-			break;
+		std::string texPath = "gfx/textures/particles/" + outputData.at("texture") + ".dds";
 
-		char szValue[32];
-		pToken = gEngfuncs.COM_ParseFile(pToken, szValue);
+		pSystem->texture = gTextureLoader.LoadTexture(texPath.c_str());
 
-		if (!pToken)
-			break;
-
-		if (!strcmp(szField, "systemshape"))
-			pSystem->shapetype = atoi(szValue);
-		else if (!strcmp(szField, "minvel"))
-			pSystem->minvel = atof(szValue);
-		else if (!strcmp(szField, "maxvel"))
-			pSystem->maxvel = atof(szValue);
-		else if (!strcmp(szField, "maxofs"))
-			pSystem->maxofs = atof(szValue);
-		else if (!strcmp(szField, "fadein"))
-			pSystem->fadeintime = atof(szValue);
-		else if (!strcmp(szField, "fadedelay"))
-			pSystem->fadeoutdelay = atof(szValue);
-		else if (!strcmp(szField, "mainalpha"))
-			pSystem->mainalpha = atof(szValue);
-		else if (!strcmp(szField, "veldamp"))
-			pSystem->velocitydamp = atof(szValue);
-		else if (!strcmp(szField, "veldampdelay"))
-			pSystem->veldampdelay = atof(szValue);
-		else if (!strcmp(szField, "life"))
-			pSystem->maxlife = atof(szValue);
-		else if (!strcmp(szField, "lifevar"))
-			pSystem->maxlifevar = atof(szValue);
-		else if (!strcmp(szField, "pcolr"))
-			pSystem->primarycolor.x = (float)atoi(szValue) / 255;
-		else if (!strcmp(szField, "pcolg"))
-			pSystem->primarycolor.y = (float)atoi(szValue) / 255;
-		else if (!strcmp(szField, "pcolb"))
-			pSystem->primarycolor.z = (float)atoi(szValue) / 255;
-		else if (!strcmp(szField, "scolr"))
-			pSystem->secondarycolor.x = (float)atoi(szValue) / 255;
-		else if (!strcmp(szField, "scolg"))
-			pSystem->secondarycolor.y = (float)atoi(szValue) / 255;
-		else if (!strcmp(szField, "scolb"))
-			pSystem->secondarycolor.z = (float)atoi(szValue) / 255;
-		else if (!strcmp(szField, "ctransd"))
-			pSystem->transitiondelay = atof(szValue);
-		else if (!strcmp(szField, "ctranst"))
-			pSystem->transitiontime = atof(szValue);
-		else if (!strcmp(szField, "ctransv"))
-			pSystem->transitionvar = atof(szValue);
-		else if (!strcmp(szField, "scale"))
-			pSystem->scale = atof(szValue);
-		else if (!strcmp(szField, "scalevar"))
-			pSystem->scalevar = atof(szValue);
-		else if (!strcmp(szField, "scaledampdelay"))
-			pSystem->scaledampdelay = atof(szValue);
-		else if (!strcmp(szField, "scaledampfactor"))
-			pSystem->scaledampfactor = atof(szValue);
-		else if (!strcmp(szField, "gravity"))
-			pSystem->gravity = atof(szValue);
-		else if (!strcmp(szField, "systemsize"))
-			pSystem->systemsize = atoi(szValue);
-		else if (!strcmp(szField, "maxparticles"))
-			pSystem->maxparticles = atoi(szValue);
-		else if (!strcmp(szField, "intensity"))
-			pSystem->particlefreq = atof(szValue);
-		else if (!strcmp(szField, "startparticles"))
-			pSystem->startparticles = atoi(szValue);
-		else if (!strcmp(szField, "maxparticlevar"))
-			pSystem->maxparticlevar = atoi(szValue);
-		else if (!strcmp(szField, "lightmaps"))
-			pSystem->lightcheck = atoi(szValue);
-		else if (!strcmp(szField, "collision"))
-			pSystem->collision = atoi(szValue);
-		else if (!strcmp(szField, "colwater"))
-			pSystem->colwater = atoi(szValue);
-		else if (!strcmp(szField, "rendermode"))
-			pSystem->rendermode = atoi(szValue);
-		else if (!strcmp(szField, "display"))
-			pSystem->displaytype = atoi(szValue);
-		else if (!strcmp(szField, "impactdamp"))
-			pSystem->impactdamp = atof(szValue);
-		else if (!strcmp(szField, "rotationvar"))
-			pSystem->rotationvar = atof(szValue);
-		else if (!strcmp(szField, "rotationvel"))
-			pSystem->rotationvel = atof(szValue);
-		else if (!strcmp(szField, "rotationdamp"))
-			pSystem->rotationdamp = atof(szValue);
-		else if (!strcmp(szField, "rotationdampdelay"))
-			pSystem->rotationdampdelay = atof(szValue);
-		else if (!strcmp(szField, "rotxvar"))
-			pSystem->rotxvar = atof(szValue);
-		else if (!strcmp(szField, "rotxvel"))
-			pSystem->rotxvel = atof(szValue);
-		else if (!strcmp(szField, "rotxdamp"))
-			pSystem->rotxdamp = atof(szValue);
-		else if (!strcmp(szField, "rotxdampdelay"))
-			pSystem->rotxdampdelay = atof(szValue);
-		else if (!strcmp(szField, "rotyvar"))
-			pSystem->rotyvar = atof(szValue);
-		else if (!strcmp(szField, "rotyvel"))
-			pSystem->rotyvel = atof(szValue);
-		else if (!strcmp(szField, "rotydamp"))
-			pSystem->rotydamp = atof(szValue);
-		else if (!strcmp(szField, "rotydampdelay"))
-			pSystem->rotydampdelay = atof(szValue);
-		else if (!strcmp(szField, "randomdir"))
-			pSystem->randomdir = atoi(szValue);
-		else if (!strcmp(szField, "overbright"))
-			pSystem->overbright = atoi(szValue);
-		else if (!strcmp(szField, "create"))
-			strcpy(pSystem->create, szValue);
-		else if (!strcmp(szField, "deathcreate"))
-			strcpy(pSystem->deathcreate, szValue);
-		else if (!strcmp(szField, "watercreate"))
-			strcpy(pSystem->watercreate, szValue);
-		else if (!strcmp(szField, "windx"))
-			pSystem->windx = atof(szValue);
-		else if (!strcmp(szField, "windy"))
-			pSystem->windy = atof(szValue);
-		else if (!strcmp(szField, "windvar"))
-			pSystem->windvar = atof(szValue);
-		else if (!strcmp(szField, "windtype"))
-			pSystem->windtype = atoi(szValue);
-		else if (!strcmp(szField, "windmult"))
-			pSystem->windmult = atof(szValue);
-		else if (!strcmp(szField, "windmultvar"))
-			pSystem->windmultvar = atof(szValue);
-		else if (!strcmp(szField, "stuckdie"))
-			pSystem->stuckdie = atof(szValue);
-		else if (!strcmp(szField, "maxheight"))
-			pSystem->maxheight = atof(szValue);
-		else if (!strcmp(szField, "tracerdist"))
-			pSystem->tracerdist = atof(szValue);
-		else if (!strcmp(szField, "fadedistnear"))
-			pSystem->fadedistnear = atoi(szValue);
-		else if (!strcmp(szField, "fadedistfar"))
-			pSystem->fadedistfar = atoi(szValue);
-		else if (!strcmp(szField, "numframes"))
-			pSystem->numframes = atoi(szValue);
-		else if (!strcmp(szField, "framesizex"))
-			pSystem->framesizex = atoi(szValue);
-		else if (!strcmp(szField, "framesizey"))
-			pSystem->framesizey = atoi(szValue);
-		else if (!strcmp(szField, "framerate"))
-			pSystem->framerate = atoi(szValue);
-		else if (!strcmp(szField, "texture"))
+		if (!pSystem->texture)
 		{
-			int iOriginalBind;
-			glGetIntegerv(GL_TEXTURE_BINDING_2D, &iOriginalBind);
+			// Remove system
+			m_pSystemHeader = pSystem->next;
+			m_pSystemHeader->prev = nullptr;
+			delete[] pSystem;
 
-			char szTexPath[256];
-			strcpy(szTexPath, "gfx/textures/particles/");
-			strcat(szTexPath, szValue);
-			strcat(szTexPath, ".dds");
-
-			pSystem->texture = gTextureLoader.LoadTexture(szTexPath);
-
-			if (!pSystem->texture)
-			{
-				// Remove system
-				m_pSystemHeader = pSystem->next;
-				m_pSystemHeader->prev = nullptr;
-				delete[] pSystem;
-
-				gEngfuncs.COM_FreeFile(pFile);
-				return nullptr;
-			}
-
-			glBindTexture(GL_TEXTURE_2D, pSystem->texture->iIndex);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glBindTexture(GL_TEXTURE_2D, iOriginalBind);
+			return nullptr;
 		}
-		else
-			gEngfuncs.Con_Printf("Warning! Unknown field: %s\n", szField);
-	}
-	gEngfuncs.COM_FreeFile(pFile);
 
-	if (m_pCvarParticleMaxPart->value == ParticleQuality::verylow)
+		glBindTexture(GL_TEXTURE_2D, pSystem->texture->iIndex);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glBindTexture(GL_TEXTURE_2D, iOriginalBind);
+	}
+
+	if ((int)m_pCvarParticleMaxPart->value == ParticleQuality::verylow)
 	{
 		pSystem->maxparticles = 1;
 	}
-	else if (m_pCvarParticleMaxPart->value == ParticleQuality::low)
+	else if ((int)m_pCvarParticleMaxPart->value == ParticleQuality::low)
 	{
 		pSystem->maxparticles = 2;
 	}
-	else if (m_pCvarParticleMaxPart->value == ParticleQuality::medium)
+	else if ((int)m_pCvarParticleMaxPart->value == ParticleQuality::medium)
 	{
 		pSystem->maxparticles = 4;
 	}
-	else if (m_pCvarParticleMaxPart->value == ParticleQuality::high) // Placeholder
+	else if ((int)m_pCvarParticleMaxPart->value == ParticleQuality::high) // Placeholder
 	{
 		// pSystem->maxparticles = 4;
 	}
@@ -438,7 +419,7 @@ particle_system_t* CParticleEngine::CreateSystem(const std::string& szPathString
 		if (!parent)
 		{
 			model_t* pWorld = IEngineStudio.GetModelByIndex(1);
-			VectorCopy(origin, pSystem->origin);
+			pSystem->origin = origin;
 
 			if (pWorld)
 				pSystem->leaf = Mod_PointInLeaf(pSystem->origin, pWorld);

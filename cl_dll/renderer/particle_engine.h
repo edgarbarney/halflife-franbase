@@ -28,6 +28,8 @@ Written by Andrew Lucas
 #include "textureloader.h"
 #include "rendererdefs.h"
 
+#include "FranUtils/FranUtils_FileSystem.hpp"
+
 /*
 ====================
 CParticleEngine
@@ -42,7 +44,7 @@ public:
 	void Shutdown(void);
 
 	void CreateCluster(const std::string& szPath, Vector origin, Vector dir, int iId);
-	particle_system_t* CreateSystem(const std::string& szPath, Vector origin, Vector dir, int iId, particle_system_t* parent = NULL);
+	particle_system_t* CreateSystem(const std::string& path, Vector origin, Vector dir, int iId, particle_system_t* parent = NULL);
 	void RemoveSystem(int iId);
 
 	particle_system_t* AllocSystem(void);
@@ -66,6 +68,10 @@ public:
 
 public:
 	particle_system_t* m_pSystemHeader;
+
+	// A cache for parsed particle data
+	// Structure is filename -> key-value pairs
+	std::unordered_map<std::string, FranUtils::FileSystem::StringMap> m_particleDataCache;
 
 	cvar_t* m_pCvarDrawParticles;
 	cvar_t* m_pCvarParticleDebug;

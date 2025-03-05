@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <unordered_map>
 
 #include "FranUtils_Globals.hpp"
 #include "FranUtils_String.hpp"
@@ -24,6 +25,10 @@ extern enginefuncs_t g_engfuncs;
 
 namespace FranUtils::FileSystem
 {
+	// A map that stores key-value pairs as strings
+	// This is used as a container for parsed files' output
+	using StringMap = std::unordered_map<std::string, std::string>;
+
 	inline std::string GetModDirectory(std::string endLine = "//") //Yes, string
 	{
 		std::string temp = std::filesystem::current_path().string();
@@ -70,7 +75,7 @@ namespace FranUtils::FileSystem
 	}
 
 	// Splits the file into key-value pairs, separated by a space.
-	inline void ParseBasicFileStream(std::ifstream& fstream, std::map<std::string, std::string>& out)
+	inline void ParseBasicFileStream(std::ifstream& fstream, StringMap& out)
 	{
 		std::string line;
 		std::string key;
@@ -117,7 +122,7 @@ namespace FranUtils::FileSystem
 	// Returns false if the file doesn't exist
 	//
 	// Splits the file into key-value pairs, separated by a space.
-	inline bool ParseBasicFile(const std::string& file, std::map<std::string, std::string>& out)
+	inline bool ParseBasicFile(const std::string& file, StringMap& out)
 	{
 		std::ifstream fstream;
 		if (OpenInputFile(file, fstream))
