@@ -168,32 +168,31 @@ CreateCluster
 */
 void CParticleEngine::CreateCluster(const std::string& szPath, Vector origin, Vector dir, int iId)
 {
-	std::string szFilePath = "/scripts/particles/" + szPath;
+	std::string filePath = "/scripts/particles/" + szPath;
 
-	FranUtils::FileSystem::StringMap outputData;
-	bool result = FranUtils::FileSystem::ParseBasicFile(szFilePath, outputData);
-
-	if (!result)
+	if (!m_particleClusterDataCache.contains(filePath))
 	{
-		gEngfuncs.Con_Printf("Could not load particle cluster file: %s!\n", szPath.c_str());
-		return;
+		FranUtils::FileSystem::StringMap outputData;
+		bool result = FranUtils::FileSystem::ParseBasicFile(filePath, outputData);
+
+		if (!result)
+		{
+			gEngfuncs.Con_Printf("Could not load particle cluster file: %s!\n", szPath.c_str());
+			return;
+		}
+
+		m_particleClusterDataCache[filePath] = outputData;
 	}
 
-	for (const auto& data : outputData)
+	for (const auto& data : m_particleClusterDataCache.at(filePath))
 	{
 		CreateSystem(data.first, origin, dir, iId);
 	}
 }
+
 /*
 ====================
 CreateSystem
-
-TODO:	Rewrite this function to use the
-		FranUtils::FileSystem::ParseBasicFile function and
-		std::string instead of char* and c functions.
-
-TODO:	Add a caching system to prevent re-reading the same file
-		over and over again every time a particle system is created.
 
 ====================
 */

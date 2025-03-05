@@ -69,9 +69,10 @@ public:
 public:
 	particle_system_t* m_pSystemHeader;
 
-	// A cache for parsed particle data
+	// Caches for parsed particle data
 	// Structure is filename -> key-value pairs
 	std::unordered_map<std::string, FranUtils::FileSystem::StringMap> m_particleDataCache;
+	std::unordered_map<std::string, FranUtils::FileSystem::StringMap> m_particleClusterDataCache;
 
 	cvar_t* m_pCvarDrawParticles;
 	cvar_t* m_pCvarParticleDebug;
