@@ -364,4 +364,13 @@ int CHud ::MsgFunc_FreeEnt(const char* pszName, int iSize, void* pbuf)
 	pEntity->efrag = NULL;
 	return 1;
 }
+
+int CHud::MsgFunc_WpnSkn(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+	gHUD.m_iViewmodelSkin = READ_SHORT();
+
+	return 1;
+}
+
 // RENDERERS END

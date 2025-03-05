@@ -85,6 +85,7 @@ void LinkUserMessages()
 	gmsgCreateDLight = REG_USER_MSG("DynLight", -1);
 	gmsgFreeEnt = REG_USER_MSG("FreeEnt", -1);
 	gmsgCreateSystem = REG_USER_MSG("Particle", -1);
+	gmsgViewmodelSkin = REG_USER_MSG("WpnSkn", -1);
 	// RENDERERS END
 
 	gmsgWeapons = REG_USER_MSG("Weapons", 8);

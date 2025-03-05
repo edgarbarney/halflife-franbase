@@ -195,6 +195,11 @@ int __MsgFunc_PlayMP3(const char* pszName, int iSize, void* pbuf)
 	return gHUD.MsgFunc_PlayMP3(pszName, iSize, pbuf);
 }
 
+int __MsgFunc_WpnSkn(const char* pszName, int iSize, void* pbuf)
+{
+	return gHUD.MsgFunc_WpnSkn(pszName, iSize, pbuf);
+}
+
 
 int __MsgFunc_CamData(const char* pszName, int iSize, void* pbuf)
 {

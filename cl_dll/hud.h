@@ -30,6 +30,7 @@
 #include "common_types.h"
 #include "cl_dll.h"
 #include "ammo.h"
+#include "studio.h"
 
 // RENDERERS START
 #include "renderer/frustum.h"
@@ -531,6 +532,16 @@ public:
 	int m_iSkyScale;				//AJH Allows parallax for the sky. 0 means no parallax, i.e infinitly large & far away.
 	int m_iCameraMode;				//G-Cont. clipping thirdperson camera
 
+	// Viewlag by MagicNipples
+	float lagangle_x;
+	float lagangle_y;
+	float lagangle_z;
+	float mouse_x;
+	float mouse_y;
+	float velz;
+	float bobValue[2];
+	float camValue[2];
+
 	ref_params_s* pparams;
 
 	int m_iFontHeight;
@@ -639,6 +650,7 @@ public:
 	int MsgFunc_SkyMark_W(const char* pszName, int iSize, void* pbuf);
 	int MsgFunc_DynLight(const char* pszName, int iSize, void* pbuf);
 	int MsgFunc_CreateSystem(const char* pszName, int iSize, void* pbuf);
+	int MsgFunc_WpnSkn(const char* pszName, int iSize, void* pbuf);
 	// RENDERERS END
 
 	// Screen information
@@ -661,7 +673,28 @@ public:
 	fog_settings_t m_pFogSettings;
 	FrustumCheck viewFrustum;
 	// RENDERERS END
+
+	// Viewmodel
+	entity_state_t m_prevstate;
+	int m_iViewmodelSkin;
 };
+
+typedef struct viewinfo_s
+{
+	Vector attachment_forward[4];
+	Vector attachment_right[4];
+	Vector attachment_up[4];
+
+	Vector bonepos[MAXSTUDIOBONES];
+	Vector boneangles[MAXSTUDIOBONES];
+
+	Vector prevbonepos[MAXSTUDIOBONES];
+	Vector prevboneangles[MAXSTUDIOBONES];
+
+	studiohdr_t* phdr;
+} vminfo_t;
+
+extern viewinfo_s g_viewinfo;
 
 extern CHud gHUD;
 
