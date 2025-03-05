@@ -12,21 +12,28 @@
 #undef max
 #endif
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846 // GCC math.h
+#endif
+
 #include <cstdint>
+#include <cmath>
+#include <algorithm>
 
 //#include "FranUtils_Globals.hpp"
 
 namespace FranUtils::Maths
 {
+#pragma region Conversion Functions
+
 	/**
-	 * For HL Messages - Returns a long that contains float information
-	 *
-	 * @see FranUtils::ftol
-	 * @param x : Float to store
-	 * 
-	 * @return Long to send over
-	 */
-	inline long ftol(float x)
+	* For HL Messages - Returns a long that contains float information
+	*
+	* @param x : Float to store
+	* 
+	* @return Long to send over
+	*/
+	inline long ContainFloat(float x)
 	{
 		union
 		{
@@ -36,6 +43,40 @@ namespace FranUtils::Maths
 		horrible_cast.f = x;
 		return horrible_cast.i;
 	}
+
+	/**
+	* Converts radians to degrees.
+	* 
+	* @param rad : Radians
+	* 
+	* @return Degrees
+	*/
+	inline double Rad2Deg(double rad)
+	{
+		return rad * (180.0 / M_PI);
+	}
+	inline float Rad2Deg(float rad)
+	{
+		return rad * (180.0f / M_PI);
+	}
+	
+	/**
+	* Converts degrees to radians.
+	* 
+	* @param deg : Degrees
+	* 
+	* @return Radians
+	*/
+	inline double Deg2Rad(double deg)
+	{
+		return deg * (M_PI / 180.0);
+	}
+	inline float Deg2Rad(float deg)
+	{
+		return deg * (M_PI / 180.0f);
+	}
+
+#pragma endregion
 
 #pragma region Non-ensured Interpolation Funcitons
 
@@ -57,6 +98,7 @@ namespace FranUtils::Maths
 	/**
 	* Fast linear interpolation.
 	* - Fast : No precision checks, no extrapolation prevention.
+	* - Suggested when working on rendering or other performance-critical tasks.
 	* 
 	* @see FranUtils::Lerp
 	* @param lerpfactor : Factor of Interpolation
@@ -155,6 +197,90 @@ namespace FranUtils::Maths
 			return calc;
 	}
 
+
+#pragma endregion
+
+#pragma region Matrix Functions
+
+	/**
+	* Generates Euler angles given a left-handed orientation matrix.
+	* The columns of the matrix contain the forward, left, and up vectors.
+	* 
+	* @param matrix : Left-handed orientation matrix.
+	* @param angles : Receives right-handed counterclockwise rotations in degrees around Y, Z, and X respectively.
+	* @param position : Receives the position of the matrix.
+	*/
+	void MatrixAngles(const float matrix[3][4], Vector& angles, Vector& position)
+	{
+		MatrixGetColumn(matrix, 3, position);
+		MatrixAngles(matrix, angles);
+	}
+
+	/**
+	* Generates Euler angles given a left-handed orientation matrix.
+	* The columns of the matrix contain the forward, left, and up vectors.
+	* 
+	* @param matrix : Left-handed orientation matrix.
+	* @param angles : Receives right-handed counterclockwise rotations in degrees around Y, Z, and X respectively.
+	*/
+	void MatrixAngles(const float matrix[3][4], float* angles)
+	{
+		float forward[3];
+		float left[3];
+		float up[3];
+
+		//
+		// Extract the basis vectors from the matrix. Since we only need the Z
+		// component of the up vector, we don't get X and Y.
+		//
+		forward[0] = matrix[0][0];
+		forward[1] = matrix[1][0];
+		forward[2] = matrix[2][0];
+		left[0] = matrix[0][1];
+		left[1] = matrix[1][1];
+		left[2] = matrix[2][1];
+		up[2] = matrix[2][2];
+
+		float xyDist = sqrtf(forward[0] * forward[0] + forward[1] * forward[1]);
+
+		// enough here to get angles?
+		if (xyDist > 0.001f)
+		{
+			// (yaw)	y = ATAN( forward.y, forward.x );		-- in our space, forward is the X axis
+			angles[1] = Rad2Deg(std::atan2f(forward[1], forward[0]));
+
+			// (pitch)	x = ATAN( -forward.z, sqrt(forward.x*forward.x+forward.y*forward.y) );
+			angles[0] = Rad2Deg(std::atan2f(-forward[2], xyDist));
+
+			// (roll)	z = ATAN( left.z, up.z );
+			angles[2] = Rad2Deg(std::atan2f(left[2], up[2]));
+		}
+		else // forward is mostly Z, gimbal lock-
+		{
+			// (yaw)	y = ATAN( -left.x, left.y );			-- forward is mostly z, so use right for yaw
+			angles[1] = Rad2Deg(std::atan2f(-left[0], left[1]));
+
+			// (pitch)	x = ATAN( -forward.z, sqrt(forward.x*forward.x+forward.y*forward.y) );
+			angles[0] = Rad2Deg(std::atan2f(-forward[2], xyDist));
+
+			// Assume no roll in this case as one degree of freedom has been lost (i.e. yaw == roll)
+			angles[2] = 0;
+		}
+	}
+
+	void MatrixGetColumn(const float in[3][4], int column, Vector& out)
+	{
+		out.x = in[0][column];
+		out.y = in[1][column];
+		out.z = in[2][column];
+	}
+
+	void MatrixSetColumn(const Vector& in, int column, float out[3][4])
+	{
+		out[0][column] = in.x;
+		out[1][column] = in.y;
+		out[2][column] = in.z;
+	}
 
 #pragma endregion
 
