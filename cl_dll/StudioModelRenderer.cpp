@@ -62,7 +62,7 @@ cvar_t* te_render_distance = NULL;
 struct cl_stored_light
 {
 	int index = 0;
-	Vector color = 0;
+	Vector color = Vector(0, 0, 0);
 };
 
 std::vector<cl_stored_light> StoredLightBuffer;
@@ -3476,24 +3476,24 @@ void CStudioModelRenderer::StudioRenderModel()
 	studiohdr_t* pHdr = (studiohdr_t*)m_pStudioHeader;
 	mstudiotexture_t* pTexture = (mstudiotexture_t*)((byte*)m_pRenderModel->cache.data + pHdr->textureindex);
 
-	bool needToRestoreTexture = false;
-	if (!strcmp(m_pCurrentEntity->model->name, "models/skysphere.mdl"))
-	{
-		if (pHdr->textureindex > 0)
-		{
-			for (int i = 0; i < pHdr->numtextures; i++)
-			{
-				savedtexture.push_back(pTexture[i]);
-				// memcpy(&pTexture[i], &pTexture[pHdr->numtextures + 1], sizeof(mstudiotexture_t));
-				if (!strcmp(pTexture[i].name, "white.bmp"))
-				{
-					pTexture[i].index = g_cloudShader;
-				}
-			}
-		}
-
-		needToRestoreTexture = true;
-	}
+	//bool needToRestoreTexture = false;
+	//if (!strcmp(m_pCurrentEntity->model->name, "models/skysphere.mdl"))
+	//{
+	//	if (pHdr->textureindex > 0)
+	//	{
+	//		for (int i = 0; i < pHdr->numtextures; i++)
+	//		{
+	//			savedtexture.push_back(pTexture[i]);
+	//			// memcpy(&pTexture[i], &pTexture[pHdr->numtextures + 1], sizeof(mstudiotexture_t));
+	//			if (!strcmp(pTexture[i].name, "white.bmp"))
+	//			{
+	//				pTexture[i].index = g_cloudShader;
+	//			}
+	//		}
+	//	}
+	//
+	//	needToRestoreTexture = true;
+	//}
 
 	// bacontsu - render distance, credit to Aynekko (Diffusion)
 	if ((m_pCurrentEntity->curstate.origin - gEngfuncs.GetLocalPlayer()->curstate.origin).Length() > m_pCvarRenderDistance->value && m_pCurrentEntity != gEngfuncs.GetViewModel())
@@ -3539,13 +3539,13 @@ void CStudioModelRenderer::StudioRenderModel()
 	// Restore saved states
 	R_RestoreGLStates();
 
-	if (needToRestoreTexture)
-	{
-		for (int i = 0; i < pHdr->numtextures; i++)
-		{
-			memcpy(&pTexture[i], &savedtexture[i], sizeof(mstudiotexture_t));
-		}
-	}
+	//if (needToRestoreTexture)
+	//{
+	//	for (int i = 0; i < pHdr->numtextures; i++)
+	//	{
+	//		memcpy(&pTexture[i], &savedtexture[i], sizeof(mstudiotexture_t));
+	//	}
+	//}
 }
 
 /*
@@ -4239,17 +4239,17 @@ int CStudioModelRenderer::StudioRecursiveLightPoint(entextrainfo_t* ext, mnode_t
 			// bacontsu - smoothed lightmap while moving
 			// scan for existing index
 			bool bFoundStoredLight = false;
-			int iFoundIndex = 0;
+			size_t iFoundIndex = 0;
 
 			// make sure we're not lerping particles
 			if (!isParticle)
 			{
-				for (int jaja = 0; jaja < StoredLightBuffer.size(); jaja++)
+				for (size_t k = 0; k < StoredLightBuffer.size(); k++)
 				{
-					if (StoredLightBuffer[jaja].index == m_pCurrentEntity->index)
+					if (StoredLightBuffer[k].index == m_pCurrentEntity->index)
 					{
 						bFoundStoredLight = true;
-						iFoundIndex = jaja;
+						iFoundIndex = k;
 					}
 				}
 
@@ -6323,7 +6323,7 @@ Mod_LoadModel
 
 ====================
 */
-model_t* CStudioModelRenderer::Mod_LoadModel(char* szName)
+model_t* CStudioModelRenderer::Mod_LoadModel(const char* szName)
 {
 	// Try and find it in our cache
 	for (int i = 0; i < m_iNumStudioModels; i++)
@@ -6375,7 +6375,7 @@ Mod_LoadTexture
 
 ====================
 */
-void CStudioModelRenderer::Mod_LoadTexture(mstudiotexture_t* ptexture, byte* pbuffer, char* szmodelname)
+void CStudioModelRenderer::Mod_LoadTexture(mstudiotexture_t* ptexture, byte* pbuffer, const char* szmodelname)
 {
 	int i, j;
 	int row1[1024], row2[1024], col1[1024], col2[1024];
@@ -7128,8 +7128,7 @@ StudioDrawPointsShadow
 */
 void CStudioModelRenderer::StudioDrawPointsShadow()
 {
-	float *av, height;
-	float vec_x, vec_y;
+	float* av;
 	mstudiomesh_t* pmesh;
 	Vector point;
 	int i, k;
