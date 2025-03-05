@@ -22,7 +22,7 @@
 class Vector2D
 {
 public:
-	constexpr Vector2D() = default;
+	constexpr Vector2D() : x(0), y(0) {};
 	constexpr Vector2D(const Vector2D&) = default;
 	constexpr Vector2D& operator=(const Vector2D&) = default;
 
@@ -35,7 +35,9 @@ public:
 	[[nodiscard]] constexpr Vector2D operator-(const Vector2D& v) const { return Vector2D(x - v.x, y - v.y); }
 	[[nodiscard]] constexpr Vector2D operator*(float fl) const { return Vector2D(x * fl, y * fl); }
 	[[nodiscard]] constexpr Vector2D operator/(float fl) const { return Vector2D(x / fl, y / fl); }
-
+#ifdef _STRING_
+	[[nodiscard]] constexpr operator std::string() const { return ("X: " + std::to_string(x) + ", Y: " + std::to_string(y)); }
+#endif
 	[[nodiscard]] float Length() const { return static_cast<float>(sqrt(x * x + y * y)); }
 
 	[[nodiscard]] Vector2D Normalize() const
@@ -51,6 +53,14 @@ public:
 			return Vector2D(x * flLen, y * flLen);
 		}
 	}
+
+#ifdef _STRING_
+	[[nodiscard]] constexpr std::string ToString() const { return ("X: " + std::to_string(x) + ", Y: " + std::to_string(y)); }
+	inline void c_str(char* outStr) const
+	{
+		snprintf(outStr, strlen(outStr) - 1, "X: %f, Y: %f", x, y);
+	}
+#endif
 
 	vec_t x = 0, y = 0;
 };
@@ -72,7 +82,7 @@ class Vector // same data-layout as engine's vec3_t,
 {			 //		which is a vec_t[3]
 public:
 	// Construction/destruction
-	constexpr Vector() = default;
+	constexpr Vector(): x(0), y(0), z(0) {};
 	constexpr Vector(const Vector&) = default;
 	constexpr Vector& operator=(const Vector&) = default;
 
@@ -94,6 +104,9 @@ public:
 	[[nodiscard]] constexpr Vector operator-(const Vector& v) const { return Vector(x - v.x, y - v.y, z - v.z); }
 	[[nodiscard]] constexpr Vector operator*(float fl) const { return Vector(x * fl, y * fl, z * fl); }
 	[[nodiscard]] constexpr Vector operator/(float fl) const { return Vector(x / fl, y / fl, z / fl); }
+#ifdef _STRING_
+	[[nodiscard]] constexpr operator std::string() const { return ("X: " + std::to_string(x) + ", Y: " + std::to_string(y) + ", Z: " + std::to_string(z)); }
+#endif
 
 	// Methods
 	constexpr void CopyToArray(float* rgfl) const { rgfl[0] = x, rgfl[1] = y, rgfl[2] = z; }
@@ -118,6 +131,14 @@ public:
 	}
 
 	[[nodiscard]] float Length2D() const { return static_cast<float>(sqrt(x * x + y * y)); }
+
+#ifdef _STRING_
+	[[nodiscard]] constexpr std::string ToString() const { return ("X: " + std::to_string(x) + ", Y: " + std::to_string(y) + ", Z: " + std::to_string(z)); }
+	inline void c_str(char* outStr) const
+	{
+		snprintf(outStr, strlen(outStr) - 1, "X: %f, Y: %f, Z: %f", x, y, z);
+	}
+#endif
 
 	// Members
 	vec_t x = 0, y = 0, z = 0;
