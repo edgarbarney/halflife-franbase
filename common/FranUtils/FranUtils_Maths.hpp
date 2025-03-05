@@ -202,18 +202,19 @@ namespace FranUtils::Maths
 
 #pragma region Matrix Functions
 
-	/**
-	* Generates Euler angles given a left-handed orientation matrix.
-	* The columns of the matrix contain the forward, left, and up vectors.
-	* 
-	* @param matrix : Left-handed orientation matrix.
-	* @param angles : Receives right-handed counterclockwise rotations in degrees around Y, Z, and X respectively.
-	* @param position : Receives the position of the matrix.
-	*/
-	void MatrixAngles(const float matrix[3][4], Vector& angles, Vector& position)
+	
+	inline void MatrixGetColumn(const float in[3][4], int column, Vector& out)
 	{
-		MatrixGetColumn(matrix, 3, position);
-		MatrixAngles(matrix, angles);
+		out.x = in[0][column];
+		out.y = in[1][column];
+		out.z = in[2][column];
+	}
+
+	inline void MatrixSetColumn(const Vector& in, int column, float out[3][4])
+	{
+		out[0][column] = in.x;
+		out[1][column] = in.y;
+		out[2][column] = in.z;
 	}
 
 	/**
@@ -223,7 +224,7 @@ namespace FranUtils::Maths
 	* @param matrix : Left-handed orientation matrix.
 	* @param angles : Receives right-handed counterclockwise rotations in degrees around Y, Z, and X respectively.
 	*/
-	void MatrixAngles(const float matrix[3][4], float* angles)
+	inline void MatrixAngles(const float matrix[3][4], float* angles)
 	{
 		float forward[3];
 		float left[3];
@@ -267,19 +268,19 @@ namespace FranUtils::Maths
 			angles[2] = 0;
 		}
 	}
-
-	void MatrixGetColumn(const float in[3][4], int column, Vector& out)
+	
+	/**
+	 * Generates Euler angles given a left-handed orientation matrix.
+	 * The columns of the matrix contain the forward, left, and up vectors.
+	 *
+	 * @param matrix : Left-handed orientation matrix.
+	 * @param angles : Receives right-handed counterclockwise rotations in degrees around Y, Z, and X respectively.
+	 * @param position : Receives the position of the matrix.
+	 */
+	inline void MatrixAngles(const float matrix[3][4], Vector& angles, Vector& position)
 	{
-		out.x = in[0][column];
-		out.y = in[1][column];
-		out.z = in[2][column];
-	}
-
-	void MatrixSetColumn(const Vector& in, int column, float out[3][4])
-	{
-		out[0][column] = in.x;
-		out[1][column] = in.y;
-		out[2][column] = in.z;
+		MatrixGetColumn(matrix, 3, position);
+		MatrixAngles(matrix, angles);
 	}
 
 #pragma endregion
