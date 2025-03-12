@@ -9,7 +9,7 @@
 
 ### Linux
 
-* GCC 9 or newer (C++17 support or newer required)
+* GCC 10 or newer (C++20 support or newer required)
 * Packages:
     * `g++-multilib`
     * `libgl1-mesa-dev` (or an equivalent package that provides the OpenGL headers)
