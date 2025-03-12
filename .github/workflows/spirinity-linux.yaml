@@ -9,11 +9,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
+      - name: Install g++13, dependencies, and OpenGL headers
+        run: |
+          sudo apt update
+          sudo dpkg --add-architecture i386
+          sudo apt update
+          sudo apt install -y g++-13 g++-13-multilib build-essential libgl1-mesa-dev libglu1-mesa-dev
+          sudo apt install -y libgl1-mesa-dev:i386 libglu1-mesa-dev:i386
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+
       - name: Build
-        uses: docker://registry.gitlab.steamos.cloud/steamrt/scout/sdk/i386:latest
-        with:
-          args: sh linux/ci-make.sh g++
+        run: sh linux/ci-make.sh g++13
 
       - name: Deploy
         uses: actions/upload-artifact@v4
