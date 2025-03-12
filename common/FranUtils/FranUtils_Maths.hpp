@@ -248,21 +248,21 @@ namespace FranUtils::Maths
 		if (xyDist > 0.001f)
 		{
 			// (yaw)	y = ATAN( forward.y, forward.x );		-- in our space, forward is the X axis
-			angles[1] = Rad2Deg(std::atan2f(forward[1], forward[0]));
+			angles[1] = Rad2Deg(std::atan2(forward[1], forward[0]));
 
 			// (pitch)	x = ATAN( -forward.z, sqrt(forward.x*forward.x+forward.y*forward.y) );
-			angles[0] = Rad2Deg(std::atan2f(-forward[2], xyDist));
+			angles[0] = Rad2Deg(std::atan2(-forward[2], xyDist));
 
 			// (roll)	z = ATAN( left.z, up.z );
-			angles[2] = Rad2Deg(std::atan2f(left[2], up[2]));
+			angles[2] = Rad2Deg(std::atan2(left[2], up[2]));
 		}
 		else // forward is mostly Z, gimbal lock-
 		{
 			// (yaw)	y = ATAN( -left.x, left.y );			-- forward is mostly z, so use right for yaw
-			angles[1] = Rad2Deg(std::atan2f(-left[0], left[1]));
+			angles[1] = Rad2Deg(std::atan2(-left[0], left[1]));
 
 			// (pitch)	x = ATAN( -forward.z, sqrt(forward.x*forward.x+forward.y*forward.y) );
-			angles[0] = Rad2Deg(std::atan2f(-forward[2], xyDist));
+			angles[0] = Rad2Deg(std::atan2(-forward[2], xyDist));
 
 			// Assume no roll in this case as one degree of freedom has been lost (i.e. yaw == roll)
 			angles[2] = 0;
