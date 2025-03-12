@@ -1,0 +1,85 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Call Make",
+      "type": "shell",
+      "command": "make",
+      "args": [],
+      "options": {
+        "cwd": "${workspaceFolder}/linux"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Clean Make",
+      "type": "shell",
+      "command": "make",
+      "args": ["clean"],
+      "options": {
+        "cwd": "${workspaceFolder}/linux"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Copy Server .so File",
+      "type": "shell",
+      "command": "cp",
+      "args": [
+        "${workspaceFolder}/linux/release/spirit.so",
+        "${env:HOME}/.steam/steam/steamapps/common/Half-Life/Spirinity/dlls/"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Copy Server .so.dbg File",
+      "type": "shell",
+      "command": "cp",
+      "args": [
+        "${workspaceFolder}/linux/release/spirit.so.dbg",
+        "${env:HOME}/.steam/steam/steamapps/common/Half-Life/Spirinity/dlls/"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Copy Client .so File",
+      "type": "shell",
+      "command": "cp",
+      "args": [
+        "${workspaceFolder}/linux/release/client.so",
+        "${env:HOME}/.steam/steam/steamapps/common/Half-Life/Spirinity/cl_dlls/"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Copy Client .so.dbg File",
+      "type": "shell",
+      "command": "cp",
+      "args": [
+        "${workspaceFolder}/linux/release/client.so.dbg",
+        "${env:HOME}/.steam/steam/steamapps/common/Half-Life/Spirinity/cl_dlls/"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Build Spirinity",
+      "type": "shell",
+      "command": "echo Building Spirinity...",
+      "dependsOn": ["Call Make", "Copy Server .so File", "Copy Client .so File", "Copy Server .so.dbg File", "Copy Client .so.dbg File"] 
+    },
+    {
+      "label": "Rebuild Spirinity",
+      "type": "shell",
+      "command": "echo Rebuilding Spirinity...",
+      "dependsOn": ["Clean Make","Build Spirinity"] 
+    }
+  ]
+}
