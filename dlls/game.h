@@ -15,7 +15,7 @@
 
 #pragma once
 
-extern void GameDLLInit( void );
+extern void GameDLLInit( );
 void GameDLLShutdown();
 
 

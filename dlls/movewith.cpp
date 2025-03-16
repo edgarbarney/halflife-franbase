@@ -5,7 +5,7 @@
 #include "saverestore.h"
 #include "player.h"
 
-CWorld* g_pWorld = NULL; //LRC
+CWorld* g_pWorld = nullptr; //LRC
 
 bool g_doingDesired = false; //LRC - marks whether the Desired functions are currently
 							 // being processed.
@@ -14,13 +14,13 @@ void UTIL_AddToAssistList(CBaseEntity* pEnt)
 {
 	//	ALERT(at_console, "Add %s \"%s\" to AssistList\n", STRING(pEnt->pev->classname), STRING(pEnt->pev->targetname));
 
-	if (pEnt->m_pAssistLink)
+	if (pEnt->m_pAssistLink != nullptr)
 	{
 		//		ALERT(at_console, "Ignored AddToAssistList for %s \"%s\"\n", STRING(pEnt->pev->classname), STRING(pEnt->pev->targetname));
 		return; // is pEnt already in the body of the list?
 	}
 
-	if (!g_pWorld)
+	if (g_pWorld == nullptr)
 	{
 		ALERT(at_debug, "AddToAssistList %s \"%s\" has no AssistList!\n", STRING(pEnt->pev->classname), STRING(pEnt->pev->targetname));
 		return;
@@ -29,7 +29,7 @@ void UTIL_AddToAssistList(CBaseEntity* pEnt)
 	CBaseEntity* pListMember = g_pWorld;
 
 	// find the last entry in the list...
-	while (pListMember->m_pAssistLink != NULL)
+	while (pListMember->m_pAssistLink != nullptr)
 		pListMember = pListMember->m_pAssistLink;
 
 	if (pListMember == pEnt)
@@ -50,7 +50,7 @@ void UTIL_AddToAssistList(CBaseEntity* pEnt)
 
 void HandlePostAssist(CBaseEntity* pEnt)
 {
-	if (pEnt->m_iLFlags & LF_POSTASSISTVEL)
+	if ((pEnt->m_iLFlags & LF_POSTASSISTVEL) != 0)
 	{
 		//		ALERT(at_console, "RestoreVel %s: orign %f %f %f, velocity was %f %f %f, back to %f %f %f\n",
 		//			STRING(pEnt->pev->targetname),
@@ -62,7 +62,7 @@ void HandlePostAssist(CBaseEntity* pEnt)
 		pEnt->m_vecPostAssistVel = g_vecZero;
 		pEnt->m_iLFlags &= ~LF_POSTASSISTVEL;
 	}
-	if (pEnt->m_iLFlags & LF_POSTASSISTAVEL)
+	if ((pEnt->m_iLFlags & LF_POSTASSISTAVEL) != 0)
 	{
 		//		ALERT(at_console, "RestoreVel %s: orign %f %f %f, velocity was %f %f %f, back to %f %f %f\n",
 		//			STRING(pEnt->pev->targetname),
@@ -75,14 +75,14 @@ void HandlePostAssist(CBaseEntity* pEnt)
 		pEnt->m_iLFlags &= ~LF_POSTASSISTAVEL;
 	}
 	CBaseEntity* pChild;
-	for (pChild = pEnt->m_pChildMoveWith; pChild != NULL; pChild = pChild->m_pSiblingMoveWith)
+	for (pChild = pEnt->m_pChildMoveWith; pChild != nullptr; pChild = pChild->m_pSiblingMoveWith)
 		HandlePostAssist(pChild);
 }
 
 // returns 0 if no desired settings needed, else returns 1
 int ApplyDesiredSettings(CBaseEntity* pListMember)
 {
-	if (pListMember->m_iLFlags & LF_DODESIRED)
+	if ((pListMember->m_iLFlags & LF_DODESIRED) != 0)
 	{
 		pListMember->m_iLFlags &= ~LF_DODESIRED;
 	}
@@ -93,25 +93,25 @@ int ApplyDesiredSettings(CBaseEntity* pListMember)
 	}
 	//	ALERT(at_console, "ApplyDesiredSettings for %s \"%s\", pevnt %f, ltime %f, mfnt %f, mpevnt %f, %f\n", STRING(pListMember->pev->classname), STRING(pListMember->pev->targetname), pListMember->pev->nextthink, pListMember->pev->ltime, pListMember->m_fNextThink, pListMember->m_fPevNextThink, pListMember->pev->origin.x);
 
-	if (pListMember->m_iLFlags & LF_DESIRED_ACTION)
+	if ((pListMember->m_iLFlags & LF_DESIRED_ACTION) != 0)
 	{
 		pListMember->m_iLFlags &= ~LF_DESIRED_ACTION;
 		pListMember->DesiredAction();
 	}
 
-	if (pListMember->m_iLFlags & LF_DESIRED_INFO)
+	if ((pListMember->m_iLFlags & LF_DESIRED_INFO) != 0)
 	{
 		pListMember->m_iLFlags &= ~LF_DESIRED_INFO;
 		ALERT(at_debug, "DesiredInfo: pos %f %f %f, vel %f %f %f. Child pos %f %f %f, vel %f %f %f\n\n", pListMember->pev->origin.x, pListMember->pev->origin.y, pListMember->pev->origin.z, pListMember->pev->velocity.x, pListMember->pev->velocity.y, pListMember->pev->velocity.z, pListMember->m_pChildMoveWith->pev->origin.x, pListMember->m_pChildMoveWith->pev->origin.y, pListMember->m_pChildMoveWith->pev->origin.z, pListMember->m_pChildMoveWith->pev->velocity.x, pListMember->m_pChildMoveWith->pev->velocity.y, pListMember->m_pChildMoveWith->pev->velocity.z);
 	}
 
-	if (pListMember->m_iLFlags & LF_DESIRED_POSTASSIST)
+	if ((pListMember->m_iLFlags & LF_DESIRED_POSTASSIST) != 0)
 	{
 		pListMember->m_iLFlags &= ~LF_DESIRED_POSTASSIST;
 		HandlePostAssist(pListMember);
 	}
 
-	if (pListMember->m_iLFlags & LF_DESIRED_THINK)
+	if ((pListMember->m_iLFlags & LF_DESIRED_THINK) != 0)
 	{
 		pListMember->m_iLFlags &= ~LF_DESIRED_THINK;
 		//ALERT(at_console, "DesiredThink %s\n", STRING(pListMember->pev->targetname));
@@ -124,14 +124,14 @@ int ApplyDesiredSettings(CBaseEntity* pListMember)
 void AssistChildren(CBaseEntity* pEnt, Vector vecAdjustVel, Vector vecAdjustAVel)
 {
 	CBaseEntity* pChild;
-	for (pChild = pEnt->m_pChildMoveWith; pChild != NULL; pChild = pChild->m_pSiblingMoveWith)
+	for (pChild = pEnt->m_pChildMoveWith; pChild != nullptr; pChild = pChild->m_pSiblingMoveWith)
 	{
-		if (!(pChild->m_iLFlags & LF_POSTASSISTVEL))
+		if ((pChild->m_iLFlags & LF_POSTASSISTVEL) == 0)
 		{
 			pChild->m_vecPostAssistVel = pChild->pev->velocity;
 			pChild->m_iLFlags |= LF_POSTASSISTVEL;
 		}
-		if (!(pChild->m_iLFlags & LF_POSTASSISTAVEL))
+		if ((pChild->m_iLFlags & LF_POSTASSISTAVEL) == 0)
 		{
 			pChild->m_vecPostAssistAVel = pChild->pev->avelocity;
 			pChild->m_iLFlags |= LF_POSTASSISTAVEL;
@@ -161,7 +161,7 @@ int TryAssistEntity(CBaseEntity* pEnt)
 	}
 
 	// not flagged as needing assistance?
-	if (!(pEnt->m_iLFlags & LF_DOASSIST))
+	if ((pEnt->m_iLFlags & LF_DOASSIST) == 0)
 		return 0;
 
 	//	ALERT(at_console, "AssistList: %s\n", STRING(pEnt->pev->classname));
@@ -191,19 +191,19 @@ int TryAssistEntity(CBaseEntity* pEnt)
 		//		ALERT(at_console, "Setting fFraction\n");
 	}
 
-	if (fFraction)
+	if (fFraction != 0.0f)
 	{
 		//		ALERT(at_console, "Assisting %s \"%s\", %f <= %f + %f\n", STRING(pEnt->pev->classname), STRING(pEnt->pev->targetname), pEnt->m_fNextThink, pEnt->pev->ltime, gpGlobals->frametime);
 
-		if (pEnt->m_iLFlags & LF_CORRECTSPEED)
+		if ((pEnt->m_iLFlags & LF_CORRECTSPEED) != 0)
 		{
-			if (!(pEnt->m_iLFlags & LF_POSTASSISTVEL))
+			if ((pEnt->m_iLFlags & LF_POSTASSISTVEL) == 0)
 			{
 				pEnt->m_vecPostAssistVel = pEnt->pev->velocity;
 				pEnt->m_iLFlags |= LF_POSTASSISTVEL;
 			}
 
-			if (!(pEnt->m_iLFlags & LF_POSTASSISTAVEL))
+			if ((pEnt->m_iLFlags & LF_POSTASSISTAVEL) == 0)
 			{
 				pEnt->m_vecPostAssistAVel = pEnt->pev->avelocity;
 				pEnt->m_iLFlags |= LF_POSTASSISTAVEL;
@@ -212,7 +212,7 @@ int TryAssistEntity(CBaseEntity* pEnt)
 			Vector vecVelTemp = pEnt->pev->velocity;
 			Vector vecAVelTemp = pEnt->pev->avelocity;
 
-			if (pEnt->m_pMoveWith)
+			if (pEnt->m_pMoveWith != nullptr)
 			{
 				pEnt->pev->velocity = (pEnt->pev->velocity - pEnt->m_pMoveWith->pev->velocity) * fFraction + pEnt->m_pMoveWith->pev->velocity;
 				pEnt->pev->avelocity = (pEnt->pev->avelocity - pEnt->m_pMoveWith->pev->avelocity) * fFraction + pEnt->m_pMoveWith->pev->avelocity;
@@ -267,7 +267,7 @@ void CheckAssistList()
 {
 	CBaseEntity* pListMember;
 
-	if (!g_pWorld)
+	if (g_pWorld == nullptr)
 	{
 		ALERT(at_error, "CheckAssistList has no AssistList!\n");
 		return;
@@ -275,9 +275,9 @@ void CheckAssistList()
 
 	int count = 0;
 
-	for (pListMember = g_pWorld; pListMember; pListMember = pListMember->m_pAssistLink)
+	for (pListMember = g_pWorld; pListMember != nullptr; pListMember = pListMember->m_pAssistLink)
 	{
-		if (pListMember->m_iLFlags & LF_DOASSIST)
+		if ((pListMember->m_iLFlags & LF_DOASSIST) != 0)
 			count++;
 	}
 	//	if (count)
@@ -285,15 +285,15 @@ void CheckAssistList()
 	count = 0;
 	pListMember = g_pWorld;
 
-	while (pListMember->m_pAssistLink) // handle the remaining entries in the list
+	while (pListMember->m_pAssistLink != nullptr) // handle the remaining entries in the list
 	{
 		TryAssistEntity(pListMember->m_pAssistLink);
-		if (!(pListMember->m_pAssistLink->m_iLFlags & LF_ASSISTLIST))
+		if ((pListMember->m_pAssistLink->m_iLFlags & LF_ASSISTLIST) == 0)
 		{
 			//			ALERT(at_console, "Removing %s \"%s\" from assistList\n", STRING(pListMember->m_pAssistLink->pev->classname), STRING(pListMember->m_pAssistLink->pev->targetname));
 			CBaseEntity* pTemp = pListMember->m_pAssistLink;
 			pListMember->m_pAssistLink = pListMember->m_pAssistLink->m_pAssistLink;
-			pTemp->m_pAssistLink = NULL;
+			pTemp->m_pAssistLink = nullptr;
 		}
 		else
 		{
@@ -315,7 +315,7 @@ void CheckDesiredList()
 		ALERT(at_debug, "CheckDesiredList: doingDesired is already set!?\n");
 	g_doingDesired = true;
 
-	if (!g_pWorld)
+	if (g_pWorld == nullptr)
 	{
 		ALERT(at_console, "CheckDesiredList has no AssistList!\n");
 		return;
@@ -336,7 +336,7 @@ void CheckDesiredList()
 	//	count = 0;
 	pListMember = g_pWorld->m_pAssistLink;
 
-	while (pListMember)
+	while (pListMember != nullptr)
 	{
 		// cache this, in case ApplyDesiredSettings does a SUB_Remove.
 		pNext = pListMember->m_pAssistLink;
@@ -434,7 +434,7 @@ void UTIL_AssignOrigin(CBaseEntity* pEntity, const Vector vecOrigin, bool bIniti
 	//	{
 	//		pEntity->pev->velocity = pEntity->m_vecDesiredVel;
 	//	}
-	if (bInitiator && pEntity->m_pMoveWith)
+	if (bInitiator && (pEntity->m_pMoveWith != nullptr))
 	{
 		//		UTIL_DesiredMWOffset( pEntity );
 		//		if (pEntity->m_vecMoveWithOffset != (pEntity->pev->origin - pEntity->m_pMoveWith->pev->origin))
@@ -442,13 +442,13 @@ void UTIL_AssignOrigin(CBaseEntity* pEntity, const Vector vecOrigin, bool bIniti
 		pEntity->m_vecMoveWithOffset = pEntity->pev->origin - pEntity->m_pMoveWith->pev->origin;
 		//		ALERT(at_console,"set m_vecMoveWithOffset = %f %f %f\n",pEntity->m_vecMoveWithOffset.x,pEntity->m_vecMoveWithOffset.y,pEntity->m_vecMoveWithOffset.z);
 	}
-	if (pEntity->m_pChildMoveWith) // now I've moved pEntity, does anything else have to move with it?
+	if (pEntity->m_pChildMoveWith != nullptr) // now I've moved pEntity, does anything else have to move with it?
 	{
 		CBaseEntity* pChild = pEntity->m_pChildMoveWith;
 		//		if (vecDiff != g_vecZero)
 		//		{
 		Vector vecTemp;
-		while (pChild)
+		while (pChild != nullptr)
 		{
 			//ALERT(at_console,"  pre: parent origin is (%f %f %f), child origin is (%f %f %f)\n",
 			//	pEntity->pev->origin.x,pEntity->pev->origin.y,pEntity->pev->origin.z,
@@ -486,15 +486,15 @@ void UTIL_SetAngles(CBaseEntity* pEntity, const Vector vecAngles, bool bInitiato
 	//	UTIL_SetDesiredAngles(pEntity, vecAngles);
 	pEntity->pev->angles = vecAngles;
 
-	if (bInitiator && pEntity->m_pMoveWith)
+	if (bInitiator && (pEntity->m_pMoveWith != nullptr))
 	{
 		pEntity->m_vecRotWithOffset = vecAngles - pEntity->m_pMoveWith->pev->angles;
 	}
-	if (pEntity->m_pChildMoveWith) // now I've moved pEntity, does anything else have to move with it?
+	if (pEntity->m_pChildMoveWith != nullptr) // now I've moved pEntity, does anything else have to move with it?
 	{
 		CBaseEntity* pChild = pEntity->m_pChildMoveWith;
 		Vector vecTemp;
-		while (pChild)
+		while (pChild != nullptr)
 		{
 			if (pChild->pev->avelocity == pEntity->pev->avelocity) // if the child isn't turning under its own power
 			{
@@ -525,7 +525,7 @@ void UTIL_SetMoveWithVelocity(CBaseEntity* pEnt, const Vector vecSet, int loopbr
 		return;
 	}
 
-	if (!pEnt->m_pMoveWith)
+	if (pEnt->m_pMoveWith == nullptr)
 	{
 		ALERT(at_error, "SetMoveWithVelocity: no MoveWith entity!?\n");
 		return;
@@ -562,11 +562,11 @@ void UTIL_SetMoveWithVelocity(CBaseEntity* pEnt, const Vector vecSet, int loopbr
 	//		//pEnt->pev->nextthink = gpGlobals->time + 1E6;
 	//	}
 
-	if (pEnt->m_pChildMoveWith)
+	if (pEnt->m_pChildMoveWith != nullptr)
 	{
 		CBaseEntity* pMoving = pEnt->m_pChildMoveWith;
 		int sloopbreaker = MAX_MOVEWITH_DEPTH; // to prevent the game hanging...
-		while (pMoving)
+		while (pMoving != nullptr)
 		{
 			UTIL_SetMoveWithVelocity(pMoving, vecNew, loopbreaker - 1);
 			pMoving = pMoving->m_pSiblingMoveWith;
@@ -589,7 +589,7 @@ void UTIL_SetMoveWithVelocity(CBaseEntity* pEnt, const Vector vecSet, int loopbr
 void UTIL_SetVelocity(CBaseEntity* pEnt, const Vector vecSet)
 {
 	Vector vecNew;
-	if (pEnt->m_pMoveWith)
+	if (pEnt->m_pMoveWith != nullptr)
 		vecNew = vecSet + pEnt->m_pMoveWith->pev->velocity;
 	else
 		vecNew = vecSet;
@@ -600,11 +600,11 @@ void UTIL_SetVelocity(CBaseEntity* pEnt, const Vector vecSet)
 	//		vecNew.x, vecNew.y, vecNew.z
 	//	);
 
-	if (pEnt->m_pChildMoveWith)
+	if (pEnt->m_pChildMoveWith != nullptr)
 	{
 		CBaseEntity* pMoving = pEnt->m_pChildMoveWith;
 		int sloopbreaker = MAX_MOVEWITH_DEPTH; // LRC - to save us from infinite loops
-		while (pMoving)
+		while (pMoving != nullptr)
 		{
 			UTIL_SetMoveWithVelocity(pMoving, vecNew, MAX_MOVEWITH_DEPTH);
 			pMoving = pMoving->m_pSiblingMoveWith;
@@ -629,7 +629,7 @@ void UTIL_SetMoveWithAvelocity(CBaseEntity* pEnt, const Vector vecSet, int loopb
 		return;
 	}
 
-	if (!pEnt->m_pMoveWith)
+	if (pEnt->m_pMoveWith == nullptr)
 	{
 		ALERT(at_error, "SetMoveWithAvelocity: no MoveWith entity!?\n");
 		return;
@@ -639,11 +639,11 @@ void UTIL_SetMoveWithAvelocity(CBaseEntity* pEnt, const Vector vecSet, int loopb
 
 	//	ALERT(at_console, "Setting Child AVelocity %f %f %f, was %f %f %f mw %f %f %f\n", vecNew.x, vecNew.y, vecNew.z, pEnt->pev->avelocity.x, pEnt->pev->avelocity.y, pEnt->pev->avelocity.z, pEnt->m_pMoveWith->pev->avelocity.x, pEnt->m_pMoveWith->pev->avelocity.y, pEnt->m_pMoveWith->pev->avelocity.z);
 
-	if (pEnt->m_pChildMoveWith)
+	if (pEnt->m_pChildMoveWith != nullptr)
 	{
 		CBaseEntity* pMoving = pEnt->m_pChildMoveWith;
 		int sloopbreaker = MAX_MOVEWITH_DEPTH; // to prevent the game hanging...
-		while (pMoving)
+		while (pMoving != nullptr)
 		{
 			UTIL_SetMoveWithAvelocity(pMoving, vecNew, loopbreaker - 1);
 			pMoving = pMoving->m_pSiblingMoveWith;
@@ -663,18 +663,18 @@ void UTIL_SetMoveWithAvelocity(CBaseEntity* pEnt, const Vector vecSet, int loopb
 void UTIL_SetAvelocity(CBaseEntity* pEnt, const Vector vecSet)
 {
 	Vector vecNew;
-	if (pEnt->m_pMoveWith)
+	if (pEnt->m_pMoveWith != nullptr)
 		vecNew = vecSet + pEnt->m_pMoveWith->pev->avelocity;
 	else
 		vecNew = vecSet;
 
 	//	ALERT(at_console, "Setting AVelocity %f %f %f\n", vecNew.x, vecNew.y, vecNew.z);
 
-	if (pEnt->m_pChildMoveWith)
+	if (pEnt->m_pChildMoveWith != nullptr)
 	{
 		CBaseEntity* pMoving = pEnt->m_pChildMoveWith;
 		int sloopbreaker = MAX_MOVEWITH_DEPTH; // LRC - to save us from infinite loops
-		while (pMoving)
+		while (pMoving != nullptr)
 		{
 			UTIL_SetMoveWithAvelocity(pMoving, vecNew, MAX_MOVEWITH_DEPTH);
 			pMoving = pMoving->m_pSiblingMoveWith;

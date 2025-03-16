@@ -48,7 +48,7 @@ public:
 
 	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
 	void Spawn() override;
-	STATE GetState() override { return (pev->spawnflags & SF_ALIAS_OFF) ? STATE_OFF : STATE_ON; }
+	STATE GetState() override { return ((pev->spawnflags & SF_ALIAS_OFF) != 0) ? STATE_OFF : STATE_ON; }
 
 	CBaseEntity* FollowAlias(CBaseEntity* pFrom) override;
 	void ChangeValue(int iszValue) override;
@@ -131,18 +131,18 @@ bool CInfoAlias ::KeyValue(KeyValueData* pkvd) //AJH
 	return CBaseMutableAlias::KeyValue(pkvd);
 }
 
-void CInfoAlias::Spawn(void)
+void CInfoAlias::Spawn()
 {
 	if (m_iMode == 0)
 	{
-		if (pev->spawnflags & SF_ALIAS_OFF)
+		if ((pev->spawnflags & SF_ALIAS_OFF) != 0)
 			pev->message = pev->netname;
 		else
 			pev->message = pev->target;
 	}
 	else
 	{
-		if (pev->spawnflags & SF_ALIAS_DEBUG) //Don't really need this much debug info
+		if ((pev->spawnflags & SF_ALIAS_DEBUG) != 0) //Don't really need this much debug info
 			ALERT(at_debug, "DEBUG: info_alias %s contains %d targets\n", STRING(pev->targetname), m_cTargets);
 		if (m_cTargets > MAX_ALIAS_TARGETS)
 		{
@@ -163,16 +163,16 @@ void CInfoAlias::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE use
 	if (m_iMode == 0)
 	{ //Old On/Off Code
 
-		if (pev->spawnflags & SF_ALIAS_OFF)
+		if ((pev->spawnflags & SF_ALIAS_OFF) != 0)
 		{
-			if (pev->spawnflags & SF_ALIAS_DEBUG)
+			if ((pev->spawnflags & SF_ALIAS_DEBUG) != 0)
 				ALERT(at_debug, "DEBUG: info_alias %s turns on\n", STRING(pev->targetname));
 			pev->spawnflags &= ~SF_ALIAS_OFF;
 			pev->noise = pev->target;
 		}
 		else
 		{
-			if (pev->spawnflags & SF_ALIAS_DEBUG)
+			if ((pev->spawnflags & SF_ALIAS_DEBUG) != 0)
 				ALERT(at_debug, "DEBUG: info_alias %s turns off\n", STRING(pev->targetname));
 			pev->spawnflags |= SF_ALIAS_OFF;
 			pev->noise = pev->netname;
@@ -198,7 +198,7 @@ void CInfoAlias::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE use
 		}
 
 
-		if (pev->spawnflags & SF_ALIAS_DEBUG)
+		if ((pev->spawnflags & SF_ALIAS_DEBUG) != 0)
 		{
 			ALERT(at_debug, "DEBUG: info_alias %s  refers to target entity number %d \n", STRING(pev->targetname), m_iTargetName[m_iCurrentTarget]);
 			ALERT(at_debug, "DEBUG: info_alias %s  steps to target %d \n", STRING(pev->targetname), m_iCurrentTarget);
@@ -211,12 +211,12 @@ CBaseEntity* CInfoAlias::FollowAlias(CBaseEntity* pFrom)
 {
 	CBaseEntity* pFound = UTIL_FindEntityByTargetname(pFrom, STRING(pev->message));
 
-	if (pev->spawnflags & SF_ALIAS_DEBUG)
+	if ((pev->spawnflags & SF_ALIAS_DEBUG) != 0)
 	{ // More excessive debug info
 		ALERT(at_debug, "DEBUG: info_alias %s  refers to target %d \n", STRING(pev->targetname), m_iCurrentTarget);
 		ALERT(at_debug, "DEBUG: info_alias %s  refers to target entity %s \n", STRING(pev->targetname), STRING(pev->message));
 
-		if (pFound)
+		if (pFound != nullptr)
 			ALERT(at_debug, "DEBUG: info_alias %s  refers to target entity %s \n", STRING(pev->targetname), STRING(pFound->pev->targetname));
 	}
 	return pFound;
@@ -231,7 +231,7 @@ void CInfoAlias::ChangeValue(int iszValue)
 void CInfoAlias::FlushChanges()
 {
 	pev->message = pev->noise;
-	if (pev->spawnflags & SF_ALIAS_DEBUG)
+	if ((pev->spawnflags & SF_ALIAS_DEBUG) != 0)
 		ALERT(at_debug, "DEBUG: info_alias %s now refers to \"%s\"\n", STRING(pev->targetname), STRING(pev->message));
 }
 
@@ -284,15 +284,15 @@ bool CInfoGroup::KeyValue(KeyValueData* pkvd)
 
 void CInfoGroup::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	CBaseEntity* pTarget = UTIL_FindEntityByTargetname(NULL, STRING(pev->target));
+	CBaseEntity* pTarget = UTIL_FindEntityByTargetname(nullptr, STRING(pev->target));
 
-	if (pTarget && pTarget->IsMutableAlias())
+	if ((pTarget != nullptr) && pTarget->IsMutableAlias())
 	{
-		if (pev->spawnflags & SF_GROUP_DEBUG)
+		if ((pev->spawnflags & SF_GROUP_DEBUG) != 0)
 			ALERT(at_debug, "DEBUG: info_group %s changes the contents of %s \"%s\"\n", STRING(pev->targetname), STRING(pTarget->pev->classname), STRING(pTarget->pev->targetname));
 		((CBaseMutableAlias*)pTarget)->ChangeValue(this);
 	}
-	else if (pev->target)
+	else if (pev->target != 0u)
 	{
 		ALERT(at_debug, "info_group \"%s\": alias \"%s\" was not found or not an alias!", STRING(pev->targetname), STRING(pev->target));
 	}
@@ -300,7 +300,7 @@ void CInfoGroup::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE use
 
 int CInfoGroup::GetMember(const char* szMemberName)
 {
-	if (!szMemberName)
+	if (szMemberName == nullptr)
 	{
 		ALERT(at_debug, "info_group: GetMember called with null szMemberName!?\n");
 		return NULL;
@@ -314,7 +314,7 @@ int CInfoGroup::GetMember(const char* szMemberName)
 		}
 	}
 
-	if (m_iszDefaultMember)
+	if (m_iszDefaultMember != 0)
 	{
 		static char szBuffer[128];
 		strcpy(szBuffer, STRING(m_iszDefaultMember));
@@ -380,13 +380,13 @@ bool CMultiAlias::KeyValue(KeyValueData* pkvd)
 
 CBaseEntity* CMultiAlias::FollowAlias(CBaseEntity* pStartEntity)
 {
-	CBaseEntity* pBestEntity = NULL; // the entity we're currently planning to return.
+	CBaseEntity* pBestEntity = nullptr; // the entity we're currently planning to return.
 	int iBestOffset = -1;			 // the offset of that entity.
 	CBaseEntity* pTempEntity;
 	int iTempOffset;
 
 	int i = 0;
-	if (m_iMode)
+	if (m_iMode != 0)
 	{
 		// During any given 'game moment', this code may be called more than once. It must use the
 		// same random values each time (because otherwise it gets really messy). I'm using srand
@@ -416,7 +416,7 @@ CBaseEntity* CMultiAlias::FollowAlias(CBaseEntity* pStartEntity)
 	while (i < m_cTargets)
 	{
 		pTempEntity = UTIL_FindEntityByTargetname(pStartEntity, STRING(m_iszTargets[i]));
-		if (pTempEntity)
+		if (pTempEntity != nullptr)
 		{
 			// We've found an entity; only use it if its offset is lower than the offset we've currently got.
 			iTempOffset = OFFSET(pTempEntity->pev);
@@ -472,9 +472,9 @@ void CTriggerChangeAlias::Spawn()
 
 void CTriggerChangeAlias::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	CBaseEntity* pTarget = UTIL_FindEntityByTargetname(NULL, STRING(pev->target), pActivator);
+	CBaseEntity* pTarget = UTIL_FindEntityByTargetname(nullptr, STRING(pev->target), pActivator);
 
-	if (pTarget && pTarget->IsMutableAlias())
+	if ((pTarget != nullptr) && pTarget->IsMutableAlias())
 	{
 		CBaseEntity* pValue;
 
@@ -482,12 +482,12 @@ void CTriggerChangeAlias::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE
 		{
 			pValue = pActivator;
 		}
-		else if (pev->spawnflags & SF_CHANGEALIAS_RESOLVE)
+		else if ((pev->spawnflags & SF_CHANGEALIAS_RESOLVE) != 0)
 		{
-			pValue = UTIL_FollowReference(NULL, STRING(pev->netname));
+			pValue = UTIL_FollowReference(nullptr, STRING(pev->netname));
 		}
 
-		if (pValue)
+		if (pValue != nullptr)
 			((CBaseMutableAlias*)pTarget)->ChangeValue(pValue);
 		else
 			((CBaseMutableAlias*)pTarget)->ChangeValue(pev->netname);

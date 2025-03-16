@@ -35,7 +35,7 @@
 // be spawned, and still remain fairly flexible
 const char* CBreakable::pSpawnObjects[] =
 	{
-		NULL,				  // 0
+		nullptr,				  // 0
 		"item_battery",		  // 1
 		"item_healthkit",	  // 2
 		"weapon_9mmhandgun",  // 3
@@ -181,15 +181,15 @@ void CBreakable::Spawn()
 	else
 		pev->takedamage = DAMAGE_YES;
 
-	if (m_iClass) //LRC - might these additions cause problems?
+	if (m_iClass != 0) //LRC - might these additions cause problems?
 	{
 		pev->flags |= FL_MONSTER;
 		pev->view_ofs = (pev->maxs + pev->mins) / 2;
 	}
 
-	if (m_iszWhenHit) //LRC - locus trigger
+	if (m_iszWhenHit != 0) //LRC - locus trigger
 	{
-		m_pHitProxy = GetClassPtr((CPointEntity*)NULL);
+		m_pHitProxy = GetClassPtr((CPointEntity*)nullptr);
 	}
 
 	pev->solid = SOLID_BSP;
@@ -212,7 +212,7 @@ void CBreakable::Spawn()
 	SetTouch(&CBreakable::BreakTouch);
 	SetUse(&CBreakable::BreakUse);
 	if (FBitSet(pev->spawnflags, SF_BREAK_TRIGGER_ONLY)) // Only break on trigger
-		SetTouch(NULL);
+		SetTouch(nullptr);
 
 	// Flag unbreakable glass as "worldbrush" so it will block ALL tracelines
 	if (!IsBreakable() && pev->rendermode != kRenderNormal)
@@ -226,9 +226,9 @@ void CBreakable::Spawn()
 
 STATE CBreakable::GetState()
 {
-	if (m_iRespawnTime)
+	if (m_iRespawnTime != 0)
 	{
-		if (pev->effects & EF_NODRAW)
+		if ((pev->effects & EF_NODRAW) != 0)
 			return STATE_OFF;
 		else
 			return STATE_ON;
@@ -278,7 +278,7 @@ const char* CBreakable::pSoundsGlass[] =
 
 const char** CBreakable::MaterialSoundList(Materials precacheMaterial, int& soundCount)
 {
-	const char** pSoundList = NULL;
+	const char** pSoundList = nullptr;
 
 	switch (precacheMaterial)
 	{
@@ -517,7 +517,7 @@ void CBreakable::BreakTouch(CBaseEntity* pOther)
 
 		if (flDamage >= pev->health)
 		{
-			SetTouch(NULL);
+			SetTouch(nullptr);
 			TakeDamage(pevToucher, pevToucher, flDamage, DMG_CRUSH);
 
 			// do a little damage to player if we broke glass or computer
@@ -532,7 +532,7 @@ void CBreakable::BreakTouch(CBaseEntity* pOther)
 		DamageSound();
 
 		SetThink(&CBreakable::Die);
-		SetTouch(NULL);
+		SetTouch(nullptr);
 
 		if (m_flDelay == 0)
 		{ // !!!BUGBUG - why doesn't zero delay work?
@@ -552,7 +552,7 @@ void CBreakable::BreakTouch(CBaseEntity* pOther)
 void CBreakable::BreakUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
 	// for a respawnable entity, ON means someone wants it to respawn- but this one's solid already.
-	if (m_iRespawnTime && useType == USE_ON)
+	if ((m_iRespawnTime != 0) && useType == USE_ON)
 		return;
 	if (IsBreakable())
 	{
@@ -589,7 +589,7 @@ void CBreakable::RespawnThink()
 	//	ALERT(at_debug,"RespawnThink: ");
 	CBaseEntity* pList[2];
 	int count = UTIL_EntitiesInBox(pList, 2, pev->mins, pev->maxs, FL_MONSTER | FL_CLIENT);
-	if (count)
+	if (count != 0)
 	{
 		// Can't respawn right now, a monster or player is in the way. Wait a bit.
 		//		ALERT(at_debug,"Respawn failed, count is %d\n",count);
@@ -599,7 +599,7 @@ void CBreakable::RespawnThink()
 	else
 	{
 		// fade in, don't just appear(?)
-		if (pev->spawnflags & SF_BREAK_FADE_RESPAWN)
+		if ((pev->spawnflags & SF_BREAK_FADE_RESPAWN) != 0)
 		{
 			SetThink(&CBreakable::RespawnFadeThink);
 			SetNextThink(0.1);
@@ -632,7 +632,7 @@ void CBreakable::RespawnThink()
 	}
 }
 
-void CBreakable::DoRespawn(void) //AJH Fix for respawnable breakable pushables (BY HAWK777)
+void CBreakable::DoRespawn() //AJH Fix for respawnable breakable pushables (BY HAWK777)
 {
 	pev->solid = SOLID_BSP;
 }
@@ -683,15 +683,15 @@ void CBreakable::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecD
 	}
 
 	//LRC
-	if (m_iszWhenHit)
+	if (m_iszWhenHit != 0)
 	{
-		if (m_pHitProxy == NULL)
+		if (m_pHitProxy == nullptr)
 		{ //AJH may need to reset this as it's null after save/load
-			m_pHitProxy = GetClassPtr((CPointEntity*)NULL);
+			m_pHitProxy = GetClassPtr((CPointEntity*)nullptr);
 		}
 
 		m_pHitProxy->pev->origin = ptr->vecEndPos;
-		if (pev->spawnflags & SF_BREAKABLE_INVERT)
+		if ((pev->spawnflags & SF_BREAKABLE_INVERT) != 0)
 		{ //AJH
 			vecDir.y = -vecDir.y;
 			//vecDir.z=-vecDir.z;
@@ -780,7 +780,7 @@ void CBreakable::Die()
 
 	Vector vecSpot;		// shard origin
 	Vector vecVelocity; // shard velocity
-	CBaseEntity* pEntity = NULL;
+	CBaseEntity* pEntity = nullptr;
 	char cFlag = 0;
 	int pitch;
 	float fvol;
@@ -939,12 +939,12 @@ void CBreakable::Die()
 		for (int i = 0; i < count; i++)
 		{
 			ClearBits(pList[i]->pev->flags, FL_ONGROUND);
-			pList[i]->pev->groundentity = NULL;
+			pList[i]->pev->groundentity = nullptr;
 		}
 	}
 
 	// If I'm getting removed, don't fire something that could fire myself
-	if (!m_iRespawnTime)
+	if (m_iRespawnTime == 0)
 		pev->targetname = 0;
 
 	pev->solid = SOLID_NOT;
@@ -957,14 +957,14 @@ void CBreakable::Die()
 		LIGHT_STYLE(-m_iStyle, "z");
 
 	// Fire targets on break
-	SUB_UseTargets(NULL, USE_TOGGLE, 0);
+	SUB_UseTargets(nullptr, USE_TOGGLE, 0);
 
 	if (m_iRespawnTime == -1)
 	{
 		//		ALERT(at_debug,"Waiting for respawn trigger\n");
 		SetUse(&CBreakable::RespawnUse);
 	}
-	else if (m_iRespawnTime)
+	else if (m_iRespawnTime != 0)
 	{
 		//		ALERT(at_debug,"Respawning in %d secs\n",m_iRespawnTime);
 		SetThink(&CBreakable::RespawnThink);
@@ -975,11 +975,11 @@ void CBreakable::Die()
 		//		ALERT(at_debug,"No respawn\n");
 
 		//tidy up
-		if (m_pHitProxy)
+		if (m_pHitProxy != nullptr)
 		{
 			m_pHitProxy->SetThink(&CPointEntity::SUB_Remove);
 			m_pHitProxy->SetNextThink(0.1);
-			m_pHitProxy = NULL;
+			m_pHitProxy = nullptr;
 		}
 
 		SetThink(&CBreakable::SUB_Remove);
@@ -1008,7 +1008,7 @@ bool CBreakable::IsBreakable()
 const char* CBreakable::DamageDecal(int bitsDamageType)
 {
 	if (m_Material == matGlass) // if (pev->rendermode == kRenderTransAlpha)
-		return 0;
+		return nullptr;
 
 	if (m_Material == matUnbreakableGlass) // if (pev->rendermode != kRenderNormal)
 		return "shot_glass";
@@ -1146,14 +1146,14 @@ bool CPushable::KeyValue(KeyValueData* pkvd)
 // Pull the func_pushable
 void CPushable::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	if (!pActivator || !pActivator->IsPlayer())
+	if ((pActivator == nullptr) || !pActivator->IsPlayer())
 	{
 		if ((pev->spawnflags & SF_PUSH_BREAKABLE) != 0)
 			this->CBreakable::Use(pActivator, pCaller, useType, value);
 		return;
 	}
 
-	if (pev->spawnflags & SF_PUSH_NOPULL)
+	if ((pev->spawnflags & SF_PUSH_NOPULL) != 0)
 		return; //LRC: a non-pullable pushable.
 
 	if (pActivator->pev->velocity != g_vecZero)
@@ -1176,7 +1176,7 @@ void CPushable::Move(CBaseEntity* pOther, bool push)
 	bool playerTouch = false;
 
 	// Is entity standing on this pushable ?
-	if (FBitSet(pevToucher->flags, FL_ONGROUND) && pevToucher->groundentity && VARS(pevToucher->groundentity) == pev)
+	if (FBitSet(pevToucher->flags, FL_ONGROUND) && (pevToucher->groundentity != nullptr) && VARS(pevToucher->groundentity) == pev)
 	{
 		// Only push if floating
 		if (pev->waterlevel > 0 && pev->watertype > CONTENT_FLYFIELD)
@@ -1192,7 +1192,7 @@ void CPushable::Move(CBaseEntity* pOther, bool push)
 		// from comment which seems wrong.
 		// Fixed to just check for USE being not set for PUSH.
 		// Should have the right effect.
-		if (push && !!(pevToucher->button & IN_USE)) // Don't push unless the player is not useing (pull)
+		if (push && !((pevToucher->button & IN_USE) == 0)) // Don't push unless the player is not useing (pull)
 			return;
 		playerTouch = true;
 	}
@@ -1289,7 +1289,7 @@ const char* CPushable::DamageDecal(int bitsDamageType)
 	return CBaseEntity::DamageDecal(bitsDamageType);
 }
 
-void CPushable::DoRespawn(void)
+void CPushable::DoRespawn()
 { //AJH Fix for respawnable breakable pushables (BY HAWK777)
 	pev->solid = SOLID_BBOX;
 	pev->origin.z += 1;

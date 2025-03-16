@@ -75,7 +75,7 @@ int CRoach::ISoundMask()
 //=========================================================
 int CRoach::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_INSECT;
+	return (m_iClass != 0) ? m_iClass : CLASS_INSECT;
 }
 
 //=========================================================
@@ -120,7 +120,7 @@ void CRoach::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/roach.mdl");
@@ -150,7 +150,7 @@ void CRoach::Spawn()
 //=========================================================
 void CRoach::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/roach.mdl");
@@ -181,7 +181,7 @@ void CRoach::Killed(entvars_t* pevAttacker, int iGib)
 	CSoundEnt::InsertSound(bits_SOUND_WORLD, pev->origin, 128, 1);
 
 	CBaseEntity* pOwner = CBaseEntity::Instance(pev->owner);
-	if (pOwner)
+	if (pOwner != nullptr)
 	{
 		pOwner->DeathNotice(pev);
 	}
@@ -268,7 +268,7 @@ void CRoach::MonsterThink()
 				pSound = CSoundEnt::SoundPointerForIndex(m_iAudibleList);
 
 				// roach smells food and is just standing around. Go to food unless food isn't on same z-plane.
-				if (pSound && fabs(pSound->m_vecOrigin.z - pev->origin.z) <= 3)
+				if ((pSound != nullptr) && fabs(pSound->m_vecOrigin.z - pev->origin.z) <= 3)
 				{
 					PickNewDest(ROACH_SMELL_FOOD);
 					SetActivity(ACT_WALK);
@@ -314,7 +314,7 @@ void CRoach::PickNewDest(int iCondition)
 
 		pSound = CSoundEnt::SoundPointerForIndex(m_iAudibleList);
 
-		if (pSound)
+		if (pSound != nullptr)
 		{
 			m_Route[0].vecLocation.x = pSound->m_vecOrigin.x + (3 - RANDOM_LONG(0, 5));
 			m_Route[0].vecLocation.y = pSound->m_vecOrigin.y + (3 - RANDOM_LONG(0, 5));
@@ -408,7 +408,7 @@ void CRoach::Move(float flInterval)
 //=========================================================
 void CRoach::Look(int iDistance)
 {
-	CBaseEntity* pSightEnt = NULL; // the current visible entity that we're dealing with
+	CBaseEntity* pSightEnt = nullptr; // the current visible entity that we're dealing with
 	CBaseEntity* pPreviousEnt;	   // the last entity added to the link list
 	int iSighted = 0;
 
@@ -422,13 +422,13 @@ void CRoach::Look(int iDistance)
 		return;
 	}
 
-	m_pLink = NULL;
+	m_pLink = nullptr;
 	pPreviousEnt = this;
 
 	// Does sphere also limit itself to PVS?
 	// Examine all entities within a reasonable radius
 	// !!!PERFORMANCE - let's trivially reject the ent list before radius searching!
-	while ((pSightEnt = UTIL_FindEntityInSphere(pSightEnt, pev->origin, iDistance)) != NULL)
+	while ((pSightEnt = UTIL_FindEntityInSphere(pSightEnt, pev->origin, iDistance)) != nullptr)
 	{
 		// only consider ents that can be damaged. !!!temporarily only considering other monsters and clients
 		if (pSightEnt->IsPlayer() || FBitSet(pSightEnt->pev->flags, FL_MONSTER))
@@ -438,7 +438,7 @@ void CRoach::Look(int iDistance)
 				// NULL the Link pointer for each ent added to the link list. If other ents follow, the will overwrite
 				// this value. If this ent happens to be the last, the list will be properly terminated.
 				pPreviousEnt->m_pLink = pSightEnt;
-				pSightEnt->m_pLink = NULL;
+				pSightEnt->m_pLink = nullptr;
 				pPreviousEnt = pSightEnt;
 
 				// don't add the Enemy's relationship to the conditions. We only want to worry about conditions when

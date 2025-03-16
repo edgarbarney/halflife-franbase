@@ -115,7 +115,7 @@ void CSquidSpit::Animate()
 
 void CSquidSpit::Shoot(entvars_t* pevOwner, Vector vecStart, Vector vecVelocity)
 {
-	CSquidSpit* pSpit = GetClassPtr((CSquidSpit*)NULL);
+	CSquidSpit* pSpit = GetClassPtr((CSquidSpit*)nullptr);
 	pSpit->Spawn();
 
 	UTIL_SetOrigin(pSpit, vecStart);
@@ -252,7 +252,7 @@ int CBullsquid::IgnoreConditions()
 		iIgnore = bits_COND_SMELL | bits_COND_SMELL_FOOD;
 	}
 
-	if (m_hEnemy != NULL)
+	if (m_hEnemy != nullptr)
 	{
 		if (FClassnameIs(m_hEnemy->pev, "monster_headcrab"))
 		{
@@ -293,7 +293,7 @@ bool CBullsquid::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 
 	// if the squid is running, has an enemy, was hurt by the enemy, hasn't been hurt in the last 3 seconds, and isn't too close to the enemy,
 	// it will swerve. (whew).
-	if (m_hEnemy != NULL && IsMoving() && pevAttacker == m_hEnemy->pev && gpGlobals->time - m_flLastHurtTime > 3)
+	if (m_hEnemy != nullptr && IsMoving() && pevAttacker == m_hEnemy->pev && gpGlobals->time - m_flLastHurtTime > 3)
 	{
 		flDist = (pev->origin - m_hEnemy->pev->origin).Length2D();
 
@@ -330,7 +330,7 @@ bool CBullsquid::CheckRangeAttack1(float flDot, float flDist)
 
 	if (flDist > 64 && flDist <= 784 && flDot >= 0.5 && gpGlobals->time >= m_flNextSpitTime)
 	{
-		if (m_hEnemy != NULL)
+		if (m_hEnemy != nullptr)
 		{
 			if (fabs(pev->origin.z - m_hEnemy->pev->origin.z) > 256)
 			{
@@ -429,7 +429,7 @@ int CBullsquid::ISoundMask()
 //=========================================================
 int CBullsquid::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_ALIEN_PREDATOR;
+	return (m_iClass != 0) ? m_iClass : CLASS_ALIEN_PREDATOR;
 }
 
 //=========================================================
@@ -542,7 +542,7 @@ void CBullsquid::HandleAnimEvent(MonsterEvent_t* pEvent)
 	{
 	case BSQUID_AE_SPIT:
 	{
-		if (m_hEnemy)
+		if (m_hEnemy != nullptr)
 		{
 			Vector vecSpitOffset;
 			Vector vecSpitDir;
@@ -553,9 +553,9 @@ void CBullsquid::HandleAnimEvent(MonsterEvent_t* pEvent)
 			// we should be able to read the position of bones at runtime for this info.
 			vecSpitOffset = (gpGlobals->v_right * 8 + gpGlobals->v_forward * 37 + gpGlobals->v_up * 23);
 			vecSpitOffset = (pev->origin + vecSpitOffset);
-			if (m_pCine) // LRC- are we being told to do this by a scripted_action?
+			if (m_pCine != nullptr) // LRC- are we being told to do this by a scripted_action?
 			{
-				if (m_hTargetEnt != NULL && m_pCine->PreciseAttack())
+				if (m_hTargetEnt != nullptr && m_pCine->PreciseAttack())
 					vecSpitDir = ((m_hTargetEnt->pev->origin) - vecSpitOffset).Normalize();
 				else
 					vecSpitDir = gpGlobals->v_forward;
@@ -596,7 +596,7 @@ void CBullsquid::HandleAnimEvent(MonsterEvent_t* pEvent)
 		// SOUND HERE!
 		CBaseEntity* pHurt = CheckTraceHullAttack(70, gSkillData.bullsquidDmgBite, DMG_SLASH);
 
-		if (pHurt)
+		if (pHurt != nullptr)
 		{
 			//pHurt->pev->punchangle.z = -15;
 			//pHurt->pev->punchangle.x = -45;
@@ -609,7 +609,7 @@ void CBullsquid::HandleAnimEvent(MonsterEvent_t* pEvent)
 	case BSQUID_AE_TAILWHIP:
 	{
 		CBaseEntity* pHurt = CheckTraceHullAttack(70, gSkillData.bullsquidDmgWhip, DMG_CLUB | DMG_ALWAYSGIB);
-		if (pHurt)
+		if (pHurt != nullptr)
 		{
 			pHurt->pev->punchangle.z = -20;
 			pHurt->pev->punchangle.x = 20;
@@ -650,7 +650,7 @@ void CBullsquid::HandleAnimEvent(MonsterEvent_t* pEvent)
 		CBaseEntity* pHurt = CheckTraceHullAttack(70, 0, 0);
 
 
-		if (pHurt)
+		if (pHurt != nullptr)
 		{
 			// croonchy bite sound
 			iPitch = RANDOM_FLOAT(90, 110);
@@ -693,7 +693,7 @@ void CBullsquid::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/bullsquid.mdl");
@@ -719,7 +719,7 @@ void CBullsquid::Spawn()
 //=========================================================
 void CBullsquid::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/bullsquid.mdl");
@@ -817,7 +817,7 @@ void CBullsquid::RunAI()
 		pev->skin = 1;
 	}
 
-	if (m_hEnemy != NULL && m_Activity == ACT_RUN)
+	if (m_hEnemy != nullptr && m_Activity == ACT_RUN)
 	{
 		// chasing enemy. Sprint for last bit
 		if ((pev->origin - m_hEnemy->pev->origin).Length2D() < SQUID_SPRINT_DIST)
@@ -1043,7 +1043,7 @@ Schedule_t* CBullsquid::GetSchedule()
 
 			pSound = PBestScent();
 
-			if (pSound && (!FInViewCone(&pSound->m_vecOrigin) || !FVisible(pSound->m_vecOrigin)))
+			if ((pSound != nullptr) && (!FInViewCone(&pSound->m_vecOrigin) || !FVisible(pSound->m_vecOrigin)))
 			{
 				// scent is behind or occluded
 				return GetScheduleOfType(SCHED_SQUID_SNIFF_AND_EAT);
@@ -1059,7 +1059,7 @@ Schedule_t* CBullsquid::GetSchedule()
 			CSound* pSound;
 
 			pSound = PBestScent();
-			if (pSound)
+			if (pSound != nullptr)
 				return GetScheduleOfType(SCHED_SQUID_WALLOW);
 		}
 
@@ -1094,7 +1094,7 @@ Schedule_t* CBullsquid::GetSchedule()
 
 			pSound = PBestScent();
 
-			if (pSound && (!FInViewCone(&pSound->m_vecOrigin) || !FVisible(pSound->m_vecOrigin)))
+			if ((pSound != nullptr) && (!FInViewCone(&pSound->m_vecOrigin) || !FVisible(pSound->m_vecOrigin)))
 			{
 				// scent is behind or occluded
 				return GetScheduleOfType(SCHED_SQUID_SNIFF_AND_EAT);
@@ -1265,10 +1265,10 @@ MONSTERSTATE CBullsquid::GetIdealState()
 		COMBAT goes to ALERT upon death of enemy
 		*/
 		{
-			if (m_hEnemy != NULL && (iConditions & (bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE)) != 0 && FClassnameIs(m_hEnemy->pev, "monster_headcrab"))
+			if (m_hEnemy != nullptr && (iConditions & (bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE)) != 0 && FClassnameIs(m_hEnemy->pev, "monster_headcrab"))
 			{
 				// if the squid has a headcrab enemy and something hurts it, it's going to forget about the crab for a while.
-				m_hEnemy = NULL;
+				m_hEnemy = nullptr;
 				m_IdealMonsterState = MONSTERSTATE_ALERT;
 			}
 			break;

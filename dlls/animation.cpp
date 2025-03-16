@@ -31,7 +31,7 @@ bool ExtractBbox(void* pmodel, int sequence, float* mins, float* maxs)
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 		return false;
 
 	mstudioseqdesc_t* pseqdesc;
@@ -55,7 +55,7 @@ int LookupActivity(void* pmodel, entvars_t* pev, int activity)
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 		return 0;
 
 	mstudioseqdesc_t* pseqdesc;
@@ -83,7 +83,7 @@ int LookupActivityHeaviest(void* pmodel, entvars_t* pev, int activity)
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 		return 0;
 
 	mstudioseqdesc_t* pseqdesc;
@@ -113,7 +113,7 @@ void GetEyePosition(void* pmodel, float* vecEyePosition)
 
 	pstudiohdr = (studiohdr_t*)pmodel;
 
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 	{
 		ALERT(at_debug, "GetEyePosition() Can't get pstudiohdr ptr!\n");
 		return;
@@ -127,7 +127,7 @@ int LookupSequence(void* pmodel, const char* label)
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 		return 0;
 
 	mstudioseqdesc_t* pseqdesc;
@@ -160,7 +160,7 @@ void SequencePrecache(void* pmodel, const char* pSequenceName)
 		studiohdr_t* pstudiohdr;
 
 		pstudiohdr = (studiohdr_t*)pmodel;
-		if (!pstudiohdr || index >= pstudiohdr->numseq)
+		if ((pstudiohdr == nullptr) || index >= pstudiohdr->numseq)
 			return;
 
 		mstudioseqdesc_t* pseqdesc;
@@ -197,7 +197,7 @@ void GetSequenceInfo(void* pmodel, entvars_t* pev, float* pflFrameRate, float* p
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 		return;
 
 	mstudioseqdesc_t* pseqdesc;
@@ -230,7 +230,7 @@ int GetSequenceFlags(void* pmodel, entvars_t* pev)
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr || pev->sequence < 0 || pev->sequence >= pstudiohdr->numseq)
+	if ((pstudiohdr == nullptr) || pev->sequence < 0 || pev->sequence >= pstudiohdr->numseq)
 		return 0;
 
 	mstudioseqdesc_t* pseqdesc;
@@ -245,7 +245,7 @@ int GetAnimationEvent(void* pmodel, entvars_t* pev, MonsterEvent_t* pMonsterEven
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr || pev->sequence < 0 || pev->sequence >= pstudiohdr->numseq || !pMonsterEvent)
+	if ((pstudiohdr == nullptr) || pev->sequence < 0 || pev->sequence >= pstudiohdr->numseq || (pMonsterEvent == nullptr))
 		return 0;
 
 	int events = 0;
@@ -293,7 +293,7 @@ float SetController(void* pmodel, entvars_t* pev, int iController, float flValue
 	int i;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 		return flValue;
 
 	mstudiobonecontroller_t* pbonecontroller = (mstudiobonecontroller_t*)((byte*)pstudiohdr + pstudiohdr->bonecontrollerindex);
@@ -349,7 +349,7 @@ float SetBlending(void* pmodel, entvars_t* pev, int iBlender, float flValue)
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr || pev->sequence < 0 || pev->sequence >= pstudiohdr->numseq)
+	if ((pstudiohdr == nullptr) || pev->sequence < 0 || pev->sequence >= pstudiohdr->numseq)
 		return flValue;
 
 	mstudioseqdesc_t* pseqdesc;
@@ -395,7 +395,7 @@ int FindTransition(void* pmodel, int iEndingAnim, int iGoalAnim, int* piDir)
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 		return iGoalAnim;
 
 	mstudioseqdesc_t* pseqdesc;
@@ -462,7 +462,7 @@ void SetBodygroup(void* pmodel, entvars_t* pev, int iGroup, int iValue)
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 		return;
 
 	if (iGroup > pstudiohdr->numbodyparts)
@@ -484,7 +484,7 @@ int GetBodygroup(void* pmodel, entvars_t* pev, int iGroup)
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 		return 0;
 
 	if (iGroup > pstudiohdr->numbodyparts)
@@ -506,7 +506,7 @@ int GetBoneCount(void* pmodel)
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 	{
 		ALERT(at_error, "Bad header in SetBones!\n");
 		return 0;
@@ -525,7 +525,7 @@ void SetBones(void* pmodel, float (*data)[3], int datasize)
 	studiohdr_t* pstudiohdr;
 
 	pstudiohdr = (studiohdr_t*)pmodel;
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 	{
 		ALERT(at_error, "Bad header in SetBones!\n");
 		return;

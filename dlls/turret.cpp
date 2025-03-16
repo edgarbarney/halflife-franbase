@@ -308,11 +308,11 @@ void CBaseTurret::Precache()
 void CTurret::Spawn()
 {
 	Precache();
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/turret.mdl");
-	if (!pev->health)
+	if (pev->health == 0.0f)
 		pev->health = gSkillData.turretHealth;
 	m_HackedGunPos = Vector(0, 0, 12.75);
 	m_flMaxSpin = TURRET_MAXSPIN;
@@ -338,7 +338,7 @@ void CTurret::Spawn()
 void CTurret::Precache()
 {
 	CBaseTurret::Precache();
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/turret.mdl");
@@ -348,11 +348,11 @@ void CTurret::Precache()
 void CMiniTurret::Spawn()
 {
 	Precache();
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/miniturret.mdl");
-	if (!pev->health)
+	if (pev->health == 0.0f)
 		pev->health = gSkillData.miniturretHealth;
 	m_HackedGunPos = Vector(0, 0, 12.75);
 	m_flMaxSpin = 0;
@@ -372,7 +372,7 @@ void CMiniTurret::Spawn()
 void CMiniTurret::Precache()
 {
 	CBaseTurret::Precache();
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/miniturret.mdl");
@@ -425,7 +425,7 @@ void CBaseTurret::TurretUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_T
 
 	if (m_iOn)
 	{
-		m_hEnemy = NULL;
+		m_hEnemy = nullptr;
 		SetNextThink(0.1);
 		m_iAutoStart = false; // switching off a turret disables autostart
 		//!!!! this should spin down first!!BUGBUG
@@ -466,7 +466,7 @@ void CBaseTurret::Ping()
 
 void CBaseTurret::EyeOn()
 {
-	if (m_pEyeGlow)
+	if (m_pEyeGlow != nullptr)
 	{
 		if (m_eyeBrightness != 255)
 		{
@@ -479,7 +479,7 @@ void CBaseTurret::EyeOn()
 
 void CBaseTurret::EyeOff()
 {
-	if (m_pEyeGlow)
+	if (m_pEyeGlow != nullptr)
 	{
 		if (m_eyeBrightness > 0)
 		{
@@ -498,9 +498,9 @@ void CBaseTurret::ActiveThink()
 	SetNextThink(0.1);
 	StudioFrameAdvance();
 
-	if ((!m_iOn) || (m_hEnemy == NULL))
+	if ((!m_iOn) || (m_hEnemy == nullptr))
 	{
-		m_hEnemy = NULL;
+		m_hEnemy = nullptr;
 		m_flLastSight = gpGlobals->time + m_flMaxWait;
 		SetThink(&CBaseTurret::SearchThink);
 		return;
@@ -517,7 +517,7 @@ void CBaseTurret::ActiveThink()
 		{
 			if (gpGlobals->time > m_flLastSight)
 			{
-				m_hEnemy = NULL;
+				m_hEnemy = nullptr;
 				m_flLastSight = gpGlobals->time + m_flMaxWait;
 				SetThink(&CBaseTurret::SearchThink);
 				return;
@@ -546,7 +546,7 @@ void CBaseTurret::ActiveThink()
 			// Should we look for a new target?
 			if (gpGlobals->time > m_flLastSight)
 			{
-				m_hEnemy = NULL;
+				m_hEnemy = nullptr;
 				m_flLastSight = gpGlobals->time + m_flMaxWait;
 				SetThink(&CBaseTurret::SearchThink);
 				return;
@@ -872,22 +872,22 @@ void CBaseTurret::SearchThink()
 	Ping();
 
 	// If we have a target and we're still healthy
-	if (m_hEnemy != NULL)
+	if (m_hEnemy != nullptr)
 	{
 		if (!m_hEnemy->IsAlive())
-			m_hEnemy = NULL; // Dead enemy forces a search for new one
+			m_hEnemy = nullptr; // Dead enemy forces a search for new one
 	}
 
 
 	// Acquire Target
-	if (m_hEnemy == NULL)
+	if (m_hEnemy == nullptr)
 	{
 		Look(TURRET_RANGE);
 		m_hEnemy = BestVisibleEnemy();
 	}
 
 	// If we've found a target, spin up the barrel and start to attack
-	if (m_hEnemy != NULL)
+	if (m_hEnemy != nullptr)
 	{
 		m_flLastSight = 0;
 		m_flSpinUpTime = 0;
@@ -930,21 +930,21 @@ void CBaseTurret::AutoSearchThink()
 
 	// If we have a target and we're still healthy
 
-	if (m_hEnemy != NULL)
+	if (m_hEnemy != nullptr)
 	{
 		if (!m_hEnemy->IsAlive())
-			m_hEnemy = NULL; // Dead enemy forces a search for new one
+			m_hEnemy = nullptr; // Dead enemy forces a search for new one
 	}
 
 	// Acquire Target
 
-	if (m_hEnemy == NULL)
+	if (m_hEnemy == nullptr)
 	{
 		Look(TURRET_RANGE);
 		m_hEnemy = BestVisibleEnemy();
 	}
 
-	if (m_hEnemy != NULL)
+	if (m_hEnemy != nullptr)
 	{
 		SetThink(&CBaseTurret::Deploy);
 		EMIT_SOUND(ENT(pev), CHAN_BODY, "turret/tu_alert.wav", TURRET_MACHINE_VOLUME, ATTN_NORM);
@@ -1014,7 +1014,7 @@ void CBaseTurret::TurretDeath()
 	if (m_fSequenceFinished && !MoveTurret() && pev->dmgtime + 5 < gpGlobals->time)
 	{
 		pev->framerate = 0;
-		SetThink(NULL);
+		SetThink(nullptr);
 	}
 }
 
@@ -1059,7 +1059,7 @@ bool CBaseTurret::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, fl
 
 		ClearBits(pev->flags, FL_MONSTER); // why are they set in the first place???
 
-		SetUse(NULL);
+		SetUse(nullptr);
 		SetThink(&CBaseTurret::TurretDeath);
 		SUB_UseTargets(this, USE_ON, 0); // wake up others
 		SetNextThink(0.1);
@@ -1166,7 +1166,7 @@ bool CBaseTurret::MoveTurret()
 //
 int CBaseTurret::Classify()
 {
-	if (m_iClass)
+	if (m_iClass != 0)
 		return m_iClass;
 	if (m_iOn || m_iAutoStart)
 		return CLASS_MACHINE;
@@ -1196,7 +1196,7 @@ LINK_ENTITY_TO_CLASS(monster_sentry, CSentry);
 void CSentry::Precache()
 {
 	CBaseTurret::Precache();
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/sentry.mdl");
@@ -1205,11 +1205,11 @@ void CSentry::Precache()
 void CSentry::Spawn()
 {
 	Precache();
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/sentry.mdl");
-	if (!pev->health) //LRC
+	if (pev->health == 0.0f) //LRC
 		pev->health = gSkillData.sentryHealth;
 	m_HackedGunPos = Vector(0, 0, 48);
 	pev->view_ofs.z = 48;
@@ -1256,7 +1256,7 @@ bool CSentry::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float 
 	if (!m_iOn)
 	{
 		SetThink(&CSentry::Deploy);
-		SetUse(NULL);
+		SetUse(nullptr);
 		SetNextThink(0.1);
 	}
 
@@ -1269,7 +1269,7 @@ bool CSentry::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float 
 
 		ClearBits(pev->flags, FL_MONSTER); // why are they set in the first place???
 
-		SetUse(NULL);
+		SetUse(nullptr);
 		SetThink(&CSentry::SentryDeath);
 		SUB_UseTargets(this, USE_ON, 0); // wake up others
 		SetNextThink(0.1);
@@ -1283,7 +1283,7 @@ bool CSentry::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float 
 
 void CSentry::SentryTouch(CBaseEntity* pOther)
 {
-	if (pOther && (pOther->IsPlayer() || (pOther->pev->flags & FL_MONSTER) != 0))
+	if ((pOther != nullptr) && (pOther->IsPlayer() || (pOther->pev->flags & FL_MONSTER) != 0))
 	{
 		TakeDamage(pOther->pev, pOther->pev, 0, 0);
 	}
@@ -1350,6 +1350,6 @@ void CSentry::SentryDeath()
 	if (m_fSequenceFinished && pev->dmgtime + 5 < gpGlobals->time)
 	{
 		pev->framerate = 0;
-		SetThink(NULL);
+		SetThink(nullptr);
 	}
 }

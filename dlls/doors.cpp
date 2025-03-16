@@ -46,7 +46,7 @@ public:
 
 	int ObjectCaps() override
 	{
-		if (pev->spawnflags & SF_ITEM_USE_ONLY)
+		if ((pev->spawnflags & SF_ITEM_USE_ONLY) != 0)
 		{
 			return (CBaseToggle::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_IMPULSE_USE |
 				   (m_iDirectUse ? FCAP_ONLYDIRECT_USE : 0);
@@ -262,17 +262,17 @@ bool CBaseDoor::KeyValue(KeyValueData* pkvd)
 	}
 	else if (FStrEq(pkvd->szKeyName, "immediatemode"))
 	{
-		m_iImmediateMode = atoi(pkvd->szValue);
+		m_iImmediateMode = (atoi(pkvd->szValue) != 0);
 		return true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "onoffmode"))
 	{
-		m_iOnOffMode = atoi(pkvd->szValue);
+		m_iOnOffMode = (atoi(pkvd->szValue) != 0);
 		return true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "directuse"))
 	{
-		m_iDirectUse = atoi(pkvd->szValue);
+		m_iDirectUse = (atoi(pkvd->szValue) != 0);
 		return true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "WaveHeight"))
@@ -292,7 +292,7 @@ bool CBaseDoor::KeyValue(KeyValueData* pkvd)
 	}
 	else if (FStrEq(pkvd->szKeyName, "speedmode")) //AJH for changing door speeds (for 'usemode' acceleration)
 	{
-		m_iSpeedMode = atof(pkvd->szValue);
+		m_iSpeedMode = (atof(pkvd->szValue) != 0.0);
 		return true;
 	}
 
@@ -420,7 +420,7 @@ void CBaseDoor::Spawn()
 	if (FBitSet(pev->spawnflags, SF_DOOR_USE_ONLY) &&
 		!FBitSet(pev->spawnflags, SF_DOOR_FORCETOUCHABLE))
 	{
-		SetTouch(NULL);
+		SetTouch(nullptr);
 	}
 	else // touchable button
 		SetTouch(&CBaseDoor::DoorTouch);
@@ -430,7 +430,7 @@ void CBaseDoor::Spawn()
 //LRC
 void CBaseDoor::PostSpawn()
 {
-	if (m_pMoveWith)
+	if (m_pMoveWith != nullptr)
 		m_vecPosition1 = pev->origin - m_pMoveWith->pev->origin;
 	else
 		m_vecPosition1 = pev->origin;
@@ -441,7 +441,7 @@ void CBaseDoor::PostSpawn()
 	ASSERTSZ(m_vecPosition1 != m_vecPosition2, "door start/end positions are equal");
 	if (FBitSet(pev->spawnflags, SF_DOOR_START_OPEN))
 	{ // swap pos1 and pos2, put door at pos2
-		if (m_pMoveWith)
+		if (m_pMoveWith != nullptr)
 		{
 			m_vecSpawnOffset = m_vecSpawnOffset + (m_vecPosition2 + m_pMoveWith->pev->origin) - pev->origin;
 			UTIL_AssignOrigin(this, m_vecPosition2 + m_pMoveWith->pev->origin);
@@ -470,14 +470,14 @@ void CBaseDoor::SetToggleState(int state)
 {
 	if (state == TS_AT_TOP)
 	{
-		if (m_pMoveWith)
+		if (m_pMoveWith != nullptr)
 			UTIL_AssignOrigin(this, m_vecPosition2 + m_pMoveWith->pev->origin);
 		else
 			UTIL_AssignOrigin(this, m_vecPosition2);
 	}
 	else
 	{
-		if (m_pMoveWith)
+		if (m_pMoveWith != nullptr)
 			UTIL_AssignOrigin(this, m_vecPosition1 + m_pMoveWith->pev->origin);
 		else
 			UTIL_AssignOrigin(this, m_vecPosition1);
@@ -699,7 +699,7 @@ void CBaseDoor::DoorTouch(CBaseEntity* pOther)
 	m_hActivator = pOther; // remember who activated the door
 
 	if (DoorActivate())
-		SetTouch(NULL); // Temporarily disable the touch function, until movement is finished.
+		SetTouch(nullptr); // Temporarily disable the touch function, until movement is finished.
 }
 
 
@@ -712,7 +712,7 @@ void CBaseDoor::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useT
 
 	if (!UTIL_IsMasterTriggered(m_sMaster, pActivator))
 		return;
-	if (m_iSpeedMode == 1)
+	if (static_cast<int>(m_iSpeedMode) == 1)
 	{ //AJH for changing door speeds
 		pev->speed += m_fAcceleration;
 		DoorActivate();
@@ -769,7 +769,7 @@ bool CBaseDoor::DoorActivate()
 	else
 	{ // door should open
 
-		if (m_hActivator != NULL && m_hActivator->IsPlayer())
+		if (m_hActivator != nullptr && m_hActivator->IsPlayer())
 		{ // give health if player opened the door (medikit)
 			// VARS( m_eoActivator )->health += m_bHealthValue;
 
@@ -822,7 +822,7 @@ void CBaseDoor::DoorGoUp()
 	{
 		float sign = 1.0;
 
-		if (m_hActivator != NULL)
+		if (m_hActivator != nullptr)
 		{
 			pevActivator = m_hActivator->pev;
 
@@ -844,7 +844,7 @@ void CBaseDoor::DoorGoUp()
 	}
 	else
 
-		if (m_iSpeedMode == 1)
+		if (static_cast<int>(m_iSpeedMode) == 1)
 	{ //AJH modifed to allow two types of accelerating doors
 		LinearMove(m_vecPosition2, pev->speed);
 	}
@@ -953,7 +953,7 @@ void CBaseDoor::DoorGoDown()
 			SUB_UseTargets(m_hActivator, USE_OFF, 0);
 		}
 
-		if (m_iSpeedMode == 1)
+		if (static_cast<int>(m_iSpeedMode) == 1)
 		{ //AJH modifed to allow two types of accelerating doors
 			LinearMove(m_vecPosition1, pev->speed);
 		}
@@ -983,7 +983,7 @@ void CBaseDoor::DoorHitBottom()
 	if (FBitSet(pev->spawnflags, SF_DOOR_USE_ONLY) &&
 		!FBitSet(pev->spawnflags, SF_DOOR_FORCETOUCHABLE))
 	{ // use only door
-		SetTouch(NULL);
+		SetTouch(nullptr);
 	}
 	else // touchable door
 		SetTouch(&CBaseDoor::DoorTouch);
@@ -1023,14 +1023,14 @@ void CBaseDoor::DoorHitBottom()
 
 void CBaseDoor::Blocked(CBaseEntity* pOther)
 {
-	CBaseEntity* pTarget = NULL;
-	CBaseDoor* pDoor = NULL;
+	CBaseEntity* pTarget = nullptr;
+	CBaseDoor* pDoor = nullptr;
 
 	//	ALERT(at_debug, "%s blocked\n", STRING(pev->targetname));
 
 	// Hurt the blocker a little.
 	if (0 != pev->dmg)
-		if (m_hActivator)
+		if (m_hActivator != nullptr)
 			pOther->TakeDamage(pev, m_hActivator->pev, pev->dmg, DMG_CRUSH); //AJH Attribute damage to he who switched me.
 		else
 			pOther->TakeDamage(pev, pev, pev->dmg, DMG_CRUSH);
@@ -1061,7 +1061,7 @@ void CBaseDoor::Blocked(CBaseEntity* pOther)
 		{
 			pTarget = UTIL_FindEntityByTargetname(pTarget, STRING(pev->targetname));
 
-			if (!pTarget)
+			if (pTarget == nullptr)
 				break;
 
 			if (pTarget->pev != pev && FClassnameIs(pTarget->pev, "func_door") ||
@@ -1189,7 +1189,7 @@ void CRotDoor::Spawn()
 
 	if (FBitSet(pev->spawnflags, SF_DOOR_USE_ONLY) && !FBitSet(pev->spawnflags, SF_DOOR_FORCETOUCHABLE))
 	{
-		SetTouch(NULL);
+		SetTouch(nullptr);
 	}
 	else // touchable button
 		SetTouch(&CRotDoor::DoorTouch);
@@ -1291,14 +1291,14 @@ void CMomentaryDoor::Spawn()
 		m_vecPosition1 = vecTemp;
 	}
 
-	if (m_pMoveWith)
+	if (m_pMoveWith != nullptr)
 	{
 		m_vecPosition1 = m_vecPosition1 - m_pMoveWith->pev->origin;
 		m_vecPosition2 = m_vecPosition2 - m_pMoveWith->pev->origin;
 	}
 
 	Precache();
-	SetTouch(NULL);
+	SetTouch(nullptr);
 }
 
 void CMomentaryDoor::Precache()
@@ -1437,7 +1437,7 @@ void CMomentaryDoor::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE
 		return;
 	}
 */
-	if (pev->speed)
+	if (pev->speed != 0.0f)
 	{
 		//LRC- move at the given speed, if any.
 		speed = pev->speed;

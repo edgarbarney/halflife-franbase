@@ -120,7 +120,7 @@ inline edict_t* ENT(EOFFSET eoffset) { return (*g_engfuncs.pfnPEntityOfEntOffset
 inline EOFFSET OFFSET(const edict_t* pent)
 {
 #if _DEBUG
-	if (!pent)
+	if (pent == nullptr)
 		ALERT(at_error, "Bad ent in OFFSET()\n");
 #endif
 	return (*g_engfuncs.pfnEntOffsetOfPEntity)(pent);
@@ -128,7 +128,7 @@ inline EOFFSET OFFSET(const edict_t* pent)
 inline EOFFSET OFFSET(entvars_t* pev)
 {
 #if _DEBUG
-	if (!pev)
+	if (pev == nullptr)
 		ALERT(at_error, "Bad pev in OFFSET()\n");
 #endif
 	return OFFSET(ENT(pev));
@@ -136,8 +136,8 @@ inline EOFFSET OFFSET(entvars_t* pev)
 
 inline entvars_t* VARS(edict_t* pent)
 {
-	if (!pent)
-		return NULL;
+	if (pent == nullptr)
+		return nullptr;
 
 	return &pent->v;
 }
@@ -156,8 +156,8 @@ inline bool FNullEnt(EOFFSET eoffset)
 {
 	return eoffset == 0;
 }
-inline bool FNullEnt(const edict_t* pent) { return pent == NULL || FNullEnt(OFFSET(pent)); }
-inline bool FNullEnt(entvars_t* pev) { return pev == NULL || FNullEnt(OFFSET(pev)); }
+inline bool FNullEnt(const edict_t* pent) { return pent == nullptr || FNullEnt(OFFSET(pent)); }
+inline bool FNullEnt(entvars_t* pev) { return pev == nullptr || FNullEnt(OFFSET(pev)); }
 
 // Testing strings for nullity
 #define iStringNull 0
@@ -354,8 +354,8 @@ extern void UTIL_BubbleTrail(Vector from, Vector to, int count);
 extern void UTIL_PrecacheOther(const char* szClassname);
 
 // prints a message to each client
-extern void UTIL_ClientPrintAll(int msg_dest, const char* msg_name, const char* param1 = NULL, const char* param2 = NULL, const char* param3 = NULL, const char* param4 = NULL);
-inline void UTIL_CenterPrintAll(const char* msg_name, const char* param1 = NULL, const char* param2 = NULL, const char* param3 = NULL, const char* param4 = NULL)
+extern void UTIL_ClientPrintAll(int msg_dest, const char* msg_name, const char* param1 = nullptr, const char* param2 = nullptr, const char* param3 = nullptr, const char* param4 = nullptr);
+inline void UTIL_CenterPrintAll(const char* msg_name, const char* param1 = nullptr, const char* param2 = nullptr, const char* param3 = nullptr, const char* param4 = nullptr)
 {
 	UTIL_ClientPrintAll(HUD_PRINTCENTER, msg_name, param1, param2, param3, param4);
 }
@@ -364,7 +364,7 @@ class CBasePlayerItem;
 class CBasePlayer;
 
 // prints messages through the HUD
-extern void ClientPrint(entvars_t* client, int msg_dest, const char* msg_name, const char* param1 = NULL, const char* param2 = NULL, const char* param3 = NULL, const char* param4 = NULL);
+extern void ClientPrint(entvars_t* client, int msg_dest, const char* msg_name, const char* param1 = nullptr, const char* param2 = nullptr, const char* param3 = nullptr, const char* param4 = nullptr);
 
 // prints a message to the HUD say (chat)
 extern void UTIL_SayText(const char* pText, CBaseEntity* pEntity);

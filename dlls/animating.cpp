@@ -139,7 +139,7 @@ void CBaseAnimating::DispatchAnimEvents(float flInterval)
 
 	void* pmodel = GET_MODEL_PTR(ENT(pev));
 
-	if (!pmodel)
+	if (pmodel == nullptr)
 	{
 		ALERT(at_aiconsole, "Gibbed monster is thinking!\n");
 		return;
@@ -216,7 +216,7 @@ int CBaseAnimating::FindTransition(int iEndingSequence, int iGoalSequence, int* 
 {
 	void* pmodel = GET_MODEL_PTR(ENT(pev));
 
-	if (piDir == NULL)
+	if (piDir == nullptr)
 	{
 		int iDir;
 		int sequence = ::FindTransition(pmodel, iEndingSequence, iGoalSequence, &iDir);

@@ -205,7 +205,7 @@ public:
 	int NodeType(const CBaseEntity* pEntity);  // what node type the monster uses
 	inline int CapIndex(int afCapMask)
 	{
-		if (afCapMask & (bits_CAP_OPEN_DOORS | bits_CAP_AUTO_DOORS | bits_CAP_USE))
+		if ((afCapMask & (bits_CAP_OPEN_DOORS | bits_CAP_AUTO_DOORS | bits_CAP_USE)) != 0)
 			return 1;
 		return 0;
 	}
@@ -214,7 +214,7 @@ public:
 	inline CNode& Node(int i)
 	{
 #ifdef _DEBUG
-		if (!m_pNodes || i < 0 || i > m_cNodes)
+		if ((m_pNodes == nullptr) || i < 0 || i > m_cNodes)
 			ALERT(at_error, "Bad Node!\n");
 #endif
 		return m_pNodes[i];
@@ -223,7 +223,7 @@ public:
 	inline CLink& Link(int i)
 	{
 #ifdef _DEBUG
-		if (!m_pLinkPool || i < 0 || i > m_cLinks)
+		if ((m_pLinkPool == nullptr) || i < 0 || i > m_cLinks)
 			ALERT(at_error, "Bad link!\n");
 #endif
 		return m_pLinkPool[i];
@@ -287,7 +287,7 @@ public:
 	void Push(int value);
 	int Pop();
 	int Top();
-	int Empty() { return m_level == 0; }
+	int Empty() { return static_cast<int>(m_level == 0); }
 	int Size() { return m_level; }
 	void CopyToArray(int* piArray);
 

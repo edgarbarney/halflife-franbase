@@ -166,7 +166,7 @@ public:
 	bool KeyValue(KeyValueData* pkvd) override;
 	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
 
-	bool IsLockedByMaster() { return !UTIL_IsMasterTriggered(m_sMaster, NULL); };
+	bool IsLockedByMaster() { return !UTIL_IsMasterTriggered(m_sMaster, nullptr); };
 
 	bool Save(CSave& save) override;
 	bool Restore(CRestore& restore) override;
@@ -183,7 +183,7 @@ public:
 
 void CEnvState::Spawn()
 {
-	if (pev->spawnflags & SF_ENVSTATE_START_ON)
+	if ((pev->spawnflags & SF_ENVSTATE_START_ON) != 0)
 		m_iState = STATE_ON;
 	else
 		m_iState = STATE_OFF;
@@ -225,7 +225,7 @@ void CEnvState::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useT
 {
 	if (!ShouldToggle(useType) || IsLockedByMaster())
 	{
-		if (pev->spawnflags & SF_ENVSTATE_DEBUG)
+		if ((pev->spawnflags & SF_ENVSTATE_DEBUG) != 0)
 		{
 			ALERT(at_debug, "DEBUG: env_state \"%s\" ", STRING(pev->targetname));
 			if (IsLockedByMaster())
@@ -244,10 +244,10 @@ void CEnvState::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useT
 	{
 	case STATE_ON:
 	case STATE_TURN_ON:
-		if (m_fTurnOffTime)
+		if (m_fTurnOffTime != 0.0f)
 		{
 			m_iState = STATE_TURN_OFF;
-			if (pev->spawnflags & SF_ENVSTATE_DEBUG)
+			if ((pev->spawnflags & SF_ENVSTATE_DEBUG) != 0)
 			{
 				ALERT(at_debug, "DEBUG: env_state \"%s\" triggered; will turn off in %f seconds.\n", STRING(pev->targetname), m_fTurnOffTime);
 			}
@@ -256,16 +256,16 @@ void CEnvState::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useT
 		else
 		{
 			m_iState = STATE_OFF;
-			if (pev->spawnflags & SF_ENVSTATE_DEBUG)
+			if ((pev->spawnflags & SF_ENVSTATE_DEBUG) != 0)
 			{
 				ALERT(at_debug, "DEBUG: env_state \"%s\" triggered, turned off", STRING(pev->targetname));
-				if (pev->target)
+				if (pev->target != 0u)
 				{
 					ALERT(at_debug, ": firing \"%s\"", STRING(pev->target));
-					if (pev->noise2)
+					if (pev->noise2 != 0u)
 						ALERT(at_debug, " and \"%s\"", STRING(pev->noise2));
 				}
-				else if (pev->noise2)
+				else if (pev->noise2 != 0u)
 					ALERT(at_debug, ": firing \"%s\"", STRING(pev->noise2));
 				ALERT(at_debug, ".\n");
 			}
@@ -276,10 +276,10 @@ void CEnvState::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useT
 		break;
 	case STATE_OFF:
 	case STATE_TURN_OFF:
-		if (m_fTurnOnTime)
+		if (m_fTurnOnTime != 0.0f)
 		{
 			m_iState = STATE_TURN_ON;
-			if (pev->spawnflags & SF_ENVSTATE_DEBUG)
+			if ((pev->spawnflags & SF_ENVSTATE_DEBUG) != 0)
 			{
 				ALERT(at_debug, "DEBUG: env_state \"%s\" triggered; will turn on in %f seconds.\n", STRING(pev->targetname), m_fTurnOnTime);
 			}
@@ -288,16 +288,16 @@ void CEnvState::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useT
 		else
 		{
 			m_iState = STATE_ON;
-			if (pev->spawnflags & SF_ENVSTATE_DEBUG)
+			if ((pev->spawnflags & SF_ENVSTATE_DEBUG) != 0)
 			{
 				ALERT(at_debug, "DEBUG: env_state \"%s\" triggered, turned on", STRING(pev->targetname));
-				if (pev->target)
+				if (pev->target != 0u)
 				{
 					ALERT(at_debug, ": firing \"%s\"", STRING(pev->target));
-					if (pev->noise1)
+					if (pev->noise1 != 0u)
 						ALERT(at_debug, " and \"%s\"", STRING(pev->noise1));
 				}
-				else if (pev->noise1)
+				else if (pev->noise1 != 0u)
 					ALERT(at_debug, ": firing \"%s\"", STRING(pev->noise1));
 				ALERT(at_debug, ".\n");
 			}
@@ -314,16 +314,16 @@ void CEnvState::Think()
 	if (m_iState == STATE_TURN_ON)
 	{
 		m_iState = STATE_ON;
-		if (pev->spawnflags & SF_ENVSTATE_DEBUG)
+		if ((pev->spawnflags & SF_ENVSTATE_DEBUG) != 0)
 		{
 			ALERT(at_debug, "DEBUG: env_state \"%s\" turned itself on", STRING(pev->targetname));
-			if (pev->target)
+			if (pev->target != 0u)
 			{
 				ALERT(at_debug, ": firing %s", STRING(pev->target));
-				if (pev->noise1)
+				if (pev->noise1 != 0u)
 					ALERT(at_debug, " and %s", STRING(pev->noise1));
 			}
-			else if (pev->noise1)
+			else if (pev->noise1 != 0u)
 				ALERT(at_debug, ": firing %s", STRING(pev->noise1));
 			ALERT(at_debug, ".\n");
 		}
@@ -333,14 +333,14 @@ void CEnvState::Think()
 	else if (m_iState == STATE_TURN_OFF)
 	{
 		m_iState = STATE_OFF;
-		if (pev->spawnflags & SF_ENVSTATE_DEBUG)
+		if ((pev->spawnflags & SF_ENVSTATE_DEBUG) != 0)
 		{
 			ALERT(at_debug, "DEBUG: env_state \"%s\" turned itself off", STRING(pev->targetname));
-			if (pev->target)
+			if (pev->target != 0u)
 				ALERT(at_debug, ": firing %s", STRING(pev->target));
-			if (pev->noise2)
+			if (pev->noise2 != 0u)
 				ALERT(at_debug, " and %s", STRING(pev->noise2));
-			else if (pev->noise2)
+			else if (pev->noise2 != 0u)
 				ALERT(at_debug, ": firing %s", STRING(pev->noise2));
 			ALERT(at_debug, ".\n");
 		}
@@ -414,7 +414,7 @@ void CMultiSource::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE u
 	// if we didn't find it, report error and leave
 	if (i > m_iTotal)
 	{
-		if (pCaller->pev->targetname)
+		if (pCaller->pev->targetname != 0u)
 			ALERT(at_debug, "multisource \"%s\": Used by non-member %s \"%s\"\n", STRING(pev->targetname), STRING(pCaller->pev->classname), STRING(pCaller->pev->targetname));
 		else
 			ALERT(at_debug, "multisource \"%s\": Used by non-member %s\n", STRING(pev->targetname), STRING(pCaller->pev->classname));
@@ -436,14 +436,14 @@ void CMultiSource::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE u
 	if (s == GetState())
 		return;
 
-	if (s == STATE_ON && pev->netname)
+	if (s == STATE_ON && (pev->netname != 0u))
 	{
 		// the change disabled me and I have a "fire on disable" field
 		ALERT(at_aiconsole, "Multisource %s deactivated (%d inputs)\n", STRING(pev->targetname), m_iTotal);
-		if (m_globalstate)
-			FireTargets(STRING(pev->netname), NULL, this, USE_OFF, 0);
+		if (m_globalstate != 0u)
+			FireTargets(STRING(pev->netname), nullptr, this, USE_OFF, 0);
 		else
-			FireTargets(STRING(pev->netname), NULL, this, USE_TOGGLE, 0);
+			FireTargets(STRING(pev->netname), nullptr, this, USE_TOGGLE, 0);
 	}
 	else if (s == STATE_OFF)
 	{
@@ -452,7 +452,7 @@ void CMultiSource::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE u
 		USE_TYPE useType = USE_TOGGLE;
 		if (!FStringNull(m_globalstate))
 			useType = USE_ON;
-		SUB_UseTargets(NULL, useType, 0);
+		SUB_UseTargets(nullptr, useType, 0);
 	}
 }
 
@@ -492,16 +492,16 @@ void CMultiSource::Register()
 
 	// search for all entities which target this multisource (pev->targetname)
 
-	CBaseEntity* pTarget = UTIL_FindEntityByTarget(NULL, STRING(pev->targetname));
-	while (pTarget && (m_iTotal < MS_MAX_TARGETS))
+	CBaseEntity* pTarget = UTIL_FindEntityByTarget(nullptr, STRING(pev->targetname));
+	while ((pTarget != nullptr) && (m_iTotal < MS_MAX_TARGETS))
 	{
 		m_rgEntities[m_iTotal++] = pTarget;
 
 		pTarget = UTIL_FindEntityByTarget(pTarget, STRING(pev->targetname));
 	}
 
-	pTarget = UTIL_FindEntityByClassname(NULL, "multi_manager");
-	while (pTarget && (m_iTotal < MS_MAX_TARGETS))
+	pTarget = UTIL_FindEntityByClassname(nullptr, "multi_manager");
+	while ((pTarget != nullptr) && (m_iTotal < MS_MAX_TARGETS))
 	{
 		if (pTarget->HasTarget(pev->targetname))
 			m_rgEntities[m_iTotal++] = pTarget;
@@ -527,8 +527,8 @@ void CMultiSource::Register()
 int CBaseButton::ObjectCaps()
 {
 	return (CBaseToggle::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) |
-		   (pev->takedamage ? 0 : FCAP_IMPULSE_USE) |
-		   (pev->spawnflags & SF_BUTTON_ONLYDIRECT ? FCAP_ONLYDIRECT_USE : 0);
+		   ((pev->takedamage != 0.0f) ? 0 : FCAP_IMPULSE_USE) |
+		   (((pev->spawnflags & SF_BUTTON_ONLYDIRECT) != 0) ? FCAP_ONLYDIRECT_USE : 0);
 }
 
 // CBaseButton
@@ -699,10 +699,10 @@ bool CBaseButton::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, fl
 	if (code == BUTTON_NOTHING)
 		return false;
 	// Temporarily disable the touch function, until movement is finished.
-	SetTouch(NULL);
+	SetTouch(nullptr);
 
 	m_hActivator = CBaseEntity::Instance(pevAttacker);
-	if (m_hActivator == NULL)
+	if (m_hActivator == nullptr)
 		return false;
 
 	if (code == BUTTON_RETURN)
@@ -800,7 +800,7 @@ void CBaseButton::Spawn()
 
 
 	// Is this a non-moving button?
-	if (((m_vecPosition2 - m_vecPosition1).Length() < 1) || (pev->spawnflags & SF_BUTTON_DONTMOVE))
+	if (((m_vecPosition2 - m_vecPosition1).Length() < 1) || ((pev->spawnflags & SF_BUTTON_DONTMOVE) != 0))
 		m_vecPosition2 = m_vecPosition1;
 
 	m_fStayPushed = (m_flWait == -1 ? true : false);
@@ -818,7 +818,7 @@ void CBaseButton::Spawn()
 	}
 	else
 	{
-		SetTouch(NULL);
+		SetTouch(nullptr);
 		if (FBitSet(pev->spawnflags, SF_BUTTON_USEKEY))
 			SetUse(&CBaseButton::ButtonUse_IgnorePlayer);
 		else
@@ -829,7 +829,7 @@ void CBaseButton::Spawn()
 //LRC
 void CBaseButton::PostSpawn()
 {
-	if (m_pMoveWith)
+	if (m_pMoveWith != nullptr)
 		m_vecPosition1 = pev->origin - m_pMoveWith->pev->origin;
 	else
 		m_vecPosition1 = pev->origin;
@@ -993,7 +993,7 @@ void CBaseButton::ButtonUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_T
 //LRC - they had it set up so that a touch-only button couldn't even be triggered!?
 void CBaseButton::ButtonUse_IgnorePlayer(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	if (!pCaller || !pCaller->IsPlayer())
+	if ((pCaller == nullptr) || !pCaller->IsPlayer())
 		ButtonUse(pActivator, pCaller, useType, value);
 }
 
@@ -1043,7 +1043,7 @@ void CBaseButton::ButtonTouch(CBaseEntity* pOther)
 	}
 
 	// Temporarily disable the touch function, until movement is finished.
-	SetTouch(NULL);
+	SetTouch(nullptr);
 
 	if (code == BUTTON_RETURN)
 	{
@@ -1080,7 +1080,7 @@ void CBaseButton::ButtonActivate()
 	//LRC - unhelpfully, SF_BUTTON_DONTMOVE is the same value as
 	// SF_ROTBUTTON_NOTSOLID, so we have to assume that a rotbutton will
 	// never be DONTMOVE.
-	if (pev->spawnflags & SF_BUTTON_DONTMOVE && !m_fRotating)
+	if (((pev->spawnflags & SF_BUTTON_DONTMOVE) != 0) && !m_fRotating)
 	{
 		TriggerAndWait();
 	}
@@ -1122,7 +1122,7 @@ void CBaseButton::TriggerAndWait()
 		if (!FBitSet(pev->spawnflags, SF_BUTTON_TOUCH_ONLY)) // this button only works if USED, not touched!
 		{
 			// ALL buttons are now use only
-			SetTouch(NULL);
+			SetTouch(nullptr);
 		}
 		else
 			SetTouch(&CBaseButton::ButtonTouch);
@@ -1130,7 +1130,7 @@ void CBaseButton::TriggerAndWait()
 	else
 	{
 		SetThink(&CBaseButton::ButtonReturn);
-		if (m_flWait)
+		if (m_flWait != 0.0f)
 		{
 			SetNextThink(m_flWait);
 		}
@@ -1158,7 +1158,7 @@ void CBaseButton::ButtonReturn()
 	else if (m_iStyle <= -32)
 		LIGHT_STYLE(-m_iStyle, "a");
 
-	if (pev->spawnflags & SF_BUTTON_DONTMOVE)
+	if ((pev->spawnflags & SF_BUTTON_DONTMOVE) != 0)
 	{
 		ButtonBackHome();
 	}
@@ -1191,7 +1191,7 @@ void CBaseButton::ButtonBackHome()
 
 	if (!FStringNull(pev->target))
 	{
-		CBaseEntity* pTarget = NULL;
+		CBaseEntity* pTarget = nullptr;
 		for (;;)
 		{
 			pTarget = UTIL_FindEntityByTargetname(pTarget, STRING(pev->target), m_hActivator);
@@ -1211,7 +1211,7 @@ void CBaseButton::ButtonBackHome()
 	if (!FBitSet(pev->spawnflags, SF_BUTTON_TOUCH_ONLY)) // this button only works if USED, not touched!
 	{
 		// All buttons are now use only
-		SetTouch(NULL);
+		SetTouch(nullptr);
 	}
 	else
 		SetTouch(&CBaseButton::ButtonTouch);
@@ -1303,7 +1303,7 @@ void CRotButton::Spawn()
 	// if the button is flagged for USE button activation only, take away it's touch function and add a use function
 	if (!FBitSet(pev->spawnflags, SF_BUTTON_TOUCH_ONLY))
 	{
-		SetTouch(NULL);
+		SetTouch(nullptr);
 		if (FBitSet(pev->spawnflags, SF_BUTTON_USEKEY))
 			SetUse(&CRotButton::ButtonUse_IgnorePlayer);
 		else
@@ -1460,7 +1460,7 @@ void CMomentaryRotButton::UpdateAllButtons(float value, bool start)
 {
 	// Update all rot buttons attached to my target
 	// (this includes myself)
-	CBaseEntity* pTarget = NULL;
+	CBaseEntity* pTarget = nullptr;
 	for (;;)
 	{
 		pTarget = UTIL_FindEntityByTarget(pTarget, STRING(pev->target));
@@ -1528,11 +1528,11 @@ void CMomentaryRotButton::UpdateTarget(float value)
 {
 	if (!FStringNull(pev->target))
 	{
-		CBaseEntity* pTarget = NULL;
+		CBaseEntity* pTarget = nullptr;
 		for (;;)
 		{
 			pTarget = UTIL_FindEntityByTargetname(pTarget, STRING(pev->target));
-			if (!pTarget)
+			if (pTarget == nullptr)
 				break;
 			pTarget->Use(this, this, USE_SET, value);
 		}
@@ -1550,7 +1550,7 @@ void CMomentaryRotButton::Off()
 		m_direction = -1;
 	}
 	else
-		SetThink(NULL);
+		SetThink(nullptr);
 }
 
 void CMomentaryRotButton::Return()
@@ -1570,7 +1570,7 @@ void CMomentaryRotButton::UpdateSelfReturn(float value)
 		pev->avelocity = g_vecZero;
 		pev->angles = m_start;
 		DontThink();
-		SetThink(NULL);
+		SetThink(nullptr);
 	}
 	else
 	{
@@ -1620,8 +1620,8 @@ LINK_ENTITY_TO_CLASS(env_debris, CEnvSpark);
 
 void CEnvSpark::Spawn()
 {
-	SetThink(NULL);
-	SetUse(NULL);
+	SetThink(nullptr);
+	SetUse(nullptr);
 
 	if (FBitSet(pev->spawnflags, 16))
 	{
@@ -1640,7 +1640,7 @@ void CEnvSpark::Spawn()
 	else
 		SetThink(&CEnvSpark::SparkThink);
 
-	if (this->m_pfnThink)
+	if (this->m_pfnThink != nullptr)
 	{
 		SetNextThink(0.1 + RANDOM_FLOAT(0, 1.5));
 
@@ -1682,7 +1682,7 @@ bool CEnvSpark::KeyValue(KeyValueData* pkvd)
 
 void EXPORT CEnvSpark::SparkCyclic(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	if (m_pfnThink == NULL)
+	if (m_pfnThink == nullptr)
 	{
 		DoSpark(pev, pev->origin);
 		SetThink(&CEnvSpark::SparkWait);
@@ -1696,15 +1696,15 @@ void EXPORT CEnvSpark::SparkCyclic(CBaseEntity* pActivator, CBaseEntity* pCaller
 
 void EXPORT CEnvSpark::SparkWait()
 {
-	SetThink(NULL);
+	SetThink(nullptr);
 }
 
 void EXPORT CEnvSpark::SparkThink()
 {
 	DoSpark(pev, pev->origin);
-	if (pev->spawnflags & 16)
+	if ((pev->spawnflags & 16) != 0)
 	{
-		SetThink(NULL);
+		SetThink(nullptr);
 	}
 	else
 	{
@@ -1723,7 +1723,7 @@ void EXPORT CEnvSpark::SparkStart(CBaseEntity* pActivator, CBaseEntity* pCaller,
 void EXPORT CEnvSpark::SparkStop(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
 	SetUse(&CEnvSpark::SparkStart);
-	SetThink(NULL);
+	SetThink(nullptr);
 	m_iState = STATE_OFF; //LRC
 }
 //G-Cont. flag 16 is removed - we don't need this
@@ -1765,7 +1765,7 @@ bool CButtonTarget::KeyValue(KeyValueData* pkvd) //AJH
 void CButtonTarget::Spawn()
 {
 	pev->movetype = MOVETYPE_PUSH;
-	if (pev->spawnflags & SF_BTARGET_SOLIDNOT)
+	if ((pev->spawnflags & SF_BTARGET_SOLIDNOT) != 0)
 	{							//AJH - non solid button targets
 		pev->solid = SOLID_NOT; //note: setting non solid will stop
 	}
@@ -1776,7 +1776,7 @@ void CButtonTarget::Spawn()
 
 	SET_MODEL(ENT(pev), STRING(pev->model));
 
-	if (pev->spawnflags & SF_BTARGET_NOSHOT)
+	if ((pev->spawnflags & SF_BTARGET_NOSHOT) != 0)
 	{								 //AJH - Don't allow triggering when shot
 		pev->takedamage = DAMAGE_NO; //Default: allow triggering
 	}

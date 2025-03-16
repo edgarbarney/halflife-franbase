@@ -393,7 +393,7 @@ void CAGrunt::PainSound()
 //=========================================================
 int CAGrunt::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_ALIEN_MILITARY;
+	return (m_iClass != 0) ? m_iClass : CLASS_ALIEN_MILITARY;
 }
 
 //=========================================================
@@ -497,12 +497,12 @@ void CAGrunt::HandleAnimEvent(MonsterEvent_t* pEvent)
 		//LRC - hornets have the same allegiance as their creators
 		pHornetMonster->m_iPlayerReact = m_iPlayerReact;
 		pHornetMonster->m_iClass = m_iClass;
-		if (m_afMemory & bits_MEMORY_PROVOKED) // if I'm mad at the player, so are my hornets
+		if ((m_afMemory & bits_MEMORY_PROVOKED) != 0) // if I'm mad at the player, so are my hornets
 			pHornetMonster->Remember(bits_MEMORY_PROVOKED);
 
-		if (pHornetMonster)
+		if (pHornetMonster != nullptr)
 		{
-			if (m_pCine && m_pCine->PreciseAttack()) //LRC- are we doing a scripted action?
+			if ((m_pCine != nullptr) && m_pCine->PreciseAttack()) //LRC- are we doing a scripted action?
 				pHornetMonster->m_hEnemy = m_hTargetEnt;
 			else
 				pHornetMonster->m_hEnemy = m_hEnemy;
@@ -539,7 +539,7 @@ void CAGrunt::HandleAnimEvent(MonsterEvent_t* pEvent)
 	{
 		CBaseEntity* pHurt = CheckTraceHullAttack(AGRUNT_MELEE_DIST, gSkillData.agruntDmgPunch, DMG_CLUB);
 
-		if (pHurt)
+		if (pHurt != nullptr)
 		{
 			pHurt->pev->punchangle.y = -25;
 			pHurt->pev->punchangle.x = 8;
@@ -569,7 +569,7 @@ void CAGrunt::HandleAnimEvent(MonsterEvent_t* pEvent)
 	{
 		CBaseEntity* pHurt = CheckTraceHullAttack(AGRUNT_MELEE_DIST, gSkillData.agruntDmgPunch, DMG_CLUB);
 
-		if (pHurt)
+		if (pHurt != nullptr)
 		{
 			pHurt->pev->punchangle.y = 25;
 			pHurt->pev->punchangle.x = 8;
@@ -608,7 +608,7 @@ void CAGrunt::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/agrunt.mdl");
@@ -638,7 +638,7 @@ void CAGrunt::Spawn()
 //=========================================================
 void CAGrunt::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/agrunt.mdl");
@@ -914,7 +914,7 @@ bool CAGrunt::FCanCheckAttacks()
 //=========================================================
 bool CAGrunt::CheckMeleeAttack1(float flDot, float flDist)
 {
-	if (HasConditions(bits_COND_SEE_ENEMY) && flDist <= AGRUNT_MELEE_DIST && flDot >= 0.6 && m_hEnemy != NULL)
+	if (HasConditions(bits_COND_SEE_ENEMY) && flDist <= AGRUNT_MELEE_DIST && flDot >= 0.6 && m_hEnemy != nullptr)
 	{
 		return true;
 	}
@@ -970,7 +970,7 @@ void CAGrunt::StartTask(Task_t* pTask)
 	case TASK_AGRUNT_GET_PATH_TO_ENEMY_CORPSE:
 	{
 		UTIL_MakeVectors(pev->angles);
-		if (BuildRoute(m_vecEnemyLKP - gpGlobals->v_forward * 50, bits_MF_TO_LOCATION, NULL))
+		if (BuildRoute(m_vecEnemyLKP - gpGlobals->v_forward * 50, bits_MF_TO_LOCATION, nullptr))
 		{
 			TaskComplete();
 		}
@@ -991,7 +991,7 @@ void CAGrunt::StartTask(Task_t* pTask)
 
 		pEnemyMonsterPtr = m_hEnemy->MyMonsterPointer();
 
-		if (pEnemyMonsterPtr)
+		if (pEnemyMonsterPtr != nullptr)
 		{
 			Vector vecCenter;
 			TraceResult tr;
@@ -1074,8 +1074,8 @@ Schedule_t* CAGrunt::GetSchedule()
 		CSound* pSound;
 		pSound = PBestSound();
 
-		ASSERT(pSound != NULL);
-		if (pSound && (pSound->m_iType & bits_SOUND_DANGER) != 0)
+		ASSERT(pSound != nullptr);
+		if ((pSound != nullptr) && (pSound->m_iType & bits_SOUND_DANGER) != 0)
 		{
 			// dangerous sound nearby!
 			return GetScheduleOfType(SCHED_TAKE_COVER_FROM_BEST_SOUND);
@@ -1171,7 +1171,7 @@ Schedule_t* CAGrunt::GetScheduleOfType(int Type)
 	case SCHED_FAIL:
 		// no fail schedule specified, so pick a good generic one.
 		{
-			if (m_hEnemy != NULL)
+			if (m_hEnemy != nullptr)
 			{
 				// I have an enemy
 				// !!!LATER - what if this enemy is really far away and i'm chasing him?
@@ -1191,7 +1191,7 @@ Schedule_t* CAGrunt::GetScheduleOfType(int Type)
 
 void CAGrunt::Killed(entvars_t* pevAttacker, int iGib)
 {
-	if (pev->spawnflags & SF_MONSTER_NO_WPN_DROP)
+	if ((pev->spawnflags & SF_MONSTER_NO_WPN_DROP) != 0)
 	{ // drop the hornetgun!
 		Vector vecGunPos;
 		Vector vecGunAngles;

@@ -62,12 +62,12 @@ void CGib::SpawnStickyGibs(entvars_t* pevVictim, Vector vecOrigin, int cGibs)
 
 	for (i = 0; i < cGibs; i++)
 	{
-		CGib* pGib = GetClassPtr((CGib*)NULL);
+		CGib* pGib = GetClassPtr((CGib*)nullptr);
 
 		pGib->Spawn("models/stickygib.mdl");
 		pGib->pev->body = RANDOM_LONG(0, 2);
 
-		if (pevVictim)
+		if (pevVictim != nullptr)
 		{
 			pGib->pev->origin.x = vecOrigin.x + RANDOM_FLOAT(-3, 3);
 			pGib->pev->origin.y = vecOrigin.y + RANDOM_FLOAT(-3, 3);
@@ -113,7 +113,7 @@ void CGib::SpawnStickyGibs(entvars_t* pevVictim, Vector vecOrigin, int cGibs)
 			pGib->pev->solid = SOLID_BBOX;
 			UTIL_SetSize(pGib->pev, Vector(0, 0, 0), Vector(0, 0, 0));
 			pGib->SetTouch(&CGib::StickyGibTouch);
-			pGib->SetThink(NULL);
+			pGib->SetThink(nullptr);
 		}
 		pGib->LimitVelocity();
 	}
@@ -129,18 +129,18 @@ void CGib::SpawnHeadGib(entvars_t* pevVictim)
 
 void CGib::SpawnHeadGib(entvars_t* pevVictim, const char* szGibModel)
 {
-	CGib* pGib = GetClassPtr((CGib*)NULL);
+	CGib* pGib = GetClassPtr((CGib*)nullptr);
 
 	pGib->Spawn(szGibModel); // throw one head
 	pGib->pev->body = 0;
 
-	if (pevVictim)
+	if (pevVictim != nullptr)
 	{
 		pGib->pev->origin = pevVictim->origin + pevVictim->view_ofs;
 
 		edict_t* pentPlayer = FIND_CLIENT_IN_PVS(pGib->edict());
 
-		if (RANDOM_LONG(0, 100) <= 5 && pentPlayer)
+		if (RANDOM_LONG(0, 100) <= 5 && (pentPlayer != nullptr))
 		{
 			// 5% chance head will be thrown at player's face.
 			entvars_t* pevPlayer;
@@ -180,11 +180,11 @@ void CGib::SpawnHeadGib(entvars_t* pevVictim, const char* szGibModel)
 void CGib::SpawnRandomGibs(entvars_t* pevVictim, int cGibs, bool human)
 {
 	if (g_Language == LANGUAGE_GERMAN)
-		SpawnRandomGibs(pevVictim, cGibs, 1, "models/germangibs.mdl");
+		SpawnRandomGibs(pevVictim, cGibs, true, "models/germangibs.mdl");
 	else if (human)
-		SpawnRandomGibs(pevVictim, cGibs, 1, "models/hgibs.mdl");
+		SpawnRandomGibs(pevVictim, cGibs, true, "models/hgibs.mdl");
 	else
-		SpawnRandomGibs(pevVictim, cGibs, 0, "models/agibs.mdl");
+		SpawnRandomGibs(pevVictim, cGibs, false, "models/agibs.mdl");
 }
 
 //LRC - changed signature, to support custom gib models
@@ -193,12 +193,12 @@ void CGib::SpawnRandomGibs(entvars_t* pevVictim, int cGibs, bool notfirst, const
 	if (cGibs == 0)
 		return; // spawn nothing!
 
-	CGib* pGib = GetClassPtr((CGib*)NULL);
+	CGib* pGib = GetClassPtr((CGib*)nullptr);
 	pGib->Spawn(szGibModel);
 
 	//LRC - check the model itself to find out how many gibs are available
 	studiohdr_t* pstudiohdr = (studiohdr_t*)(GET_MODEL_PTR(ENT(pGib->pev)));
-	if (!pstudiohdr)
+	if (pstudiohdr == nullptr)
 		return;
 
 	mstudiobodyparts_t* pbodypart = (mstudiobodyparts_t*)((byte*)pstudiohdr + pstudiohdr->bodypartindex);
@@ -206,9 +206,9 @@ void CGib::SpawnRandomGibs(entvars_t* pevVictim, int cGibs, bool notfirst, const
 
 	for (int cSplat = 0; cSplat < cGibs; cSplat++)
 	{
-		if (pGib == NULL) // first time through, we set pGib before the loop started
+		if (pGib == nullptr) // first time through, we set pGib before the loop started
 		{
-			pGib = GetClassPtr((CGib*)NULL);
+			pGib = GetClassPtr((CGib*)nullptr);
 			pGib->Spawn(szGibModel);
 		}
 
@@ -217,7 +217,7 @@ void CGib::SpawnRandomGibs(entvars_t* pevVictim, int cGibs, bool notfirst, const
 		else
 			pGib->pev->body = RANDOM_LONG(0, pbodypart->nummodels - 1);
 
-		if (pevVictim)
+		if (pevVictim != nullptr)
 		{
 			// spawn the gib somewhere in the monster's bounding volume
 			pGib->pev->origin.x = pevVictim->absmin.x + pevVictim->size.x * (RANDOM_FLOAT(0, 1));
@@ -257,7 +257,7 @@ void CGib::SpawnRandomGibs(entvars_t* pevVictim, int cGibs, bool notfirst, const
 			UTIL_SetSize(pGib->pev, Vector(0, 0, 0), Vector(0, 0, 0));
 		}
 		pGib->LimitVelocity();
-		pGib = NULL; //LRC
+		pGib = nullptr; //LRC
 	}
 }
 
@@ -342,12 +342,12 @@ void CBaseMonster::GibMonster()
 
 	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/bodysplat.wav", 1, ATTN_NORM);
 
-	if (iszCustomGibs = HasCustomGibs()) //LRC - monster_generic can have a custom gibset
+	if (iszCustomGibs = static_cast<int>(HasCustomGibs() != 0)) //LRC - monster_generic can have a custom gibset
 	{
 		if (CVAR_GET_FLOAT("violence_hgibs") != 0)
 		{
 			CGib::SpawnHeadGib(pev, STRING(iszCustomGibs));
-			CGib::SpawnRandomGibs(pev, 4, 1, STRING(iszCustomGibs));
+			CGib::SpawnRandomGibs(pev, 4, true, STRING(iszCustomGibs));
 		}
 		gibbed = true;
 	}
@@ -654,7 +654,7 @@ void CBaseMonster::Killed(entvars_t* pevAttacker, int iGib)
 
 	// tell owner ( if any ) that we're dead.This is mostly for MonsterMaker functionality.
 	CBaseEntity* pOwner = CBaseEntity::Instance(pev->owner);
-	if (pOwner)
+	if (pOwner != nullptr)
 	{
 		pOwner->DeathNotice(pev);
 	}
@@ -666,7 +666,7 @@ void CBaseMonster::Killed(entvars_t* pevAttacker, int iGib)
 	}
 	else if ((pev->flags & FL_MONSTER) != 0)
 	{
-		SetTouch(NULL);
+		SetTouch(nullptr);
 		BecomeDead();
 	}
 
@@ -910,7 +910,7 @@ bool CBaseMonster::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, f
 	if (!FNullEnt(pevInflictor))
 	{
 		CBaseEntity* pInflictor = CBaseEntity::Instance(pevInflictor);
-		if (pInflictor)
+		if (pInflictor != nullptr)
 		{
 			vecDir = (pInflictor->Center() - Vector(0, 0, 10) - Center()).Normalize();
 			vecDir = g_vecAttackDir = vecDir.Normalize();
@@ -922,7 +922,7 @@ bool CBaseMonster::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, f
 	// todo: remove after combining shotgun blasts?
 	if (IsPlayer())
 	{
-		if (pevInflictor)
+		if (pevInflictor != nullptr)
 			pev->dmg_inflictor = ENT(pevInflictor);
 
 		pev->dmg_take += flTake;
@@ -935,7 +935,7 @@ bool CBaseMonster::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, f
 	}
 
 	// if this is a player, move him around!
-	if ((!FNullEnt(pevInflictor)) && (pev->movetype == MOVETYPE_WALK) && (!pevAttacker || pevAttacker->solid != SOLID_TRIGGER))
+	if ((!FNullEnt(pevInflictor)) && (pev->movetype == MOVETYPE_WALK) && ((pevAttacker == nullptr) || pevAttacker->solid != SOLID_TRIGGER))
 	{
 		pev->velocity = pev->velocity + vecDir * -DamageForce(flDamage);
 	}
@@ -968,7 +968,7 @@ bool CBaseMonster::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, f
 			Killed(pevAttacker, GIB_NORMAL);
 		}
 
-		g_pevLastInflictor = NULL;
+		g_pevLastInflictor = nullptr;
 
 		return false;
 	}
@@ -977,7 +977,7 @@ bool CBaseMonster::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, f
 	if ((pev->flags & FL_MONSTER) != 0 && !FNullEnt(pevAttacker))
 	{
 		//LRC - new behaviours, for m_iPlayerReact.
-		if (pevAttacker->flags & FL_CLIENT)
+		if ((pevAttacker->flags & FL_CLIENT) != 0)
 		{
 			if (m_iPlayerReact == 2)
 			{
@@ -987,9 +987,9 @@ bool CBaseMonster::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, f
 			else if (m_iPlayerReact == 3)
 			{
 				// try to decide whether it was deliberate... if I have an enemy, assume it was just crossfire.
-				if (m_hEnemy == NULL)
+				if (m_hEnemy == nullptr)
 				{
-					if ((m_afMemory & bits_MEMORY_SUSPICIOUS) || UTIL_IsFacing(pevAttacker, pev->origin))
+					if (((m_afMemory & bits_MEMORY_SUSPICIOUS) != 0) || UTIL_IsFacing(pevAttacker, pev->origin))
 						Remember(bits_MEMORY_PROVOKED);
 					else
 						Remember(bits_MEMORY_SUSPICIOUS);
@@ -1001,9 +1001,9 @@ bool CBaseMonster::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, f
 		{ // only if the attack was a monster or client!
 
 			// enemy's last known position is somewhere down the vector that the attack came from.
-			if (pevInflictor)
+			if (pevInflictor != nullptr)
 			{
-				if (m_hEnemy == NULL || pevInflictor == m_hEnemy->pev || !HasConditions(bits_COND_SEE_ENEMY))
+				if (m_hEnemy == nullptr || pevInflictor == m_hEnemy->pev || !HasConditions(bits_COND_SEE_ENEMY))
 				{
 					m_vecEnemyLKP = pevInflictor->origin;
 				}
@@ -1046,7 +1046,7 @@ bool CBaseMonster::DeadTakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacke
 	if (!FNullEnt(pevInflictor))
 	{
 		CBaseEntity* pInflictor = CBaseEntity::Instance(pevInflictor);
-		if (pInflictor)
+		if (pInflictor != nullptr)
 		{
 			vecDir = (pInflictor->Center() - Vector(0, 0, 10) - Center()).Normalize();
 			vecDir = g_vecAttackDir = vecDir.Normalize();
@@ -1103,7 +1103,7 @@ float CBaseMonster::DamageForce(float damage)
 
 void RadiusDamage(Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType)
 {
-	CBaseEntity* pEntity = NULL;
+	CBaseEntity* pEntity = nullptr;
 	TraceResult tr;
 	float flAdjustedDamage, falloff;
 	Vector vecSpot;
@@ -1117,11 +1117,11 @@ void RadiusDamage(Vector vecSrc, entvars_t* pevInflictor, entvars_t* pevAttacker
 
 	vecSrc.z += 1; // in case grenade is lying on the ground
 
-	if (!pevAttacker)
+	if (pevAttacker == nullptr)
 		pevAttacker = pevInflictor;
 
 	// iterate on all entities in the vicinity.
-	while ((pEntity = UTIL_FindEntityInSphere(pEntity, vecSrc, flRadius)) != NULL)
+	while ((pEntity = UTIL_FindEntityInSphere(pEntity, vecSrc, flRadius)) != nullptr)
 	{
 		if (pEntity->pev->takedamage != DAMAGE_NO)
 		{
@@ -1211,7 +1211,7 @@ CBaseEntity* CBaseMonster::CheckTraceHullAttack(float flDist, int iDamage, int i
 
 	UTIL_TraceHull(vecStart, vecEnd, dont_ignore_monsters, head_hull, ENT(pev), &tr);
 
-	if (tr.pHit)
+	if (tr.pHit != nullptr)
 	{
 		CBaseEntity* pEntity = CBaseEntity::Instance(tr.pHit);
 
@@ -1223,7 +1223,7 @@ CBaseEntity* CBaseMonster::CheckTraceHullAttack(float flDist, int iDamage, int i
 		return pEntity;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 
@@ -1453,7 +1453,7 @@ void CBaseEntity::FireBullets(unsigned int cShots, Vector vecSrc, Vector vecDirS
 	Vector vecRight = gpGlobals->v_right;
 	Vector vecUp = gpGlobals->v_up;
 
-	if (pevAttacker == NULL)
+	if (pevAttacker == nullptr)
 		pevAttacker = pev; // the default attacker is ourselves
 
 	ClearMultiDamage();
@@ -1609,7 +1609,7 @@ Vector CBaseEntity::FireBulletsPlayer(unsigned int cShots, Vector vecSrc, Vector
 	Vector vecUp = gpGlobals->v_up;
 	float x = 0, y = 0, z;
 
-	if (pevAttacker == NULL)
+	if (pevAttacker == nullptr)
 		pevAttacker = pev; // the default attacker is ourselves
 
 	ClearMultiDamage();

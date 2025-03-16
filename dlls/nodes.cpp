@@ -60,38 +60,38 @@ void CGraph::InitGraph()
 
 	// Free the link pool
 	//
-	if (m_pLinkPool)
+	if (m_pLinkPool != nullptr)
 	{
 		free(m_pLinkPool);
-		m_pLinkPool = NULL;
+		m_pLinkPool = nullptr;
 	}
 
 	// Free the node info
 	//
-	if (m_pNodes)
+	if (m_pNodes != nullptr)
 	{
 		free(m_pNodes);
-		m_pNodes = NULL;
+		m_pNodes = nullptr;
 	}
 
-	if (m_di)
+	if (m_di != nullptr)
 	{
 		free(m_di);
-		m_di = NULL;
+		m_di = nullptr;
 	}
 
 	// Free the routing info.
 	//
-	if (m_pRouteInfo)
+	if (m_pRouteInfo != nullptr)
 	{
 		free(m_pRouteInfo);
-		m_pRouteInfo = NULL;
+		m_pRouteInfo = nullptr;
 	}
 
-	if (m_pHashLinks)
+	if (m_pHashLinks != nullptr)
 	{
 		free(m_pHashLinks);
-		m_pHashLinks = NULL;
+		m_pHashLinks = nullptr;
 	}
 
 	// Zero node and link counts
@@ -115,7 +115,7 @@ bool CGraph::AllocNodes()
 	m_pNodes = (CNode*)calloc(sizeof(CNode), MAX_NODES);
 
 	// could not malloc space for all the nodes!
-	if (!m_pNodes)
+	if (m_pNodes == nullptr)
 	{
 		ALERT(at_aiconsole, "**ERROR**\nCouldn't malloc %d nodes!\n", m_cNodes);
 		return false;
@@ -146,10 +146,10 @@ entvars_t* CGraph::LinkEntForLink(CLink* pLink, CNode* pNode)
 	TraceResult tr;
 
 	pevLinkEnt = pLink->m_pLinkEnt;
-	if (!pevLinkEnt)
-		return NULL;
+	if (pevLinkEnt == nullptr)
+		return nullptr;
 
-	pSearch = NULL; // start search at the top of the ent list.
+	pSearch = nullptr; // start search at the top of the ent list.
 
 	if (FClassnameIs(pevLinkEnt, "func_door") || FClassnameIs(pevLinkEnt, "func_door_rotating"))
 	{
@@ -166,7 +166,7 @@ entvars_t* CGraph::LinkEntForLink(CLink* pLink, CNode* pNode)
 		{
 			pTrigger = UTIL_FindEntityByTarget(pSearch, STRING(pevLinkEnt->targetname)); // find the button or trigger
 
-			if (!pTrigger)
+			if (pTrigger == nullptr)
 			{ // no trigger found
 
 				// right now this is a problem among auto-open doors, or any door that opens through the use
@@ -196,7 +196,7 @@ entvars_t* CGraph::LinkEntForLink(CLink* pLink, CNode* pNode)
 	else
 	{
 		ALERT(at_aiconsole, "Unsupported PathEnt:\n'%s'\n", STRING(pevLinkEnt->classname));
-		return NULL;
+		return nullptr;
 	}
 }
 
@@ -223,7 +223,7 @@ bool CGraph::HandleLinkEnt(int iNode, entvars_t* pevLinkEnt, int afCapMask, NODE
 		ALERT(at_aiconsole, "dead path ent!\n");
 		return true;
 	}
-	pentWorld = NULL;
+	pentWorld = nullptr;
 
 	// func_door
 	if (FClassnameIs(pevLinkEnt, "func_door") || FClassnameIs(pevLinkEnt, "func_door_rotating"))
@@ -691,7 +691,7 @@ int CGraph::FindShortestPath(int* piPath, int iStart, int iDest, int iHull, int 
 					continue;
 				}
 				// check the connection from the current node to the node we're about to mark visited and push into the queue
-				if (m_pLinkPool[m_pNodes[iCurrentNode].m_iFirstLink + i].m_pLinkEnt != NULL)
+				if (m_pLinkPool[m_pNodes[iCurrentNode].m_iFirstLink + i].m_pLinkEnt != nullptr)
 				{ // there's a brush ent in the way! Don't mark this node or put it into the queue unless the monster can negotiate it
 
 					if (!HandleLinkEnt(iCurrentNode, m_pLinkPool[m_pNodes[iCurrentNode].m_iFirstLink + i].m_pLinkEnt, afCapMask, NODEGRAPH_STATIC))
@@ -830,7 +830,7 @@ void CGraph::CheckNode(Vector vecOrigin, int iNode)
 		TraceResult tr;
 
 		// make sure that vecOrigin can trace to this node!
-		UTIL_TraceLine(vecOrigin, m_pNodes[iNode].m_vecOriginPeek, ignore_monsters, 0, &tr);
+		UTIL_TraceLine(vecOrigin, m_pNodes[iNode].m_vecOriginPeek, ignore_monsters, nullptr, &tr);
 
 		if (tr.flFraction == 1.0)
 		{
@@ -1226,7 +1226,7 @@ int CGraph::LinkVisibleNodes(CLink* pLinkPool, FSFile& file, int* piBadNode)
 		{											   // clear out the important fields in the link pool for this node
 			pLinkPool[cTotalLinks + z].m_iSrcNode = i; // so each link knows which node it originates from
 			pLinkPool[cTotalLinks + z].m_iDestNode = 0;
-			pLinkPool[cTotalLinks + z].m_pLinkEnt = NULL;
+			pLinkPool[cTotalLinks + z].m_pLinkEnt = nullptr;
 		}
 
 		m_pNodes[i].m_iFirstLink = cTotalLinks;
@@ -1254,8 +1254,8 @@ int CGraph::LinkVisibleNodes(CLink* pLinkPool, FSFile& file, int* piBadNode)
 			}
 #endif
 
-			tr.pHit = NULL; // clear every time so we don't get stuck with last trace's hit ent
-			pTraceEnt = 0;
+			tr.pHit = nullptr; // clear every time so we don't get stuck with last trace's hit ent
+			pTraceEnt = nullptr;
 
 			UTIL_TraceLine(m_pNodes[i].m_vecOrigin,
 				m_pNodes[j].m_vecOrigin,
@@ -1565,7 +1565,7 @@ void CNodeEnt::Spawn()
 
 	if (WorldGraph.m_cNodes == 0)
 	{ // this is the first node to spawn, spawn the test hull entity that builds and walks the node tree
-		CTestHull* pHull = GetClassPtr((CTestHull*)NULL);
+		CTestHull* pHull = GetClassPtr((CTestHull*)nullptr);
 		pHull->Spawn(pev);
 	}
 
@@ -1673,7 +1673,7 @@ void CTestHull::BuildNodeGraph()
 
 	// 	malloc a swollen temporary connection pool that we trim down after we know exactly how many connections there are.
 	pTempPool = (CLink*)calloc(sizeof(CLink), (WorldGraph.m_cNodes * MAX_NODE_INITIAL_LINKS));
-	if (!pTempPool)
+	if (pTempPool == nullptr)
 	{
 		ALERT(at_aiconsole, "**Could not malloc TempPool!\n");
 		return;
@@ -1690,7 +1690,7 @@ void CTestHull::BuildNodeGraph()
 	{ // file error
 		ALERT(at_aiconsole, "Couldn't create %s!\n", nrpFileName.c_str());
 
-		if (pTempPool)
+		if (pTempPool != nullptr)
 		{
 			free(pTempPool);
 		}
@@ -1758,7 +1758,7 @@ void CTestHull::BuildNodeGraph()
 			if (trEnt.flFraction < tr.flFraction)
 			{
 				// If it was a world brush entity, copy the node location
-				if (trEnt.pHit && (trEnt.pHit->v.flags & FL_WORLDBRUSH) != 0)
+				if ((trEnt.pHit != nullptr) && (trEnt.pHit->v.flags & FL_WORLDBRUSH) != 0)
 					tr.vecEndPos = trEnt.vecEndPos;
 			}
 
@@ -1777,7 +1777,7 @@ void CTestHull::BuildNodeGraph()
 		//pev->solid = SOLID_NOT;
 		pev->origin = WorldGraph.m_pNodes[iBadNode].m_vecOrigin;
 
-		if (pTempPool)
+		if (pTempPool != nullptr)
 		{
 			free(pTempPool);
 		}
@@ -1841,7 +1841,7 @@ void CTestHull::BuildNodeGraph()
 				if (j < 0)
 				{
 					ALERT(at_aiconsole, "**** j = %d ****\n", j);
-					if (pTempPool)
+					if (pTempPool != nullptr)
 					{
 						free(pTempPool);
 					}
@@ -1951,10 +1951,10 @@ void CTestHull::BuildNodeGraph()
 	// now malloc a pool just large enough to hold the links that are actually used
 	WorldGraph.m_pLinkPool = (CLink*)calloc(sizeof(CLink), cPoolLinks);
 
-	if (!WorldGraph.m_pLinkPool)
+	if (WorldGraph.m_pLinkPool == nullptr)
 	{ // couldn't make the link pool!
 		ALERT(at_aiconsole, "Couldn't malloc LinkPool!\n");
-		if (pTempPool)
+		if (pTempPool != nullptr)
 		{
 			free(pTempPool);
 		}
@@ -2043,7 +2043,7 @@ void CTestHull::BuildNodeGraph()
 	}
 
 
-	if (pTempPool)
+	if (pTempPool != nullptr)
 	{ // free the temp pool
 		free(pTempPool);
 	}
@@ -2367,18 +2367,18 @@ bool CGraph::FLoadGraph(const char* szMapName)
 
 	// Set the pointers to zero, just in case we run out of memory.
 	//
-	m_pNodes = NULL;
-	m_pLinkPool = NULL;
-	m_di = NULL;
-	m_pRouteInfo = NULL;
-	m_pHashLinks = NULL;
+	m_pNodes = nullptr;
+	m_pLinkPool = nullptr;
+	m_di = nullptr;
+	m_pRouteInfo = nullptr;
+	m_pHashLinks = nullptr;
 
 
 	// Malloc for the nodes
 	//
 	m_pNodes = (CNode*)calloc(sizeof(CNode), m_cNodes);
 
-	if (!m_pNodes)
+	if (m_pNodes == nullptr)
 	{
 		ALERT(at_aiconsole, "**ERROR**\nCouldn't malloc %d nodes!\n", m_cNodes);
 		return false;
@@ -2397,7 +2397,7 @@ bool CGraph::FLoadGraph(const char* szMapName)
 	//
 	m_pLinkPool = (CLink*)calloc(sizeof(CLink), m_cLinks);
 
-	if (!m_pLinkPool)
+	if (m_pLinkPool == nullptr)
 	{
 		ALERT(at_aiconsole, "**ERROR**\nCouldn't malloc %d link!\n", m_cLinks);
 		return false;
@@ -2414,7 +2414,7 @@ bool CGraph::FLoadGraph(const char* szMapName)
 	// Malloc for the sorting info.
 	//
 	m_di = (DIST_INFO*)calloc(sizeof(DIST_INFO), m_cNodes);
-	if (!m_di)
+	if (m_di == nullptr)
 	{
 		ALERT(at_aiconsole, "***ERROR**\nCouldn't malloc %d entries sorting nodes!\n", m_cNodes);
 		return false;
@@ -2432,7 +2432,7 @@ bool CGraph::FLoadGraph(const char* szMapName)
 	//
 	m_fRoutingComplete = 0;
 	m_pRouteInfo = (char*)calloc(sizeof(char), m_nRouteInfo);
-	if (!m_pRouteInfo)
+	if (m_pRouteInfo == nullptr)
 	{
 		ALERT(at_aiconsole, "***ERROR**\nCounldn't malloc %d route bytes!\n", m_nRouteInfo);
 		return false;
@@ -2455,7 +2455,7 @@ bool CGraph::FLoadGraph(const char* szMapName)
 	// malloc for the hash links
 	//
 	m_pHashLinks = (short*)calloc(sizeof(short), m_nHashLinks);
-	if (!m_pHashLinks)
+	if (m_pHashLinks == nullptr)
 	{
 		ALERT(at_aiconsole, "***ERROR**\nCounldn't malloc %d hash link bytes!\n", m_nHashLinks);
 		return false;
@@ -2526,12 +2526,12 @@ bool CGraph::FSaveGraph(const char* szMapName)
 
 	// Write the route info.
 	//
-	if (m_pRouteInfo && 0 != m_nRouteInfo)
+	if ((m_pRouteInfo != nullptr) && 0 != m_nRouteInfo)
 	{
 		file.Write(m_pRouteInfo, sizeof(char) * m_nRouteInfo);
 	}
 
-	if (m_pHashLinks && 0 != m_nHashLinks)
+	if ((m_pHashLinks != nullptr) && 0 != m_nHashLinks)
 	{
 		file.Write(m_pHashLinks, sizeof(short) * m_nHashLinks);
 	}
@@ -2553,7 +2553,7 @@ bool CGraph::FSetGraphPointers()
 	for (i = 0; i < m_cLinks; i++)
 	{ // go through all of the links
 
-		if (m_pLinkPool[i].m_pLinkEnt != NULL)
+		if (m_pLinkPool[i].m_pLinkEnt != nullptr)
 		{
 			char name[5];
 			// when graphs are saved, any valid pointers are will be non-zero, signifying that we should
@@ -2563,14 +2563,14 @@ bool CGraph::FSetGraphPointers()
 			// m_szLinkEntModelname is not necessarily NULL terminated (so we can store it in a more alignment-friendly 4 bytes)
 			memcpy(name, m_pLinkPool[i].m_szLinkEntModelname, 4);
 			name[4] = 0;
-			pLinkEnt = UTIL_FindEntityByString(NULL, "model", name);
+			pLinkEnt = UTIL_FindEntityByString(nullptr, "model", name);
 
-			if (!pLinkEnt)
+			if (pLinkEnt == nullptr)
 			{
 				// the ent isn't around anymore? Either there is a major problem, or it was removed from the world
 				// ( like a func_breakable that's been destroyed or something ). Make sure that LinkEnt is null.
 				ALERT(at_aiconsole, "**Could not find model %s\n", name);
-				m_pLinkPool[i].m_pLinkEnt = NULL;
+				m_pLinkPool[i].m_pLinkEnt = nullptr;
 			}
 			else
 			{
@@ -2838,7 +2838,7 @@ void CGraph::BuildLinkLookups()
 
 	HashChoosePrimes(m_nHashLinks);
 	m_pHashLinks = (short*)calloc(sizeof(short), m_nHashLinks);
-	if (!m_pHashLinks)
+	if (m_pHashLinks == nullptr)
 	{
 		ALERT(at_aiconsole, "Couldn't allocated Link Lookup Table.\n");
 		return;
@@ -2870,13 +2870,13 @@ void CGraph::BuildLinkLookups()
 
 void CGraph::BuildRegionTables()
 {
-	if (m_di)
+	if (m_di != nullptr)
 		free(m_di);
 
 	// Go ahead and setup for range searching the nodes for FindNearestNodes
 	//
 	m_di = (DIST_INFO*)calloc(sizeof(DIST_INFO), m_cNodes);
-	if (!m_di)
+	if (m_di == nullptr)
 	{
 		ALERT(at_aiconsole, "Couldn't allocated node ordering array.\n");
 		return;
@@ -3029,7 +3029,7 @@ void CGraph::ComputeStaticRoutingTables()
 	char* pRoute = new char[m_cNodes * 2];
 
 
-	if (Routes && pMyPath && BestNextNodes && pRoute)
+	if ((Routes != nullptr) && (pMyPath != nullptr) && (BestNextNodes != nullptr) && (pRoute != nullptr))
 	{
 		int nTotalCompressedSize = 0;
 		for (int iHull = 0; iHull < MAX_NODE_HULLS; iHull++)
@@ -3267,7 +3267,7 @@ void CGraph::ComputeStaticRoutingTables()
 					// Go find a place to store this thing and point to it.
 					//
 					int nRoute = p - pRoute;
-					if (m_pRouteInfo)
+					if (m_pRouteInfo != nullptr)
 					{
 						int i;
 						for (i = 0; i < m_nRouteInfo - nRoute; i++)
@@ -3312,10 +3312,10 @@ void CGraph::ComputeStaticRoutingTables()
 	delete[] pRoute;
 	delete[] pMyPath;
 
-	Routes = 0;
-	BestNextNodes = 0;
-	pRoute = 0;
-	pMyPath = 0;
+	Routes = nullptr;
+	BestNextNodes = nullptr;
+	pRoute = nullptr;
+	pMyPath = nullptr;
 
 #if 0
 	TestRoutingTables();
@@ -3329,7 +3329,7 @@ void CGraph::TestRoutingTables()
 {
 	int* pMyPath = new int[m_cNodes];
 	int* pMyPath2 = new int[m_cNodes];
-	if (pMyPath && pMyPath2)
+	if ((pMyPath != nullptr) && (pMyPath2 != nullptr))
 	{
 		for (int iHull = 0; iHull < MAX_NODE_HULLS; iHull++)
 		{
@@ -3448,8 +3448,8 @@ EnoughSaid:
 
 	delete[] pMyPath;
 	delete[] pMyPath2;
-	pMyPath = 0;
-	pMyPath2 = 0;
+	pMyPath = nullptr;
+	pMyPath2 = nullptr;
 }
 
 

@@ -157,7 +157,7 @@ int CHAssassin::ISoundMask()
 //=========================================================
 int CHAssassin::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_HUMAN_MILITARY;
+	return (m_iClass != 0) ? m_iClass : CLASS_HUMAN_MILITARY;
 }
 
 //=========================================================
@@ -188,7 +188,7 @@ void CHAssassin::SetYawSpeed()
 //=========================================================
 void CHAssassin::Shoot()
 {
-	if (m_hEnemy == NULL && !m_pCine) //LRC
+	if (m_hEnemy == nullptr && (m_pCine == nullptr)) //LRC
 	{
 		return;
 	}
@@ -251,10 +251,10 @@ void CHAssassin::HandleAnimEvent(MonsterEvent_t* pEvent)
 		Vector vecGunPosition = pev->origin + gpGlobals->v_forward * 34 + Vector(0, 0, 32);
 		UTIL_MakeVectors(pev->angles);
 		//LRC
-		if (m_pCine && m_pCine->IsAction())
+		if ((m_pCine != nullptr) && m_pCine->IsAction())
 		{
 			Vector vecToss;
-			if (m_pCine->PreciseAttack() && m_hTargetEnt != NULL)
+			if (m_pCine->PreciseAttack() && m_hTargetEnt != nullptr)
 			{
 				vecToss = VecCheckToss(pev, vecGunPosition, m_hTargetEnt->pev->origin, 0.5);
 				//if (vecToss != g_vecZero)
@@ -282,10 +282,10 @@ void CHAssassin::HandleAnimEvent(MonsterEvent_t* pEvent)
 		UTIL_MakeAimVectors(pev->angles);
 		pev->movetype = MOVETYPE_TOSS;
 		pev->flags &= ~FL_ONGROUND;
-		if (m_pCine) //LRC...
+		if (m_pCine != nullptr) //LRC...
 		{
 			pev->velocity = g_vecZero;
-			if (m_pCine->PreciseAttack() && m_hTargetEnt != NULL)
+			if (m_pCine->PreciseAttack() && m_hTargetEnt != nullptr)
 			{
 				Vector vecTemp = m_hTargetEnt->pev->origin;
 				vecTemp.y = vecTemp.y + 50; // put her feet on the target.
@@ -325,7 +325,7 @@ void CHAssassin::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/hassassin.mdl");
@@ -356,7 +356,7 @@ void CHAssassin::Spawn()
 //=========================================================
 void CHAssassin::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/hassassin.mdl");
@@ -657,7 +657,7 @@ IMPLEMENT_CUSTOM_SCHEDULES(CHAssassin, CBaseMonster);
 //=========================================================
 bool CHAssassin::CheckMeleeAttack1(float flDot, float flDist)
 {
-	if (m_flNextJump < gpGlobals->time && (flDist <= 128 || HasMemory(bits_MEMORY_BADJUMP)) && m_hEnemy != NULL)
+	if (m_flNextJump < gpGlobals->time && (flDist <= 128 || HasMemory(bits_MEMORY_BADJUMP)) && m_hEnemy != nullptr)
 	{
 		TraceResult tr;
 
@@ -748,7 +748,7 @@ void CHAssassin::RunAI()
 
 	// always visible if moving
 	// always visible is not on hard
-	if (g_iSkillLevel != SKILL_HARD || m_hEnemy == NULL || pev->deadflag != DEAD_NO || m_Activity == ACT_RUN || m_Activity == ACT_WALK || (pev->flags & FL_ONGROUND) == 0)
+	if (g_iSkillLevel != SKILL_HARD || m_hEnemy == nullptr || pev->deadflag != DEAD_NO || m_Activity == ACT_RUN || m_Activity == ACT_WALK || (pev->flags & FL_ONGROUND) == 0)
 		m_iTargetRanderamt = 255;
 	else
 		m_iTargetRanderamt = 20;
@@ -883,12 +883,12 @@ Schedule_t* CHAssassin::GetSchedule()
 			CSound* pSound;
 			pSound = PBestSound();
 
-			ASSERT(pSound != NULL);
-			if (pSound && (pSound->m_iType & bits_SOUND_DANGER) != 0)
+			ASSERT(pSound != nullptr);
+			if ((pSound != nullptr) && (pSound->m_iType & bits_SOUND_DANGER) != 0)
 			{
 				return GetScheduleOfType(SCHED_TAKE_COVER_FROM_BEST_SOUND);
 			}
-			if (pSound && (pSound->m_iType & bits_SOUND_COMBAT) != 0)
+			if ((pSound != nullptr) && (pSound->m_iType & bits_SOUND_COMBAT) != 0)
 			{
 				return GetScheduleOfType(SCHED_INVESTIGATE_SOUND);
 			}
@@ -931,8 +931,8 @@ Schedule_t* CHAssassin::GetSchedule()
 			CSound* pSound;
 			pSound = PBestSound();
 
-			ASSERT(pSound != NULL);
-			if (pSound && (pSound->m_iType & bits_SOUND_DANGER) != 0)
+			ASSERT(pSound != nullptr);
+			if ((pSound != nullptr) && (pSound->m_iType & bits_SOUND_DANGER) != 0)
 			{
 				return GetScheduleOfType(SCHED_TAKE_COVER_FROM_BEST_SOUND);
 			}

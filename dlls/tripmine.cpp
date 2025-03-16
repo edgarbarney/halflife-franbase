@@ -113,7 +113,7 @@ void CTripmineGrenade::Spawn()
 	pev->dmg = gSkillData.plrDmgTripmine;
 	pev->health = 1; // don't let die normally
 
-	if (pev->owner != NULL)
+	if (pev->owner != nullptr)
 	{
 		// play deploy sound
 		EMIT_SOUND(ENT(pev), CHAN_VOICE, "weapons/mine_deploy.wav", 1.0, ATTN_NORM);
@@ -153,13 +153,13 @@ void CTripmineGrenade::PowerupThink()
 {
 	TraceResult tr;
 
-	if (m_hOwner == NULL)
+	if (m_hOwner == nullptr)
 	{
 		// find an owner
 		edict_t* oldowner = pev->owner;
-		pev->owner = NULL;
+		pev->owner = nullptr;
 		UTIL_TraceLine(pev->origin + m_vecDir * 8, pev->origin - m_vecDir * 32, dont_ignore_monsters, ENT(pev), &tr);
-		if (0 != tr.fStartSolid || (oldowner && tr.pHit == oldowner))
+		if (0 != tr.fStartSolid || ((oldowner != nullptr) && tr.pHit == oldowner))
 		{
 			pev->owner = oldowner;
 			m_flPowerUp += 0.1;
@@ -216,10 +216,10 @@ void CTripmineGrenade::PowerupThink()
 
 void CTripmineGrenade::KillBeam()
 {
-	if (m_pBeam)
+	if (m_pBeam != nullptr)
 	{
 		UTIL_Remove(m_pBeam);
-		m_pBeam = NULL;
+		m_pBeam = nullptr;
 	}
 }
 
@@ -265,7 +265,7 @@ void CTripmineGrenade::BeamBreakThink()
 	// ALERT( at_console, "%f : %f\n", tr.flFraction, m_flBeamLength );
 
 	// respawn detect.
-	if (!m_pBeam)
+	if (m_pBeam == nullptr)
 	{
 		// Use the same trace parameters as the original trace above so the right entity is hit.
 		TraceResult tr2;
@@ -273,7 +273,7 @@ void CTripmineGrenade::BeamBreakThink()
 		pev->owner = nullptr;
 		UTIL_TraceLine(pev->origin + m_vecDir * 8, pev->origin - m_vecDir * 32, dont_ignore_monsters, ENT(pev), &tr2);
 		MakeBeam();
-		if (tr2.pHit)
+		if (tr2.pHit != nullptr)
 		{
 			// reset owner too
 			pev->owner = tr2.pHit;
@@ -287,7 +287,7 @@ void CTripmineGrenade::BeamBreakThink()
 	}
 	else
 	{
-		if (m_hOwner == NULL)
+		if (m_hOwner == nullptr)
 			bBlowup = true;
 		else if (m_posOwner != m_hOwner->pev->origin)
 			bBlowup = true;
@@ -328,7 +328,7 @@ void CTripmineGrenade::Killed(entvars_t* pevAttacker, int iGib)
 {
 	pev->takedamage = DAMAGE_NO;
 
-	if (pevAttacker && (pevAttacker->flags & FL_CLIENT) != 0)
+	if ((pevAttacker != nullptr) && (pevAttacker->flags & FL_CLIENT) != 0)
 	{
 		// some client has destroyed this mine, he'll get credit for any kills
 		pev->owner = ENT(pevAttacker);
@@ -397,7 +397,7 @@ bool CTripmine::GetItemInfo(ItemInfo* p)
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "Trip Mine";
 	p->iMaxAmmo1 = TRIPMINE_MAX_CARRY;
-	p->pszAmmo2 = NULL;
+	p->pszAmmo2 = nullptr;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 4;
@@ -457,7 +457,7 @@ void CTripmine::PrimaryAttack()
 	if (tr.flFraction < 1.0)
 	{
 		CBaseEntity* pEntity = CBaseEntity::Instance(tr.pHit);
-		if (pEntity && (pEntity->pev->flags & FL_CONVEYOR) == 0)
+		if ((pEntity != nullptr) && (pEntity->pev->flags & FL_CONVEYOR) == 0)
 		{
 			Vector angles = UTIL_VecToAngles(tr.vecPlaneNormal);
 

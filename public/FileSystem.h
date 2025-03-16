@@ -66,11 +66,11 @@ class IFileSystem : public IBaseInterface
 {
 public:
 	// Mount and unmount the filesystem
-	virtual void			Mount(void) = 0;
-	virtual void			Unmount(void) = 0;
+	virtual void			Mount() = 0;
+	virtual void			Unmount() = 0;
 
 	// Remove all search paths (including write path?)
-	virtual void			RemoveAllSearchPaths( void ) = 0;
+	virtual void			RemoveAllSearchPaths( ) = 0;
 
 	// Add paths in priority order (mod dir, game dir, ....)
 	// If one or more .pak files are in the specified directory, then they are
@@ -94,7 +94,7 @@ public:
 
 	// opens a file
 	// if pathID is NULL, all paths will be searched for the file
-	virtual FileHandle_t	Open( const char *pFileName, const char *pOptions, const char *pathID = 0L ) = 0;
+	virtual FileHandle_t	Open( const char *pFileName, const char *pOptions, const char *pathID = nullptr ) = 0;
 
 	virtual void			Close( FileHandle_t file ) = 0;
 
@@ -125,7 +125,7 @@ public:
 	virtual void            ReleaseReadBuffer( FileHandle_t file, void *readBuffer ) = 0;
 
 	// FindFirst/FindNext
-	virtual const char		*FindFirst( const char *pWildCard, FileFindHandle_t *pHandle, const char *pathID = 0L ) = 0;
+	virtual const char		*FindFirst( const char *pWildCard, FileFindHandle_t *pHandle, const char *pathID = nullptr ) = 0;
 	virtual const char		*FindNext( FileFindHandle_t handle ) = 0;
 	virtual bool			FindIsDirectory( FileFindHandle_t handle ) = 0;
 	virtual void			FindClose( FileFindHandle_t handle ) = 0;
@@ -145,7 +145,7 @@ public:
 	virtual bool			GetCurrentDirectory( char* pDirectory, int maxlen ) = 0;
 
 	// Dump to printf/OutputDebugString the list of files that have not been closed
-	virtual void			PrintOpenedFiles( void ) = 0;
+	virtual void			PrintOpenedFiles( ) = 0;
 
 	virtual void			SetWarningFunc( void (*pfnWarning)( const char *fmt, ... ) ) = 0;
 	virtual void			SetWarningLevel( FileWarningLevel_t level ) = 0;
@@ -153,8 +153,8 @@ public:
 	virtual void			LogLevelLoadStarted( const char *name ) = 0;
 	virtual void			LogLevelLoadFinished( const char *name ) = 0;
 	virtual int				HintResourceNeed( const char *hintlist, int forgetEverything ) = 0;
-	virtual int				PauseResourcePreloading( void ) = 0;
-	virtual int				ResumeResourcePreloading( void ) = 0;
+	virtual int				PauseResourcePreloading( ) = 0;
+	virtual int				ResumeResourcePreloading( ) = 0;
 	virtual int				SetVBuf( FileHandle_t stream, char *buffer, int mode, long size ) = 0;
 	virtual void			GetInterfaceVersion( char *p, int maxlen ) = 0;
 	virtual bool			IsFileImmediatelyAvailable(const char *pFileName) = 0;
@@ -175,7 +175,7 @@ public:
 	virtual bool			AddPackFile( const char *fullpath, const char *pathID ) = 0;
 	
 	// open a file but force the data to come from the steam cache, NOT from disk
-	virtual FileHandle_t	OpenFromCacheForRead( const char *pFileName, const char *pOptions, const char *pathID = 0L ) = 0;
+	virtual FileHandle_t	OpenFromCacheForRead( const char *pFileName, const char *pOptions, const char *pathID = nullptr ) = 0;
 
 	virtual void			AddSearchPathNoWrite( const char *pPath, const char *pathID ) = 0;
 

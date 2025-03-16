@@ -177,7 +177,7 @@ enum
 //-----------------------------------------------------------------------------
 extern "C" DLL_EXPORT void* CreateInterface(const char *pName, int *pReturnCode);
 
-extern CreateInterfaceFn	Sys_GetFactoryThis( void );
+extern CreateInterfaceFn	Sys_GetFactoryThis( );
 
 
 //-----------------------------------------------------------------------------

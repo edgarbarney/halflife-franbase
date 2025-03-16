@@ -46,7 +46,7 @@ void* GetModuleHandle(const char* name)
 // ------------------------------------------------------------------------------------ //
 // InterfaceReg.
 // ------------------------------------------------------------------------------------ //
-InterfaceReg* InterfaceReg::s_pInterfaceRegs = NULL;
+InterfaceReg* InterfaceReg::s_pInterfaceRegs = nullptr;
 
 
 InterfaceReg::InterfaceReg(InstantiateInterfaceFn fn, const char* pName) : m_pName(pName)
@@ -65,11 +65,11 @@ EXPORT_FUNCTION void* CreateInterface(const char* pName, int* pReturnCode)
 {
 	InterfaceReg* pCur;
 
-	for (pCur = InterfaceReg::s_pInterfaceRegs; pCur; pCur = pCur->m_pNext)
+	for (pCur = InterfaceReg::s_pInterfaceRegs; pCur != nullptr; pCur = pCur->m_pNext)
 	{
 		if (strcmp(pCur->m_pName, pName) == 0)
 		{
-			if (pReturnCode)
+			if (pReturnCode != nullptr)
 			{
 				*pReturnCode = IFACE_OK;
 			}
@@ -77,11 +77,11 @@ EXPORT_FUNCTION void* CreateInterface(const char* pName, int* pReturnCode)
 		}
 	}
 
-	if (pReturnCode)
+	if (pReturnCode != nullptr)
 	{
 		*pReturnCode = IFACE_FAILED;
 	}
-	return NULL;
+	return nullptr;
 }
 
 // BEN-NOTE: unifying this on all platforms
@@ -160,7 +160,7 @@ CSysModule* Sys_LoadModule(const char* pModuleName)
 	}
 #endif
 
-	if (!hDLL)
+	if (hDLL == nullptr)
 	{
 		char str[512];
 #if defined(WIN32)
@@ -187,7 +187,7 @@ CSysModule* Sys_LoadModule(const char* pModuleName)
 //-----------------------------------------------------------------------------
 void Sys_UnloadModule(CSysModule* pModule)
 {
-	if (!pModule)
+	if (pModule == nullptr)
 		return;
 
 	HMODULE hDLL = reinterpret_cast<HMODULE>(pModule);
@@ -206,8 +206,8 @@ void Sys_UnloadModule(CSysModule* pModule)
 //-----------------------------------------------------------------------------
 CreateInterfaceFn Sys_GetFactory(CSysModule* pModule)
 {
-	if (!pModule)
-		return NULL;
+	if (pModule == nullptr)
+		return nullptr;
 
 	HMODULE hDLL = reinterpret_cast<HMODULE>(pModule);
 

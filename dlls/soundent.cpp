@@ -137,7 +137,7 @@ void CSoundEnt::Precache()
 //=========================================================
 void CSoundEnt::FreeSound(int iSound, int iPrevious)
 {
-	if (!pSoundEnt)
+	if (pSoundEnt == nullptr)
 	{
 		// no sound ent!
 		return;
@@ -198,7 +198,7 @@ void CSoundEnt::InsertSound(int iType, const Vector& vecOrigin, int iVolume, flo
 {
 	int iThisSound;
 
-	if (!pSoundEnt)
+	if (pSoundEnt == nullptr)
 	{
 		// no sound ent!
 		return;
@@ -299,7 +299,7 @@ int CSoundEnt::ISoundsInList(int iListType)
 //=========================================================
 int CSoundEnt::ActiveList()
 {
-	if (!pSoundEnt)
+	if (pSoundEnt == nullptr)
 	{
 		return SOUNDLIST_EMPTY;
 	}
@@ -312,7 +312,7 @@ int CSoundEnt::ActiveList()
 //=========================================================
 int CSoundEnt::FreeList()
 {
-	if (!pSoundEnt)
+	if (pSoundEnt == nullptr)
 	{
 		return SOUNDLIST_EMPTY;
 	}
@@ -326,21 +326,21 @@ int CSoundEnt::FreeList()
 //=========================================================
 CSound* CSoundEnt::SoundPointerForIndex(int iIndex)
 {
-	if (!pSoundEnt)
+	if (pSoundEnt == nullptr)
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	if (iIndex > (MAX_WORLD_SOUNDS - 1))
 	{
 		ALERT(at_debug, "SoundPointerForIndex() - Index too large!\n");
-		return NULL;
+		return nullptr;
 	}
 
 	if (iIndex < 0)
 	{
 		ALERT(at_debug, "SoundPointerForIndex() - Index < 0!\n");
-		return NULL;
+		return nullptr;
 	}
 
 	return &pSoundEnt->m_SoundPool[iIndex];

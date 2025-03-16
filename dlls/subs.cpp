@@ -99,26 +99,26 @@ void CBaseEntity::UpdateOnRemove()
 	int i;
 	CBaseEntity* pTemp;
 
-	if (!g_pWorld)
+	if (g_pWorld == nullptr)
 	{
 		ALERT(at_debug, "UpdateOnRemove has no AssistList!\n");
 		return;
 	}
 
 	//LRC - remove this from the AssistList.
-	for (pTemp = g_pWorld; pTemp->m_pAssistLink != NULL; pTemp = pTemp->m_pAssistLink)
+	for (pTemp = g_pWorld; pTemp->m_pAssistLink != nullptr; pTemp = pTemp->m_pAssistLink)
 	{
 		if (this == pTemp->m_pAssistLink)
 		{
 			//			ALERT(at_console,"REMOVE: %s removed from the Assist List.\n", STRING(pev->classname));
 			pTemp->m_pAssistLink = this->m_pAssistLink;
-			this->m_pAssistLink = NULL;
+			this->m_pAssistLink = nullptr;
 			break;
 		}
 	}
 
 	//LRC
-	if (m_pMoveWith)
+	if (m_pMoveWith != nullptr)
 	{
 		// if I'm moving with another entity, take me out of the list. (otherwise things crash!)
 		pTemp = m_pMoveWith->m_pChildMoveWith;
@@ -128,7 +128,7 @@ void CBaseEntity::UpdateOnRemove()
 		}
 		else
 		{
-			while (pTemp->m_pSiblingMoveWith)
+			while (pTemp->m_pSiblingMoveWith != nullptr)
 			{
 				if (pTemp->m_pSiblingMoveWith == this)
 				{
@@ -142,18 +142,18 @@ void CBaseEntity::UpdateOnRemove()
 	}
 
 	//LRC - do the same thing if another entity is moving with _me_.
-	if (m_pChildMoveWith)
+	if (m_pChildMoveWith != nullptr)
 	{
 		CBaseEntity* pCur = m_pChildMoveWith;
 		CBaseEntity* pNext;
-		while (pCur != NULL)
+		while (pCur != nullptr)
 		{
 			pNext = pCur->m_pSiblingMoveWith;
 			// bring children to a stop
 			UTIL_SetMoveWithVelocity(pCur, g_vecZero, 100);
 			UTIL_SetMoveWithAvelocity(pCur, g_vecZero, 100);
-			pCur->m_pMoveWith = NULL;
-			pCur->m_pSiblingMoveWith = NULL;
+			pCur->m_pMoveWith = nullptr;
+			pCur->m_pSiblingMoveWith = nullptr;
 			pCur = pNext;
 		}
 	}
@@ -167,7 +167,7 @@ void CBaseEntity::UpdateOnRemove()
 			if (WorldGraph.m_pLinkPool[i].m_pLinkEnt == pev)
 			{
 				// if this link has a link ent which is the same ent that is removing itself, remove it!
-				WorldGraph.m_pLinkPool[i].m_pLinkEnt = NULL;
+				WorldGraph.m_pLinkPool[i].m_pLinkEnt = nullptr;
 			}
 		}
 	}
@@ -187,7 +187,7 @@ void CBaseEntity::SUB_Remove()
 	}
 
 //RENDERERS START
-	if (gmsgFreeEnt)
+	if (gmsgFreeEnt != 0)
 	{
 		MESSAGE_BEGIN(MSG_ALL, gmsgFreeEnt);
 		WRITE_SHORT(entindex());
@@ -267,11 +267,11 @@ void FireTargets(const char* targetName, CBaseEntity* pActivator, CBaseEntity* p
 {
 	const char* inputTargetName = targetName;
 	CBaseEntity* inputActivator = pActivator;
-	CBaseEntity* pTarget = NULL;
-	int i, j, found = false;
+	CBaseEntity* pTarget = nullptr;
+	int i, j, found = 0;
 	char szBuf[80];
 
-	if (!targetName)
+	if (targetName == nullptr)
 		return;
 	if (useType == USE_NOT)
 		return;
@@ -307,15 +307,15 @@ void FireTargets(const char* targetName, CBaseEntity* pActivator, CBaseEntity* p
 	ALERT(at_aiconsole, "Firing: (%s)\n", targetName);
 
 	pTarget = UTIL_FindEntityByTargetname(pTarget, targetName, pActivator);
-	if (!pTarget)
+	if (pTarget == nullptr)
 	{
 		// it's not an entity name; check for a locus specifier, e.g: "fadein(mywall)"
-		for (i = 0; targetName[i]; i++)
+		for (i = 0; targetName[i] != 0; i++)
 		{
 			if (targetName[i] == '(')
 			{
 				i++;
-				for (j = i; targetName[j]; j++)
+				for (j = i; targetName[j] != 0; j++)
 				{
 					if (targetName[j] == ')')
 					{
@@ -323,30 +323,30 @@ void FireTargets(const char* targetName, CBaseEntity* pActivator, CBaseEntity* p
 						szBuf[j - i] = 0;
 						pActivator = CalcLocusParameter(inputActivator, szBuf);
 						//						pActivator = UTIL_FindEntityByTargetname(NULL, szBuf, inputActivator);
-						if (!pActivator)
+						if (pActivator == nullptr)
 						{
 							//ALERT(at_console, "Missing activator \"%s\"\n", szBuf);
 							return; // it's a locus specifier, but the locus is invalid.
 						}
 						//ALERT(at_console, "Found activator \"%s\"\n", STRING(pActivator->pev->targetname));
-						found = true;
+						found = 1;
 						break;
 					}
 				}
-				if (!found)
+				if (found == 0)
 					ALERT(at_error, "Missing ')' in target value \"%s\"", inputTargetName);
 				break;
 			}
 		}
-		if (!found)
+		if (found == 0)
 			return; // no, it's not a locus specifier.
 
 		strncpy(szBuf, targetName, i - 1);
 		szBuf[i - 1] = 0;
 		targetName = szBuf;
-		pTarget = UTIL_FindEntityByTargetname(NULL, targetName, inputActivator);
+		pTarget = UTIL_FindEntityByTargetname(nullptr, targetName, inputActivator);
 
-		if (!pTarget)
+		if (pTarget == nullptr)
 			return; // it's a locus specifier all right, but the target's invalid.
 	}
 
@@ -366,7 +366,7 @@ void FireTargets(const char* targetName, CBaseEntity* pActivator, CBaseEntity* p
 			}
 		}
 		pTarget = UTIL_FindEntityByTargetname(pTarget, targetName, inputActivator);
-	} while (pTarget);
+	} while (pTarget != nullptr);
 
 	//LRC- Firing has finished, aliases can now reflect their new values.
 	UTIL_FlushAliases();
@@ -389,7 +389,7 @@ void CBaseDelay::SUB_UseTargets(CBaseEntity* pActivator, USE_TYPE useType, float
 	if (m_flDelay != 0)
 	{
 		// create a temp object to fire at a later time
-		CBaseDelay* pTemp = GetClassPtr((CBaseDelay*)NULL);
+		CBaseDelay* pTemp = GetClassPtr((CBaseDelay*)nullptr);
 		pTemp->pev->classname = MAKE_STRING("DelayedUse");
 
 		pTemp->SetNextThink(m_flDelay);
@@ -416,7 +416,7 @@ void CBaseDelay::SUB_UseTargets(CBaseEntity* pActivator, USE_TYPE useType, float
 
 	if (!FStringNull(m_iszKillTarget))
 	{
-		edict_t* pentKillTarget = NULL;
+		edict_t* pentKillTarget = nullptr;
 
 		ALERT(at_aiconsole, "KillTarget: %s\n", STRING(m_iszKillTarget));
 		//LRC- now just USE_KILLs its killtarget, for consistency.
@@ -471,7 +471,7 @@ Vector GetMovedir(Vector vecAngles)
 
 void CBaseDelay::DelayThink()
 {
-	CBaseEntity* pActivator = NULL;
+	CBaseEntity* pActivator = nullptr;
 
 	// The use type is cached (and stashed) in pev->button
 	//LRC - now using m_hActivator.
@@ -633,7 +633,7 @@ void CBaseToggle ::LinearMoveNow() // AJH Now supports acceleration
 	//	if (m_pMoveWith || m_pChildMoveWith )
 	//		ALERT(at_console,"THINK: LinearMoveNow happens at %f, speed %f\n",gpGlobals->time, m_flLinearMoveSpeed);
 
-	if (m_pMoveWith)
+	if (m_pMoveWith != nullptr)
 	{
 		vecDest = m_vecFinalDest + m_pMoveWith->pev->origin;
 	}
@@ -776,7 +776,7 @@ void CBaseToggle::LinearMoveDoneNow()
 
 	UTIL_SetVelocity(this, g_vecZero); //, true);
 									   //	pev->velocity = g_vecZero;
-	if (m_pMoveWith)
+	if (m_pMoveWith != nullptr)
 	{
 		vecDest = m_vecFinalDest + m_pMoveWith->pev->origin;
 		//		ALERT(at_console, "LMDone %s: p.origin = %f %f %f, origin = %f %f %f. Set it to %f %f %f\n", STRING(pev->targetname), m_pMoveWith->pev->origin.x,  m_pMoveWith->pev->origin.y,  m_pMoveWith->pev->origin.z, pev->origin.x, pev->origin.y, pev->origin.z, vecDest.x, vecDest.y, vecDest.z);
@@ -789,7 +789,7 @@ void CBaseToggle::LinearMoveDoneNow()
 	UTIL_AssignOrigin(this, vecDest);
 	DontThink(); //LRC
 	//pev->nextthink = -1;
-	if (m_pfnCallWhenMoveDone)
+	if (m_pfnCallWhenMoveDone != nullptr)
 		(this->*m_pfnCallWhenMoveDone)();
 }
 
@@ -820,7 +820,7 @@ void CBaseToggle::PlaySentence(const char* pszSentence, float duration, float vo
 {
 	ASSERT(pszSentence != nullptr);
 
-	if (!pszSentence || !IsAllowedToSpeak())
+	if ((pszSentence == nullptr) || !IsAllowedToSpeak())
 	{
 		return;
 	}
@@ -883,7 +883,7 @@ void CBaseToggle::AngularMoveNow()
 	//	ALERT(at_console, "AngularMoveNow %f\n", pev->ltime);
 	Vector vecDestAngle;
 
-	if (m_pMoveWith)
+	if (m_pMoveWith != nullptr)
 		vecDestAngle = m_vecFinalAngle + m_pMoveWith->pev->angles;
 	else
 		vecDestAngle = m_vecFinalAngle;
@@ -925,7 +925,7 @@ void CBaseToggle::AngularMoveDoneNow()
 {
 	//	ALERT(at_console, "AngularMoveDone %f\n", pev->ltime);
 	UTIL_SetAvelocity(this, g_vecZero);
-	if (m_pMoveWith)
+	if (m_pMoveWith != nullptr)
 	{
 		UTIL_SetAngles(this, m_vecFinalAngle + m_pMoveWith->pev->angles);
 	}
@@ -934,7 +934,7 @@ void CBaseToggle::AngularMoveDoneNow()
 		UTIL_SetAngles(this, m_vecFinalAngle);
 	}
 	DontThink();
-	if (m_pfnCallWhenMoveDone)
+	if (m_pfnCallWhenMoveDone != nullptr)
 		(this->*m_pfnCallWhenMoveDone)();
 }
 
@@ -1017,19 +1017,19 @@ public:
 	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
 	int ObjectCaps() override { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
-	STATE GetState() override { return (pev->spawnflags & SF_IMW_INACTIVE) ? STATE_OFF : STATE_ON; }
+	STATE GetState() override { return ((pev->spawnflags & SF_IMW_INACTIVE) != 0) ? STATE_OFF : STATE_ON; }
 };
 
 LINK_ENTITY_TO_CLASS(info_movewith, CInfoMoveWith);
 
 void CInfoMoveWith::Spawn()
 {
-	if (pev->spawnflags & SF_IMW_INACTIVE)
+	if ((pev->spawnflags & SF_IMW_INACTIVE) != 0)
 		m_MoveWith = pev->netname;
 	else
 		m_MoveWith = pev->target;
 
-	if (pev->spawnflags & SF_IMW_BLOCKABLE)
+	if ((pev->spawnflags & SF_IMW_BLOCKABLE) != 0)
 	{
 		pev->solid = SOLID_SLIDEBOX;
 		pev->movetype = MOVETYPE_FLY;
@@ -1044,7 +1044,7 @@ void CInfoMoveWith::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE 
 	if (!ShouldToggle(useType))
 		return;
 
-	if (m_pMoveWith)
+	if (m_pMoveWith != nullptr)
 	{
 		// remove this from the old parent's list of children
 		pSibling = m_pMoveWith->m_pChildMoveWith;
@@ -1052,7 +1052,7 @@ void CInfoMoveWith::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE 
 			m_pMoveWith->m_pChildMoveWith = this->m_pSiblingMoveWith;
 		else
 		{
-			while (pSibling->m_pSiblingMoveWith && pSibling->m_pSiblingMoveWith != this)
+			while ((pSibling->m_pSiblingMoveWith != nullptr) && pSibling->m_pSiblingMoveWith != this)
 			{
 				pSibling = pSibling->m_pSiblingMoveWith;
 			}
@@ -1068,11 +1068,11 @@ void CInfoMoveWith::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE 
 				return;
 			}
 		}
-		m_pMoveWith = NULL;
-		m_pSiblingMoveWith = NULL;
+		m_pMoveWith = nullptr;
+		m_pSiblingMoveWith = nullptr;
 	}
 
-	if (pev->spawnflags & SF_IMW_INACTIVE)
+	if ((pev->spawnflags & SF_IMW_INACTIVE) != 0)
 	{
 		pev->spawnflags &= ~SF_IMW_INACTIVE;
 		m_MoveWith = pev->target;
@@ -1084,21 +1084,21 @@ void CInfoMoveWith::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE 
 	}
 
 	// set things up for the new m_MoveWith value
-	if (!m_MoveWith)
+	if (m_MoveWith == 0)
 	{
 		UTIL_SetVelocity(this, g_vecZero); // come to a stop
 		return;
 	}
 
-	m_pMoveWith = UTIL_FindEntityByTargetname(NULL, STRING(m_MoveWith));
-	if (!m_pMoveWith)
+	m_pMoveWith = UTIL_FindEntityByTargetname(nullptr, STRING(m_MoveWith));
+	if (m_pMoveWith == nullptr)
 	{
 		ALERT(at_debug, "Missing movewith entity %s\n", STRING(m_MoveWith));
 		return;
 	}
 
 	pSibling = m_pMoveWith->m_pChildMoveWith;
-	while (pSibling) // check that this entity isn't already in the list of children
+	while (pSibling != nullptr) // check that this entity isn't already in the list of children
 	{
 		if (pSibling == this)
 			return;

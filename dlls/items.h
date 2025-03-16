@@ -88,7 +88,7 @@ public:
 	bool MyTouch(CBasePlayer* pPlayer) override;
 	//CBaseEntity* Respawn(void);
 	//void Materialize(void);
-	void StripFromPlayer(void);
+	void StripFromPlayer();
 	bool TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType) override;
 
 

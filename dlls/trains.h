@@ -164,40 +164,40 @@ private:
 class CFuncVehicle : public CBaseEntity
 {
 public:
-	void Spawn(void);
-	void Precache(void);
+	void Spawn() override;
+	void Precache() override;
 
-	void Blocked(CBaseEntity* pOther);
-	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
-	bool KeyValue(KeyValueData* pkvd);
+	void Blocked(CBaseEntity* pOther) override;
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
+	bool KeyValue(KeyValueData* pkvd) override;
 
-	void EXPORT Next(void);
-	void EXPORT Find(void);
-	void EXPORT NearestPath(void);
-	void EXPORT DeadEnd(void);
+	void EXPORT Next();
+	void EXPORT Find();
+	void EXPORT NearestPath();
+	void EXPORT DeadEnd();
 
 	void NextThink(float thinkTime, bool alwaysThink);
-	int Classify(void);
-	void CollisionDetection(void);
-	void TerrainFollowing(void);
-	void CheckTurning(void);
+	int Classify() override;
+	void CollisionDetection();
+	void TerrainFollowing();
+	void CheckTurning();
 
 	void SetTrack(CPathTrack* track) { m_ppath = track->Nearest(pev->origin); }
 	void SetControls(entvars_t* pevControls);
-	bool OnControls(entvars_t* pev);
+	bool OnControls(entvars_t* pev) override;
 
-	void StopSound(void);
-	void UpdateSound(void);
+	void StopSound();
+	void UpdateSound();
 
 	static CFuncVehicle* Instance(edict_t* pent);
 
-	bool Save(CSave& save);
-	bool Restore(CRestore& restore);
+	bool Save(CSave& save) override;
+	bool Restore(CRestore& restore) override;
 
 	static TYPEDESCRIPTION m_SaveData[];
-	int ObjectCaps() { return (CBaseEntity ::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_DIRECTIONAL_USE; }
+	int ObjectCaps() override { return (CBaseEntity ::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_DIRECTIONAL_USE; }
 
-	void OverrideReset();
+	void OverrideReset() override;
 
 	CPathTrack* m_ppath;
 	float m_length;

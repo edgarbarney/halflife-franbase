@@ -46,12 +46,12 @@ CHalfLifeTeamplay::CHalfLifeTeamplay()
 	strncpy(m_szTeamList, teamlist.string, TEAMPLAY_TEAMLISTLENGTH);
 
 	edict_t* pWorld = CWorld::World->edict();
-	if (pWorld && !FStringNull(pWorld->v.team))
+	if ((pWorld != nullptr) && !FStringNull(pWorld->v.team))
 	{
 		if (0 != teamoverride.value)
 		{
 			const char* pTeamList = STRING(pWorld->v.team);
-			if (pTeamList && 0 != strlen(pTeamList))
+			if ((pTeamList != nullptr) && 0 != strlen(pTeamList))
 			{
 				strncpy(m_szTeamList, pTeamList, TEAMPLAY_TEAMLISTLENGTH);
 			}
@@ -163,7 +163,7 @@ bool CHalfLifeTeamplay::ClientCommand(CBasePlayer* pPlayer, const char* pcmd)
 
 void CHalfLifeTeamplay::UpdateGameMode(CBasePlayer* pPlayer)
 {
-	MESSAGE_BEGIN(MSG_ONE, gmsgGameMode, NULL, pPlayer->edict());
+	MESSAGE_BEGIN(MSG_ONE, gmsgGameMode, nullptr, pPlayer->edict());
 	WRITE_BYTE(1); // game mode teamplay
 	MESSAGE_END();
 }
@@ -180,7 +180,7 @@ const char* CHalfLifeTeamplay::SetDefaultPlayerTeam(CBasePlayer* pPlayer)
 	// update the current player of the team he is joining
 	if (pPlayer->m_szTeamName[0] == '\0' || !IsValidTeam(pPlayer->m_szTeamName) || 0 != defaultteam.value)
 	{
-		const char* pTeamName = NULL;
+		const char* pTeamName = nullptr;
 
 		if (0 != defaultteam.value)
 		{
@@ -208,7 +208,7 @@ void CHalfLifeTeamplay::InitHUD(CBasePlayer* pPlayer)
 	CHalfLifeMultiplay::InitHUD(pPlayer);
 
 	// Send down the team names
-	MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
+	MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, nullptr, pPlayer->edict());
 	WRITE_BYTE(num_teams);
 	for (i = 0; i < num_teams; i++)
 	{
@@ -239,9 +239,9 @@ void CHalfLifeTeamplay::InitHUD(CBasePlayer* pPlayer)
 	for (i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBaseEntity* plr = UTIL_PlayerByIndex(i);
-		if (plr && IsValidTeam(plr->TeamID()))
+		if ((plr != nullptr) && IsValidTeam(plr->TeamID()))
 		{
-			MESSAGE_BEGIN(MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict());
+			MESSAGE_BEGIN(MSG_ONE, gmsgTeamInfo, nullptr, pPlayer->edict());
 			WRITE_BYTE(plr->entindex());
 			WRITE_STRING(plr->TeamID());
 			MESSAGE_END();
@@ -357,11 +357,11 @@ void CHalfLifeTeamplay::DeathNotice(CBasePlayer* pVictim, entvars_t* pKiller, en
 	if (m_DisableDeathMessages)
 		return;
 
-	if (pVictim && pKiller && (pKiller->flags & FL_CLIENT) != 0)
+	if ((pVictim != nullptr) && (pKiller != nullptr) && (pKiller->flags & FL_CLIENT) != 0)
 	{
 		CBasePlayer* pk = (CBasePlayer*)CBaseEntity::Instance(pKiller);
 
-		if (pk)
+		if (pk != nullptr)
 		{
 			if ((pk != pVictim) && (PlayerRelationship(pVictim, pk) == GR_TEAMMATE))
 			{
@@ -400,7 +400,7 @@ bool CHalfLifeTeamplay::IsTeamplay()
 
 bool CHalfLifeTeamplay::FPlayerCanTakeDamage(CBasePlayer* pPlayer, CBaseEntity* pAttacker)
 {
-	if (pAttacker && PlayerRelationship(pPlayer, pAttacker) == GR_TEAMMATE)
+	if ((pAttacker != nullptr) && PlayerRelationship(pPlayer, pAttacker) == GR_TEAMMATE)
 	{
 		// my teammate hit me.
 		if ((friendlyfire.value == 0) && (pAttacker != pPlayer))
@@ -419,7 +419,7 @@ int CHalfLifeTeamplay::PlayerRelationship(CBaseEntity* pPlayer, CBaseEntity* pTa
 {
 	// half life multiplay has a simple concept of Player Relationships.
 	// you are either on another player's team, or you are not.
-	if (!pPlayer || !pTarget || !pTarget->IsPlayer())
+	if ((pPlayer == nullptr) || (pTarget == nullptr) || !pTarget->IsPlayer())
 		return GR_NOTTEAMMATE;
 
 	if ((*GetTeamID(pPlayer) != '\0') && (*GetTeamID(pTarget) != '\0') && !stricmp(GetTeamID(pPlayer), GetTeamID(pTarget)))
@@ -436,7 +436,7 @@ bool CHalfLifeTeamplay::ShouldAutoAim(CBasePlayer* pPlayer, edict_t* target)
 {
 	// always autoaim, unless target is a teammate
 	CBaseEntity* pTgt = CBaseEntity::Instance(target);
-	if (pTgt && pTgt->IsPlayer())
+	if ((pTgt != nullptr) && pTgt->IsPlayer())
 	{
 		if (PlayerRelationship(pPlayer, pTgt) == GR_TEAMMATE)
 			return false; // don't autoaim at teammates
@@ -449,10 +449,10 @@ bool CHalfLifeTeamplay::ShouldAutoAim(CBasePlayer* pPlayer, edict_t* target)
 //=========================================================
 int CHalfLifeTeamplay::IPointsForKill(CBasePlayer* pAttacker, CBasePlayer* pKilled)
 {
-	if (!pKilled)
+	if (pKilled == nullptr)
 		return 0;
 
-	if (!pAttacker)
+	if (pAttacker == nullptr)
 		return 1;
 
 	if (pAttacker != pKilled && PlayerRelationship(pAttacker, pKilled) == GR_TEAMMATE)
@@ -465,7 +465,7 @@ int CHalfLifeTeamplay::IPointsForKill(CBasePlayer* pAttacker, CBasePlayer* pKill
 //=========================================================
 const char* CHalfLifeTeamplay::GetTeamID(CBaseEntity* pEntity)
 {
-	if (pEntity == NULL || pEntity->pev == NULL)
+	if (pEntity == nullptr || pEntity->pev == nullptr)
 		return "";
 
 	// return their team name
@@ -475,7 +475,7 @@ const char* CHalfLifeTeamplay::GetTeamID(CBaseEntity* pEntity)
 
 int CHalfLifeTeamplay::GetTeamIndex(const char* pTeamName)
 {
-	if (pTeamName && *pTeamName != 0)
+	if ((pTeamName != nullptr) && *pTeamName != 0)
 	{
 		// try to find existing team
 		for (int tm = 0; tm < num_teams; tm++)
@@ -511,7 +511,7 @@ const char* CHalfLifeTeamplay::TeamWithFewestPlayers()
 	int i;
 	int minPlayers = MAX_TEAMS;
 	int teamCount[MAX_TEAMS];
-	char* pTeamName = NULL;
+	char* pTeamName = nullptr;
 
 	memset(teamCount, 0, MAX_TEAMS * sizeof(int));
 
@@ -520,7 +520,7 @@ const char* CHalfLifeTeamplay::TeamWithFewestPlayers()
 	{
 		CBaseEntity* plr = UTIL_PlayerByIndex(i);
 
-		if (plr)
+		if (plr != nullptr)
 		{
 			int team = GetTeamIndex(plr->TeamID());
 			if (team >= 0)
@@ -557,14 +557,14 @@ void CHalfLifeTeamplay::RecountTeams(bool bResendInfo)
 	strcpy(teamlist, m_szTeamList);
 	pName = teamlist;
 	pName = strtok(pName, ";");
-	while (pName != NULL && '\0' != *pName)
+	while (pName != nullptr && '\0' != *pName)
 	{
 		if (GetTeamIndex(pName) < 0)
 		{
 			strcpy(team_names[num_teams], pName);
 			num_teams++;
 		}
-		pName = strtok(NULL, ";");
+		pName = strtok(nullptr, ";");
 	}
 
 	if (num_teams < 2)
@@ -581,7 +581,7 @@ void CHalfLifeTeamplay::RecountTeams(bool bResendInfo)
 	{
 		CBaseEntity* plr = UTIL_PlayerByIndex(i);
 
-		if (plr)
+		if (plr != nullptr)
 		{
 			const char* pTeamName = plr->TeamID();
 			// try add to existing team
@@ -606,9 +606,9 @@ void CHalfLifeTeamplay::RecountTeams(bool bResendInfo)
 
 			if (bResendInfo) //Someone's info changed, let's send the team info again.
 			{
-				if (plr && IsValidTeam(plr->TeamID()))
+				if ((plr != nullptr) && IsValidTeam(plr->TeamID()))
 				{
-					MESSAGE_BEGIN(MSG_ALL, gmsgTeamInfo, NULL);
+					MESSAGE_BEGIN(MSG_ALL, gmsgTeamInfo, nullptr);
 					WRITE_BYTE(plr->entindex());
 					WRITE_STRING(plr->TeamID());
 					MESSAGE_END();
