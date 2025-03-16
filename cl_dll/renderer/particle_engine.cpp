@@ -211,7 +211,7 @@ particle_system_t* CParticleEngine::CreateSystem(const std::string& path, Vector
 
 		if (!result)
 		{
-			gEngfuncs.Con_Printf("Could not load particle definitions file: %s!\n", path);
+			gEngfuncs.Con_Printf("Could not load particle definitions file: %s!\n", path.c_str());
 			return nullptr;
 		}
 
