@@ -52,7 +52,7 @@ public:
 	bool ExtraCullBox(Vector vMins, Vector vMaxs);
 
 	void SetExtraCullBox(Vector vMins, Vector vMaxs);
-	void DisableExtraCullBox(void);
+	void DisableExtraCullBox();
 
 	float CalcFov(float flFovX, float flWidth, float flHeight);
 	void Q_AngleVectors(Vector vAngles, Vector vForward, Vector vRight, Vector vUp);

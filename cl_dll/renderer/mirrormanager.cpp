@@ -62,7 +62,7 @@ Init
 
 ====================
 */
-void CMirrorManager::Init(void)
+void CMirrorManager::Init()
 {
 	m_pCvarDrawMirrors = gEngfuncs.pfnRegisterVariable("te_mirrors", "1", 0);
 	m_pCvarMirrorPlayer = gEngfuncs.pfnRegisterVariable("te_mirror_player", "0", FCVAR_ARCHIVE);
@@ -74,7 +74,7 @@ VidInit
 
 ====================
 */
-void CMirrorManager::VidInit(void)
+void CMirrorManager::VidInit()
 {
 	for (int i = 0; i < m_iNumMirrors; i++)
 		glDeleteTextures(1, &m_pMirrors[i].texture);
@@ -159,7 +159,7 @@ void CMirrorManager::DrawMirrorPasses(ref_params_t* pparams)
 	if (m_pCvarDrawMirrors->value < 1)
 		return;
 
-	if (!m_iNumMirrors)
+	if (m_iNumMirrors == 0)
 		return;
 
 	// Completely clear everything
@@ -204,7 +204,7 @@ SetupClipping
 
 ====================
 */
-void CMirrorManager::SetupClipping(void)
+void CMirrorManager::SetupClipping()
 {
 	float dot;
 	float eq1[4];
@@ -222,7 +222,7 @@ void CMirrorManager::SetupClipping(void)
 	VectorInverse(vRight);
 	VectorInverse(vUp);
 
-	if (m_pCurrentMirror->surface->flags & SURF_PLANEBACK)
+	if ((m_pCurrentMirror->surface->flags & SURF_PLANEBACK) != 0)
 	{
 		eq1[0] = DotProduct(vRight, m_pCurrentMirror->surface->plane->normal);
 		eq1[1] = DotProduct(vUp, m_pCurrentMirror->surface->plane->normal);
@@ -265,7 +265,7 @@ DrawMirrorPass
 
 ====================
 */
-void CMirrorManager::DrawMirrorPass(void)
+void CMirrorManager::DrawMirrorPass()
 {
 	// Set world renderer
 	gBSPRenderer.RendererRefDef(&m_pMirrorParams);
@@ -281,7 +281,7 @@ void CMirrorManager::DrawMirrorPass(void)
 		if (gBSPRenderer.m_pRenderEntities[i]->model->type != mod_studio)
 			continue;
 
-		if (!gBSPRenderer.m_pRenderEntities[i]->player)
+		if (gBSPRenderer.m_pRenderEntities[i]->player == 0)
 		{
 			g_StudioRenderer.m_pCurrentEntity = gBSPRenderer.m_pRenderEntities[i];
 			g_StudioRenderer.StudioDrawModel(STUDIO_RENDER);
@@ -311,15 +311,15 @@ SetupMirrorPass
 
 ====================
 */
-void CMirrorManager::SetupMirrorPass(void)
+void CMirrorManager::SetupMirrorPass()
 {
 	Vector forward;
-	AngleVectors(m_pViewParams->viewangles, forward, NULL, NULL);
+	AngleVectors(m_pViewParams->viewangles, forward, nullptr, nullptr);
 
 	float flDist = DotProduct(m_pViewParams->vieworg, m_pCurrentMirror->surface->plane->normal) - m_pCurrentMirror->surface->plane->dist;
 	VectorMASSE(m_pViewParams->vieworg, -2 * flDist, m_pCurrentMirror->surface->plane->normal, m_pMirrorParams.vieworg);
 
-	if (m_pCurrentMirror->surface->flags & SURF_PLANEBACK)
+	if ((m_pCurrentMirror->surface->flags & SURF_PLANEBACK) != 0)
 	{
 		flDist = DotProduct(forward, m_pCurrentMirror->surface->plane->normal);
 		VectorMASSE(forward, -2 * flDist, m_pCurrentMirror->surface->plane->normal, forward);
@@ -362,7 +362,7 @@ FinishMirrorPass
 
 ====================
 */
-void CMirrorManager::FinishMirrorPass(void)
+void CMirrorManager::FinishMirrorPass()
 {
 	// Save mirrored image
 	glBindTexture(GL_TEXTURE_2D, m_pCurrentMirror->texture);
@@ -387,12 +387,12 @@ DrawMirrors
 
 ====================
 */
-void CMirrorManager::DrawMirrors(void)
+void CMirrorManager::DrawMirrors()
 {
 	if (m_pCvarDrawMirrors->value < 1)
 		return;
 
-	if (!m_iNumMirrors)
+	if (m_iNumMirrors == 0)
 		return;
 
 	float flProjection[16];

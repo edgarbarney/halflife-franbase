@@ -191,7 +191,7 @@ void EV_MuzzleFlash()
 {
 	// Add muzzle flash to current weapon model
 	cl_entity_t* ent = GetViewEntity();
-	if (!ent)
+	if (ent == nullptr)
 	{
 		return;
 	}

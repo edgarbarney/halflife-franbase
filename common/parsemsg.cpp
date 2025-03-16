@@ -173,7 +173,7 @@ float READ_HIRESANGLE()
 //--------------------------------------------------------------------------------------------------------------
 BufferWriter::BufferWriter()
 {
-	Init(NULL, 0);
+	Init(nullptr, 0);
 }
 
 //--------------------------------------------------------------------------------------------------------------
@@ -194,7 +194,7 @@ void BufferWriter::Init(unsigned char* buffer, int bufferLen)
 //--------------------------------------------------------------------------------------------------------------
 void BufferWriter::WriteByte(unsigned char data)
 {
-	if (!m_buffer || 0 == m_remaining)
+	if ((m_buffer == nullptr) || 0 == m_remaining)
 	{
 		m_overflow = true;
 		return;
@@ -208,7 +208,7 @@ void BufferWriter::WriteByte(unsigned char data)
 //--------------------------------------------------------------------------------------------------------------
 void BufferWriter::WriteLong(int data)
 {
-	if (!m_buffer || m_remaining < 4)
+	if ((m_buffer == nullptr) || m_remaining < 4)
 	{
 		m_overflow = true;
 		return;
@@ -225,13 +225,13 @@ void BufferWriter::WriteLong(int data)
 //--------------------------------------------------------------------------------------------------------------
 void BufferWriter::WriteString(const char* str)
 {
-	if (!m_buffer || 0 == m_remaining)
+	if ((m_buffer == nullptr) || 0 == m_remaining)
 	{
 		m_overflow = true;
 		return;
 	}
 
-	if (!str)
+	if (str == nullptr)
 		str = "";
 
 	int len = strlen(str) + 1;

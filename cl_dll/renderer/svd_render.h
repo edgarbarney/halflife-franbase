@@ -11,5 +11,5 @@
 #include "ref_params.h"
 
 void SVD_CalcRefDef( ref_params_t* pparams );
-void SVD_DrawNormalTriangles( void );
+void SVD_DrawNormalTriangles( );
 #endif

@@ -61,7 +61,7 @@ int DLLEXPORT HUD_AddEntity(int type, struct cl_entity_s* ent, const char* model
 	// it to filter the overview entities
 
 //RENDERERS START
-	if (!gBSPRenderer.FilterEntities(type, ent, modelname))
+	if (gBSPRenderer.FilterEntities(type, ent, modelname) == 0)
 		return 0;
 //RENDERERS END
 
@@ -157,7 +157,7 @@ void DLLEXPORT HUD_ProcessPlayerState(struct entity_state_s* dst, const struct e
 	dst->colormap = src->colormap;
 
 //RENDERERS START
-	if (src->effects & EF_DIMLIGHT)
+	if ((src->effects & EF_DIMLIGHT) != 0)
 		g_iFlashLight = 1;
 	else
 		g_iFlashLight = 0;
@@ -340,11 +340,11 @@ void DLLEXPORT HUD_CreateEntities()
 	// Do this here, not in refdef
 	gBSPRenderer.SetupRenderer();
 
-	if (g_iFlashLight)
+	if (g_iFlashLight != 0)
 	{
 		cl_entity_t* pView = gEngfuncs.GetViewModel();
 
-		if (pView)
+		if (pView != nullptr)
 			SetupFlashlight(pView->origin + Vector(0, 0, 8), Vector(-pView->angles[0], pView->angles[1], pView->angles[2]), gEngfuncs.GetClientTime(), gHUD.m_flTimeDelta);
 	}
 //RENDERERS END
@@ -355,7 +355,7 @@ void ProjectMuzzleflash(const struct cl_entity_s* entity)
 	if (entity != gEngfuncs.GetViewModel())
 		return;
 
-	if (entity && entity->curstate.body == 1 && strcmp(entity->model->name, "models/v_9mmhandgun.mdl") == 0)
+	if ((entity != nullptr) && entity->curstate.body == 1 && strcmp(entity->model->name, "models/v_9mmhandgun.mdl") == 0)
 		return; // Aynekko: silenced pistol has no light
 
 	Vector forward;
@@ -373,7 +373,7 @@ void ProjectMuzzleflash(const struct cl_entity_s* entity)
 	gEngfuncs.pEventAPI->EV_PopPMStates();
 
 	Vector angles;
-	if (&tr)
+	if ((&tr) != nullptr)
 	{
 		Vector dist = tr.endpos - VecSrc;
 		dist.z = 0;
@@ -497,7 +497,7 @@ void DLLEXPORT HUD_TempEntUpdate(
 //RENDERERS END
 
 	// Nothing to simulate
-	if (!*ppTempEntActive)
+	if (*ppTempEntActive == nullptr)
 		return;
 
 	// in order to have tents collide with players, we have to run the player prediction code so
@@ -520,7 +520,7 @@ void DLLEXPORT HUD_TempEntUpdate(
 	// !!! Don't simulate while paused....  This is sort of a hack, revisit.
 	if (frametime <= 0)
 	{
-		while (pTemp)
+		while (pTemp != nullptr)
 		{
 			if ((pTemp->flags & FTENT_NOMODEL) == 0)
 			{
@@ -534,13 +534,13 @@ void DLLEXPORT HUD_TempEntUpdate(
 		goto finish;
 	}
 
-	pprev = NULL;
+	pprev = nullptr;
 	freq = client_time * 0.01;
 	fastFreq = client_time * 5.5;
 	gravity = -frametime * cl_gravity;
 	gravitySlow = gravity * 0.5;
 
-	while (pTemp)
+	while (pTemp != nullptr)
 	{
 		bool active;
 
@@ -565,7 +565,7 @@ void DLLEXPORT HUD_TempEntUpdate(
 		{
 			pTemp->next = *ppTempEntFree;
 			*ppTempEntFree = pTemp;
-			if (!pprev) // Deleting at head of list
+			if (pprev == nullptr) // Deleting at head of list
 				*ppTempEntActive = pnext;
 			else
 				pprev->next = pnext;
@@ -699,7 +699,7 @@ void DLLEXPORT HUD_TempEntUpdate(
 							traceFraction = pmtrace.fraction;
 							VectorCopy(pmtrace.plane.normal, traceNormal);
 
-							if (pTemp->hitcallback)
+							if (pTemp->hitcallback != nullptr)
 							{
 								(*pTemp->hitcallback)(pTemp, &pmtrace);
 							}
@@ -731,7 +731,7 @@ void DLLEXPORT HUD_TempEntUpdate(
 							}
 						}
 
-						if (pTemp->hitcallback)
+						if (pTemp->hitcallback != nullptr)
 						{
 							(*pTemp->hitcallback)(pTemp, &pmtrace);
 						}
@@ -818,7 +818,7 @@ void DLLEXPORT HUD_TempEntUpdate(
 
 			if ((pTemp->flags & FTENT_CLIENTCUSTOM) != 0)
 			{
-				if (pTemp->callback)
+				if (pTemp->callback != nullptr)
 				{
 					(*pTemp->callback)(pTemp, frametime, client_time);
 				}
@@ -878,6 +878,6 @@ cl_entity_t DLLEXPORT* HUD_GetUserEntity(int index)
 		return NULL;
 	}
 #else
-	return NULL;
+	return nullptr;
 #endif
 }

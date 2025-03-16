@@ -163,12 +163,12 @@ Shutdown
 
 ====================
 */
-void CBSPRenderer::Shutdown(void)
+void CBSPRenderer::Shutdown()
 {
 	FreeBuffer();
 
 	// Clear previous
-	if (m_iNumSurfaces)
+	if (m_iNumSurfaces != 0)
 	{
 		delete[] m_pSurfaces;
 		m_pSurfaces = nullptr;
@@ -185,7 +185,7 @@ Init
 
 ====================
 */
-void CBSPRenderer::Init(void)
+void CBSPRenderer::Init()
 {
 	//
 	// Check extensions
@@ -193,14 +193,14 @@ void CBSPRenderer::Init(void)
 	if (!ExtensionSupported("GL_ARB_multitexture"))
 	{
 		gEngfuncs.pfnClientCmd("escape\n");
-		MessageBox(NULL, "VIDEO ERROR: Your hardware does not support multitexturing!\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
+		MessageBox(nullptr, "VIDEO ERROR: Your hardware does not support multitexturing!\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
 		gEngfuncs.pfnClientCmd("quit\n");
 	}
 
 	if (!ExtensionSupported("ARB_vertex_buffer_object"))
 	{
 		gEngfuncs.pfnClientCmd("escape\n");
-		MessageBox(NULL, "VIDEO ERROR: Your hardware does not support vertex buffer objects!\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
+		MessageBox(nullptr, "VIDEO ERROR: Your hardware does not support vertex buffer objects!\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
 		gEngfuncs.pfnClientCmd("quit\n");
 	}
 
@@ -208,7 +208,7 @@ void CBSPRenderer::Init(void)
 	if (m_iTUSupport < 3)
 	{
 		gEngfuncs.pfnClientCmd("escape\n");
-		MessageBox(NULL, "VIDEO ERROR: Your hardware does not support enough multitexture units!\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
+		MessageBox(nullptr, "VIDEO ERROR: Your hardware does not support enough multitexture units!\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
 		gEngfuncs.pfnClientCmd("quit\n");
 	}
 
@@ -377,7 +377,7 @@ void CBSPRenderer::Init(void)
 	glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &iErrorPos);
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &iIsNative);
 
-	if (iErrorPos != -1 || !iIsNative)
+	if (iErrorPos != -1 || (iIsNative == 0))
 	{
 		m_bShaderSupport = false;
 		m_bDontPromptShadersError = false;
@@ -393,7 +393,7 @@ void CBSPRenderer::Init(void)
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &iIsNative);
 	glDisable(GL_FRAGMENT_PROGRAM_ARB);
 
-	if (iErrorPos != -1 || !iIsNative)
+	if (iErrorPos != -1 || (iIsNative == 0))
 	{
 		m_bShaderSupport = false;
 		m_bDontPromptShadersError = false;
@@ -412,7 +412,7 @@ void CBSPRenderer::Init(void)
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &iIsNative);
 	glDisable(GL_FRAGMENT_PROGRAM_ARB);
 
-	if (iErrorPos != -1 || !iIsNative)
+	if (iErrorPos != -1 || (iIsNative == 0))
 	{
 		m_bShaderSupport = false;
 		m_bDontPromptShadersError = false;
@@ -428,18 +428,18 @@ VidInit
 
 ====================
 */
-void CBSPRenderer::VidInit(void)
+void CBSPRenderer::VidInit()
 {
-	if (!IEngineStudio.IsHardware())
+	if (IEngineStudio.IsHardware() == 0)
 	{
 		gEngfuncs.pfnClientCmd("escape\n");
-		MessageBox(NULL, "VIDEO ERROR: This game does not support Software mode!\nTry using the -gl parameter in the command line.\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
+		MessageBox(nullptr, "VIDEO ERROR: This game does not support Software mode!\nTry using the -gl parameter in the command line.\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
 		exit(-1);
 	}
 	if (IEngineStudio.IsHardware() == 2)
 	{
 		gEngfuncs.pfnClientCmd("escape\n");
-		MessageBox(NULL, "VIDEO ERROR: This game does not support DirectX!\nTry using the -gl parameter in the command line.\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
+		MessageBox(nullptr, "VIDEO ERROR: This game does not support DirectX!\nTry using the -gl parameter in the command line.\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
 		exit(-1);
 	}
 
@@ -466,7 +466,7 @@ void CBSPRenderer::VidInit(void)
 	{
 		for (int i = 0; i < MAX_DYNLIGHTS; i++)
 		{
-			if (m_pDynLights[i].depth)
+			if (m_pDynLights[i].depth != 0u)
 			{
 				glDeleteTextures(1, &m_pDynLights[i].depth);
 				m_pDynLights[i].depth = 0;
@@ -486,20 +486,20 @@ void CBSPRenderer::VidInit(void)
 	memset(&gHUD.m_pFogSettings, 0, sizeof(fog_settings_t));
 
 	// Clear previous
-	if (m_iNumSurfaces)
+	if (m_iNumSurfaces != 0)
 	{
 		delete[] m_pSurfaces;
 		m_pSurfaces = nullptr;
 		m_iNumSurfaces = NULL;
 	}
 
-	if (m_pSurfacePointersArray)
+	if (m_pSurfacePointersArray != nullptr)
 	{
 		delete[] m_pSurfacePointersArray;
 		m_pSurfacePointersArray = nullptr;
 	}
 
-	if (m_pDetailObjectSurfaces)
+	if (m_pDetailObjectSurfaces != nullptr)
 	{
 		delete[] m_pDetailObjectSurfaces;
 		m_pDetailObjectSurfaces = nullptr;
@@ -518,7 +518,7 @@ void CBSPRenderer::VidInit(void)
 			current_ext_texture_id++;
 
 			glBindTexture(GL_TEXTURE_2D, m_pDynLights[i].depth);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, DEPTHMAP_RESOLUTION, DEPTHMAP_RESOLUTION, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, DEPTHMAP_RESOLUTION, DEPTHMAP_RESOLUTION, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nullptr);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -535,7 +535,7 @@ void CBSPRenderer::VidInit(void)
 	m_pFirstELight = gEngfuncs.pEfxAPI->CL_AllocElight(0);
 	m_pFirstDLight = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
 	m_fSkySpeed = NULL;
-	m_pWorld = NULL;
+	m_pWorld = nullptr;
 	m_iNumDetailTextures = NULL;
 	m_iFrameCount = NULL;
 	m_iVisFrame = NULL;
@@ -564,11 +564,11 @@ bool CBSPRenderer::ExtensionSupported(const char* ext)
 	const char* start = extensions;
 	const char* ptr;
 
-	while ((ptr = strstr(start, ext)) != NULL)
+	while ((ptr = strstr(start, ext)) != nullptr)
 	{
 		// we've found, ensure name is exactly ext
 		const char* end = ptr + strlen(ext);
-		if (isspace(*end) || *end == '\0')
+		if ((isspace(*end) != 0) || *end == '\0')
 			return true;
 
 		start = end;
@@ -582,7 +582,7 @@ GetRenderEnts
 
 ====================
 */
-void CBSPRenderer::GetRenderEnts(void)
+void CBSPRenderer::GetRenderEnts()
 {
 	// Clear counters
 	m_iNumRenderEntities = NULL;
@@ -605,44 +605,44 @@ void CBSPRenderer::GetRenderEnts(void)
 	{
 		cl_entity_t* pEntity = gEngfuncs.GetEntityByIndex(i);
 
-		if (!pEntity)
+		if (pEntity == nullptr)
 			break;
 
 		if (pEntity == pView)
 			continue;
 
-		if (!pEntity->model)
+		if (pEntity->model == nullptr)
 			continue;
 
 		if (pEntity->curstate.messagenum != iMsg)
 			continue;
 
-		if (pEntity->curstate.effects & EF_NODRAW)
+		if ((pEntity->curstate.effects & EF_NODRAW) != 0)
 			continue;
 
-		if ((pEntity->curstate.effects & FL_MIRROR) && gMirrorManager.m_pCvarDrawMirrors->value > 0)
+		if (((pEntity->curstate.effects & FL_MIRROR) != 0) && gMirrorManager.m_pCvarDrawMirrors->value > 0)
 		{
-			if (!pEntity->efrag)
+			if (pEntity->efrag == nullptr)
 				gMirrorManager.AllocNewMirror(pEntity);
 
-			if (pEntity->efrag)
+			if (pEntity->efrag != nullptr)
 				((cl_mirror_t*)pEntity->efrag)->draw = true;
 
 			continue;
 		}
 
-		if ((pEntity->curstate.effects & FL_WATERSHADER) && m_bShaderSupport && gWaterShader.m_pCvarWaterShader->value > 0)
+		if (((pEntity->curstate.effects & FL_WATERSHADER) != 0) && m_bShaderSupport && gWaterShader.m_pCvarWaterShader->value > 0)
 		{
-			if (!pEntity->efrag)
+			if (pEntity->efrag == nullptr)
 				gWaterShader.AddEntity(pEntity);
 
-			if (pEntity->efrag)
+			if (pEntity->efrag != nullptr)
 				((cl_water_t*)pEntity->efrag)->draw = true;
 
 			continue;
 		}
 
-		if (pEntity->curstate.effects & FL_ELIGHT)
+		if ((pEntity->curstate.effects & FL_ELIGHT) != 0)
 		{
 			// mlights are static
 			mlight_t* mlight = &m_pModelLights[m_iNumModelLights];
@@ -667,7 +667,7 @@ void CBSPRenderer::GetRenderEnts(void)
 			continue;
 		}
 
-		if (pEntity->curstate.effects & FL_DLIGHT)
+		if ((pEntity->curstate.effects & FL_DLIGHT) != 0)
 		{
 			cl_dlight_t* dlight = CL_AllocDLight(pEntity->index);
 
@@ -680,7 +680,7 @@ void CBSPRenderer::GetRenderEnts(void)
 			continue;
 		}
 
-		if (pEntity->curstate.effects & FL_SPOTLIGHT)
+		if ((pEntity->curstate.effects & FL_SPOTLIGHT) != 0)
 		{
 			if (!m_bShaderSupport || m_pCvarWorldShaders->value < 1)
 				continue;
@@ -708,7 +708,7 @@ void CBSPRenderer::GetRenderEnts(void)
 			continue;
 		}
 
-		if (pEntity->curstate.effects & EF_LIGHT)
+		if ((pEntity->curstate.effects & EF_LIGHT) != 0)
 		{
 			cl_dlight_t* dlight = CL_AllocDLight(pEntity->index);
 
@@ -734,7 +734,7 @@ void CBSPRenderer::GetRenderEnts(void)
 	dlight_t* el = m_pFirstELight;
 	for (int i = 0; i < MAX_GOLDSRC_ELIGHTS; i++, el++)
 	{
-		if (el->die < gEngfuncs.GetClientTime() || !el->radius)
+		if (el->die < gEngfuncs.GetClientTime() || (el->radius == 0.0f))
 			continue;
 
 		mlight_t* mlight = &m_pModelLights[m_iNumModelLights];
@@ -758,7 +758,7 @@ void CBSPRenderer::GetRenderEnts(void)
 	cl_dlight_t* dl = m_pDynLights;
 	for (int i = 0; i < MAX_DYNLIGHTS; i++, dl++)
 	{
-		if (dl->die < gEngfuncs.GetClientTime() || !dl->radius)
+		if (dl->die < gEngfuncs.GetClientTime() || (dl->radius == 0.0f))
 			continue;
 
 		mlight_t* mlight = &m_pModelLights[m_iNumModelLights];
@@ -781,11 +781,11 @@ void CBSPRenderer::GetRenderEnts(void)
 		else
 			mlight->flashlight = false;
 
-		if (dl->cone_size)
+		if (dl->cone_size != 0.0f)
 		{
 			Vector vAngles = dl->angles;
 			FixVectorForSpotlight(vAngles);
-			AngleVectors(vAngles, mlight->forward, NULL, NULL);
+			AngleVectors(vAngles, mlight->forward, nullptr, nullptr);
 			mlight->spotcos = dl->cone_size;
 			mlight->frustum = &dl->frustum;
 		}
@@ -815,7 +815,7 @@ GetAdditionalLights
 
 ====================
 */
-void CBSPRenderer::GetAdditionalLights(void)
+void CBSPRenderer::GetAdditionalLights()
 {
 	if (m_bGotAdditional)
 		return;
@@ -826,7 +826,7 @@ void CBSPRenderer::GetAdditionalLights(void)
 	cl_entity_t* pLight = gPropManager.m_pModelLights;
 	for (int i = 0; i < gPropManager.m_iNumModelLights; i++, pLight++)
 	{
-		if (m_pPVS[pLight->visframe >> 3] & (1 << (pLight->visframe & 7)))
+		if ((m_pPVS[pLight->visframe >> 3] & (1 << (pLight->visframe & 7))) != 0)
 		{
 			mlight_t* mlight = &m_pModelLights[m_iNumModelLights];
 			m_iNumModelLights++;
@@ -874,13 +874,13 @@ int CBSPRenderer::FilterEntities(int type, struct cl_entity_s* pEntity, const ch
 	if (pEntity->model->type == mod_brush)
 		return FALSE;
 
-	if (pEntity->curstate.effects & FL_DLIGHT)
+	if ((pEntity->curstate.effects & FL_DLIGHT) != 0)
 		return FALSE;
 
-	if (pEntity->curstate.effects & FL_ELIGHT)
+	if ((pEntity->curstate.effects & FL_ELIGHT) != 0)
 		return FALSE;
 
-	if (pEntity->curstate.effects & FL_SPOTLIGHT)
+	if ((pEntity->curstate.effects & FL_SPOTLIGHT) != 0)
 		return FALSE;
 
 	return TRUE;
@@ -924,7 +924,7 @@ SetupSpotlightVis
 
 ====================
 */
-void CBSPRenderer::SetupSpotlightVis(void)
+void CBSPRenderer::SetupSpotlightVis()
 {
 	if (!m_bShaderSupport || m_pCvarWorldShaders->value < 1)
 		return;
@@ -936,7 +936,7 @@ void CBSPRenderer::SetupSpotlightVis(void)
 	cl_dlight_t* pLight = m_pDynLights;
 	for (int i = 0; i < MAX_DYNLIGHTS; i++, pLight++)
 	{
-		if (pLight->die <= flTime || !pLight->radius || !pLight->cone_size || pLight->key == -666)
+		if (pLight->die <= flTime || (pLight->radius == 0.0f) || (pLight->cone_size == 0.0f) || pLight->key == -666)
 			continue;
 
 		// Make sure the spotlight sees it's polygons
@@ -950,7 +950,7 @@ CheckTextures
 
 ====================
 */
-void CBSPRenderer::CheckTextures(void)
+void CBSPRenderer::CheckTextures()
 {
 	char szFile[64];
 	char szTexture[32];
@@ -958,11 +958,11 @@ void CBSPRenderer::CheckTextures(void)
 	model_t* pWorld = IEngineStudio.GetModelByIndex(1);
 	for (int i = 0; i < pWorld->numtextures; i++)
 	{
-		if (!pWorld->textures[i])
+		if (pWorld->textures[i] == nullptr)
 			continue;
 
 		// Skip specials
-		if (!strcmp(pWorld->textures[i]->name, "origin") || !strcmp(pWorld->textures[i]->name, "clip") || !strcmp(pWorld->textures[i]->name, "null") || !strcmp(pWorld->textures[i]->name, "skip") || !strcmp(pWorld->textures[i]->name, "hint"))
+		if ((strcmp(pWorld->textures[i]->name, "origin") == 0) || (strcmp(pWorld->textures[i]->name, "clip") == 0) || (strcmp(pWorld->textures[i]->name, "null") == 0) || (strcmp(pWorld->textures[i]->name, "skip") == 0) || (strcmp(pWorld->textures[i]->name, "hint") == 0))
 			continue;
 
 		strcpy(szTexture, pWorld->textures[i]->name);
@@ -974,7 +974,7 @@ void CBSPRenderer::CheckTextures(void)
 			sprintf(szFile, "gfx/textures/world/%s.dds", szTexture);
 			cl_texture_t* pTexture = gTextureLoader.LoadTexture(szFile, pWorld->textures[i]->gl_texturenum);
 
-			if (pTexture)
+			if (pTexture != nullptr)
 			{
 				gEngfuncs.Con_DPrintf("Loaded '%s'\n", szFile);
 				continue;
@@ -990,7 +990,7 @@ SetupRenderer
 
 ====================
 */
-void CBSPRenderer::SetupRenderer(void)
+void CBSPRenderer::SetupRenderer()
 {
 	if (!m_bReloaded)
 		return;
@@ -1001,10 +1001,10 @@ void CBSPRenderer::SetupRenderer(void)
 	m_pWorld = IEngineStudio.GetModelByIndex(1);
 	m_bReloaded = false;
 
-	if (!m_pWorld)
+	if (m_pWorld == nullptr)
 	{
 		gEngfuncs.pfnClientCmd("escape\n");
-		MessageBox(NULL, "FATAL ERROR: Failed to get world!\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
+		MessageBox(nullptr, "FATAL ERROR: Failed to get world!\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
 		exit(-1);
 	}
 
@@ -1064,7 +1064,7 @@ void CBSPRenderer::RendererRefDef(ref_params_t* pparams)
 	ClearToFogColor();
 	DisableWorldDrawing(pparams);
 
-	if (!pparams->onlyClientDraw)
+	if (pparams->onlyClientDraw == 0)
 		m_bCanDraw = true;
 };
 
@@ -1076,7 +1076,7 @@ DisableWorldDrawing
 */
 void CBSPRenderer::DisableWorldDrawing(ref_params_t* pparams)
 {
-	if (m_pTrueRootNode)
+	if (m_pTrueRootNode != nullptr)
 	{
 		gEngfuncs.Con_Printf("%s - Called without having been restored first!\n");
 		return;
@@ -1092,10 +1092,10 @@ RestoreWorldDrawing
 
 ====================
 */
-void CBSPRenderer::RestoreWorldDrawing(void)
+void CBSPRenderer::RestoreWorldDrawing()
 {
 	// Shouldn't happen
-	if (!m_pTrueRootNode)
+	if (m_pTrueRootNode == nullptr)
 		return;
 
 	// Restore and clear pointer
@@ -1112,13 +1112,13 @@ RemoveSky
 
 ====================
 */
-void CBSPRenderer::RemoveSky(void)
+void CBSPRenderer::RemoveSky()
 {
 	bool foundSky = false;
 	msurface_t* surfaces = m_pWorld->surfaces;
 	for (int i = 0; i < m_pWorld->numsurfaces; i++)
 	{
-		if (surfaces[i].flags & SURF_DRAWSKY)
+		if ((surfaces[i].flags & SURF_DRAWSKY) != 0)
 		{
 			glpoly_t* p = surfaces[i].polys;
 			p->numverts = -p->numverts;
@@ -1136,19 +1136,19 @@ ClearDetailObjects
 
 ====================
 */
-void CBSPRenderer::ClearDetailObjects(void)
+void CBSPRenderer::ClearDetailObjects()
 {
 	for (int i = 0; i < m_numDetailSurfaces; i++)
 	{
 		msurface_t* psurf = &m_pDetailObjectSurfaces[i];
 
-		if (psurf->polys)
+		if (psurf->polys != nullptr)
 			free(psurf->polys);
 
-		if (psurf->plane)
+		
 			delete psurf->plane;
 
-		if (psurf->texinfo)
+		
 			delete psurf->texinfo;
 	}
 
@@ -1164,7 +1164,7 @@ LoadDetailFile
 Comment: BLARGH
 ====================
 */
-void CBSPRenderer::LoadDetailFile(void)
+void CBSPRenderer::LoadDetailFile()
 {
 	char szPath[64];
 	char szFile[64];
@@ -1172,8 +1172,8 @@ void CBSPRenderer::LoadDetailFile(void)
 	strcpy(&szFile[strlen(szFile) - 3], "edd");
 
 	int iOffset = 0;
-	byte* pFile = gEngfuncs.COM_LoadFile(szFile, 5, NULL);
-	if (!pFile)
+	byte* pFile = gEngfuncs.COM_LoadFile(szFile, 5, nullptr);
+	if (pFile == nullptr)
 		return;
 
 	bool bNeedsUpload[MAX_LIGHTMAPS];
@@ -1194,7 +1194,7 @@ void CBSPRenderer::LoadDetailFile(void)
 		memcpy(&iNumSurfaces, &pFile[iOffset], sizeof(int));
 		iOffset += 4;
 
-		if (!iNumSurfaces)
+		if (iNumSurfaces == 0)
 			continue;
 
 		m_pDetailObjects[i].firstsurface = surfacesArray.size();
@@ -1223,9 +1223,9 @@ void CBSPRenderer::LoadDetailFile(void)
 			psurfaces[j].polys = (glpoly_t*)malloc(sizeof(glpoly_t) + sizeof(float) * VERTEXSIZE * iPlusVerts);
 
 			glpoly_t* pPoly = psurfaces[j].polys;
-			pPoly->chain = NULL;
+			pPoly->chain = nullptr;
 			pPoly->flags = NULL;
-			pPoly->next = NULL;
+			pPoly->next = nullptr;
 			pPoly->numverts = NULL;
 			memset(pPoly->verts, 0, sizeof(float) * VERTEXSIZE * 4);
 			pPoly->numverts = iVertnum;
@@ -1248,7 +1248,7 @@ void CBSPRenderer::LoadDetailFile(void)
 			int k;
 			for (k = 0; k < m_iNumTextures; k++)
 			{
-				if (!strcmp(m_pNormalTextureList[k].name, szTexName))
+				if (strcmp(m_pNormalTextureList[k].name, szTexName) == 0)
 				{
 					psurfaces[j].texinfo->texture = &m_pNormalTextureList[k];
 					break;
@@ -1257,7 +1257,7 @@ void CBSPRenderer::LoadDetailFile(void)
 
 			if (k == m_iNumTextures)
 			{
-				cl_texture_t* pTexture = NULL;
+				cl_texture_t* pTexture = nullptr;
 				psurfaces[j].texinfo->texture = &m_pNormalTextureList[m_iNumTextures];
 				texture_t* pMultiPass = &m_pMultiPassTextureList[m_iNumTextures];
 				m_iNumTextures++;
@@ -1270,10 +1270,10 @@ void CBSPRenderer::LoadDetailFile(void)
 				}
 
 				// Just load it from a WAD then
-				if (!pTexture)
+				if (pTexture == nullptr)
 					pTexture = gTextureLoader.LoadWADTexture(szTexName);
 
-				if (!pTexture)
+				if (pTexture == nullptr)
 				{
 					gEngfuncs.Con_Printf("Error! .edd file couldn't load texture: %s!\n", szTexName);
 					gEngfuncs.COM_FreeFile(pFile);
@@ -1350,7 +1350,7 @@ CreateTextures
 
 ====================
 */
-void CBSPRenderer::CreateTextures(void)
+void CBSPRenderer::CreateTextures()
 {
 	//
 	// Load flashlight texture
@@ -1358,10 +1358,10 @@ void CBSPRenderer::CreateTextures(void)
 	m_pFlashlightTextures[0] = gTextureLoader.LoadTexture("gfx/textures/flashlight.tga", FALSE, true, false, true);
 	m_iNumFlashlightTextures++;
 
-	if (!m_pFlashlightTextures[0])
+	if (m_pFlashlightTextures[0] == nullptr)
 	{
 		gEngfuncs.pfnClientCmd("escape\n");
-		MessageBox(NULL, "ERROR: Failed to load gfx/textures/flashlight.tga.\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
+		MessageBox(nullptr, "ERROR: Failed to load gfx/textures/flashlight.tga.\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
 		exit(-1);
 	}
 
@@ -1375,12 +1375,12 @@ void CBSPRenderer::CreateTextures(void)
 	for (int i = 0; i < gTextureLoader.m_iNumTextureEntries; i++)
 	{
 		texentry_t* pEntry = &gTextureLoader.m_pTextureEntries[i];
-		if (!strcmp(pEntry->szModel, "flashlight"))
+		if (strcmp(pEntry->szModel, "flashlight") == 0)
 		{
 			char szPath[64];
 			sprintf(szPath, "gfx/textures/%s.tga", pEntry->szTexture);
 			cl_texture_t* pTexture = gTextureLoader.LoadTexture(szPath, FALSE, true, false, true);
-			if (pTexture)
+			if (pTexture != nullptr)
 			{
 				m_pFlashlightTextures[m_iNumFlashlightTextures] = pTexture;
 				m_iNumFlashlightTextures++;
@@ -1486,7 +1486,7 @@ void CBSPRenderer::CreateTextures(void)
 	//
 	for (int i = 0; i < m_pWorld->numtextures; i++)
 	{
-		if (!m_pWorld->textures[i])
+		if (m_pWorld->textures[i] == nullptr)
 			continue;
 
 		memcpy(&m_pNormalTextureList[m_iNumTextures], m_pWorld->textures[i], sizeof(texture_t));
@@ -1497,11 +1497,11 @@ void CBSPRenderer::CreateTextures(void)
 	// Relink animations
 	for (int i = 0; i < m_iNumTextures; i++)
 	{
-		if (m_pNormalTextureList[i].anim_next)
+		if (m_pNormalTextureList[i].anim_next != nullptr)
 		{
 			for (int j = 0; j < m_iNumTextures; j++)
 			{
-				if (!strcmp(m_pNormalTextureList[j].name, m_pNormalTextureList[i].anim_next->name))
+				if (strcmp(m_pNormalTextureList[j].name, m_pNormalTextureList[i].anim_next->name) == 0)
 				{
 					m_pNormalTextureList[i].anim_next = &m_pNormalTextureList[j];
 					break;
@@ -1517,24 +1517,24 @@ FreeBuffer
 
 ====================
 */
-void CBSPRenderer::FreeBuffer(void)
+void CBSPRenderer::FreeBuffer()
 {
-	if (m_uiBufferIndex)
+	if (m_uiBufferIndex != 0u)
 	{
 		glDeleteBuffersARB(1, &m_uiBufferIndex);
 		m_uiBufferIndex = NULL;
 	}
 
-	if (m_pBufferData)
+	if (m_pBufferData != nullptr)
 	{
 		delete[] m_pBufferData;
-		m_pBufferData = NULL;
+		m_pBufferData = nullptr;
 	}
 
-	if (m_pFacesExtraData)
+	if (m_pFacesExtraData != nullptr)
 	{
 		delete[] m_pFacesExtraData;
-		m_pFacesExtraData = NULL;
+		m_pFacesExtraData = nullptr;
 	}
 }
 
@@ -1545,7 +1545,7 @@ GenerateVertexArray
 
 ====================
 */
-void CBSPRenderer::GenerateVertexArray(void)
+void CBSPRenderer::GenerateVertexArray()
 {
 	int iNumFaces = 0;
 	int iCurFace = 0;
@@ -1559,19 +1559,19 @@ void CBSPRenderer::GenerateVertexArray(void)
 	msurface_t* surfaces = m_pWorld->surfaces;
 	for (int i = 0; i < m_pWorld->numsurfaces; i++)
 	{
-		if (surfaces[i].flags & SURF_DRAWSKY)
+		if ((surfaces[i].flags & SURF_DRAWSKY) != 0)
 			continue;
 
-		if (!(surfaces[i].flags & SURF_DRAWTURB) && surfaces[i].polys->next)
+		if (((surfaces[i].flags & SURF_DRAWTURB) == 0) && (surfaces[i].polys->next != nullptr))
 			continue; // lets be sure
 
-		for (glpoly_t* bp = surfaces[i].polys; bp; bp = bp->next)
+		for (glpoly_t* bp = surfaces[i].polys; bp != nullptr; bp = bp->next)
 			iNumVerts += 3 + (bp->numverts - 3) * 3;
 
 		iNumFaces++;
 	}
 
-	if (m_iNumDetailObjects)
+	if (m_iNumDetailObjects != 0)
 	{
 		for (int i = 0; i < m_iNumDetailObjects; i++)
 		{
@@ -1585,7 +1585,7 @@ void CBSPRenderer::GenerateVertexArray(void)
 	}
 
 	int nbPointers = m_pWorld->numsurfaces;
-	if (m_iNumDetailObjects)
+	if (m_iNumDetailObjects != 0)
 		nbPointers += m_numDetailSurfaces;
 
 	m_pSurfacePointersArray = new brushface_t*[nbPointers];
@@ -1608,7 +1608,7 @@ void CBSPRenderer::GenerateVertexArray(void)
 	int pointerIndex = 0;
 	for (int i = 0; i < m_pWorld->numsurfaces; i++, pointerIndex++)
 	{
-		if (surfaces[i].flags & SURF_DRAWSKY)
+		if ((surfaces[i].flags & SURF_DRAWSKY) != 0)
 			continue;
 
 		glpoly_t* poly = surfaces[i].polys;
@@ -1616,7 +1616,7 @@ void CBSPRenderer::GenerateVertexArray(void)
 		if (poly->numverts < 3)
 			continue;
 
-		if (!(surfaces[i].flags & SURF_DRAWTURB) && poly->next)
+		if (((surfaces[i].flags & SURF_DRAWTURB) == 0) && (poly->next != nullptr))
 			continue; // lets be sure
 
 		brushface_t* ext = &m_pFacesExtraData[iCurFace];
@@ -1630,13 +1630,13 @@ void CBSPRenderer::GenerateVertexArray(void)
 		// Set ptr
 		m_pSurfacePointersArray[pointerIndex] = ext;
 
-		if (surfaces[i].flags & SURF_PLANEBACK)
+		if ((surfaces[i].flags & SURF_PLANEBACK) != 0)
 			VectorInverse(ext->normal);
 
 		// Link up with renderlist textures
 		for (int j = 0; j < m_iNumTextures; j++)
 		{
-			if (!strcmp(m_pNormalTextureList[j].name, surfaces[i].texinfo->texture->name))
+			if (strcmp(m_pNormalTextureList[j].name, surfaces[i].texinfo->texture->name) == 0)
 			{
 				m_pSurfaces[ext->index].regtexture = &m_pNormalTextureList[j];
 				m_pSurfaces[ext->index].mptexture = &m_pMultiPassTextureList[j];
@@ -1644,10 +1644,10 @@ void CBSPRenderer::GenerateVertexArray(void)
 			}
 		}
 
-		detailtexentry_t* dtex = NULL;
-		if (m_pSurfaces[ext->index].regtexture)
+		detailtexentry_t* dtex = nullptr;
+		if (m_pSurfaces[ext->index].regtexture != nullptr)
 		{
-			if (m_pSurfaces[ext->index].regtexture->offsets[3])
+			if (m_pSurfaces[ext->index].regtexture->offsets[3] != 0u)
 				dtex = &m_pDetailTextures[m_pSurfaces[ext->index].regtexture->offsets[2]];
 		}
 
@@ -1655,7 +1655,7 @@ void CBSPRenderer::GenerateVertexArray(void)
 		float row = (surfaces[i].lightmaptexturenum / LIGHTMAP_NUMROWS) % LIGHTMAP_NUMCOLUMNS;
 
 		ext->start_vertex = iCurVert;
-		for (glpoly_t* bp = surfaces[i].polys; bp; bp = bp->next)
+		for (glpoly_t* bp = surfaces[i].polys; bp != nullptr; bp = bp->next)
 		{
 			brushvertex_t pVertexes[3];
 			float* v = bp->verts[0];
@@ -1673,7 +1673,7 @@ void CBSPRenderer::GenerateVertexArray(void)
 				pVertexes[j].normal[1] = ext->normal[1];
 				pVertexes[j].normal[2] = ext->normal[2];
 
-				if (dtex)
+				if (dtex != nullptr)
 				{
 					pVertexes[j].detailtexcoord[0] = v[3] * dtex->xscale;
 					pVertexes[j].detailtexcoord[1] = v[4] * dtex->yscale;
@@ -1728,7 +1728,7 @@ void CBSPRenderer::GenerateVertexArray(void)
 				pVertexes[2].normal[1] = ext->normal[1];
 				pVertexes[2].normal[2] = ext->normal[2];
 
-				if (dtex)
+				if (dtex != nullptr)
 				{
 					pVertexes[2].detailtexcoord[0] = v[3] * dtex->xscale;
 					pVertexes[2].detailtexcoord[1] = v[4] * dtex->yscale;
@@ -1772,7 +1772,7 @@ void CBSPRenderer::GenerateVertexArray(void)
 		iCurFace++;
 	}
 
-	if (m_iNumDetailObjects)
+	if (m_iNumDetailObjects != 0)
 	{
 		int iCounter = 0;
 		for (int i = 0; i < m_iNumDetailObjects; i++, pointerIndex++)
@@ -1798,13 +1798,13 @@ void CBSPRenderer::GenerateVertexArray(void)
 				// Set ptr
 				m_pSurfacePointersArray[pointerIndex] = ext;
 
-				if (psurf->flags & SURF_PLANEBACK)
+				if ((psurf->flags & SURF_PLANEBACK) != 0)
 					VectorInverse(ext->normal);
 
 				// Link up with renderlist textures
 				for (int k = 0; k < m_iNumTextures; k++)
 				{
-					if (!strcmp(m_pNormalTextureList[k].name, psurf->texinfo->texture->name))
+					if (strcmp(m_pNormalTextureList[k].name, psurf->texinfo->texture->name) == 0)
 					{
 						m_pSurfaces[ext->index].regtexture = &m_pNormalTextureList[k];
 						m_pSurfaces[ext->index].mptexture = &m_pMultiPassTextureList[k];
@@ -1812,10 +1812,10 @@ void CBSPRenderer::GenerateVertexArray(void)
 					}
 				}
 
-				detailtexentry_t* dtex = NULL;
-				if (m_pSurfaces[ext->index].regtexture)
+				detailtexentry_t* dtex = nullptr;
+				if (m_pSurfaces[ext->index].regtexture != nullptr)
 				{
-					if (m_pSurfaces[ext->index].regtexture->offsets[3])
+					if (m_pSurfaces[ext->index].regtexture->offsets[3] != 0u)
 						dtex = &m_pDetailTextures[m_pSurfaces[ext->index].regtexture->offsets[2]];
 				}
 
@@ -1823,7 +1823,7 @@ void CBSPRenderer::GenerateVertexArray(void)
 				float row = (psurf->lightmaptexturenum / LIGHTMAP_NUMROWS) % LIGHTMAP_NUMCOLUMNS;
 
 				ext->start_vertex = iCurVert;
-				for (glpoly_t* bp = psurf->polys; bp; bp = bp->next)
+				for (glpoly_t* bp = psurf->polys; bp != nullptr; bp = bp->next)
 				{
 					brushvertex_t pVertexes[3];
 					float* v = bp->verts[0];
@@ -1841,7 +1841,7 @@ void CBSPRenderer::GenerateVertexArray(void)
 						pVertexes[k].normal[1] = ext->normal[1];
 						pVertexes[k].normal[2] = ext->normal[2];
 
-						if (dtex)
+						if (dtex != nullptr)
 						{
 							pVertexes[k].detailtexcoord[0] = v[3] * dtex->xscale;
 							pVertexes[k].detailtexcoord[1] = v[4] * dtex->yscale;
@@ -1896,7 +1896,7 @@ void CBSPRenderer::GenerateVertexArray(void)
 						pVertexes[2].normal[1] = ext->normal[1];
 						pVertexes[2].normal[2] = ext->normal[2];
 
-						if (dtex)
+						if (dtex != nullptr)
 						{
 							pVertexes[2].detailtexcoord[0] = v[3] * dtex->xscale;
 							pVertexes[2].detailtexcoord[1] = v[4] * dtex->yscale;
@@ -1954,7 +1954,7 @@ EnableVertexArray
 
 ====================
 */
-void CBSPRenderer::EnableVertexArray(void)
+void CBSPRenderer::EnableVertexArray()
 {
 	glEnableClientState(GL_VERTEX_ARRAY);
 
@@ -1971,7 +1971,7 @@ DisableVertexArray
 
 ====================
 */
-void CBSPRenderer::DisableVertexArray(void)
+void CBSPRenderer::DisableVertexArray()
 {
 	glDisableClientState(GL_VERTEX_ARRAY);
 	if (m_bSpecialFog)
@@ -2041,7 +2041,7 @@ ResetRenderer
 
 ====================
 */
-void CBSPRenderer::ResetRenderer(void)
+void CBSPRenderer::ResetRenderer()
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -2065,7 +2065,7 @@ ResetCache
 
 ====================
 */
-void CBSPRenderer::ResetCache(void)
+void CBSPRenderer::ResetCache()
 {
 	for (int i = 0; i < 3; i++)
 		m_uiCurrentBinds[i] = 0;
@@ -2083,7 +2083,7 @@ HasDynLights
 
 ====================
 */
-bool CBSPRenderer::HasDynLights(void)
+bool CBSPRenderer::HasDynLights()
 {
 	float time = gEngfuncs.GetClientTime();
 	cl_dlight_t* dl = m_pDynLights;
@@ -2091,7 +2091,7 @@ bool CBSPRenderer::HasDynLights(void)
 	if (m_pCurrentEntity->curstate.renderfx == 70)
 		return false;
 
-	if (IsEntityTransparent(m_pCurrentEntity))
+	if (IsEntityTransparent(m_pCurrentEntity) != 0)
 		return false;
 
 	if (!m_bShaderSupport || m_pCvarWorldShaders->value <= 0)
@@ -2102,7 +2102,7 @@ bool CBSPRenderer::HasDynLights(void)
 
 	for (int i = 0; i < MAX_DYNLIGHTS; i++, dl++)
 	{
-		if (dl->die >= time && dl->radius)
+		if (dl->die >= time && (dl->radius != 0.0f))
 			return true;
 	}
 
@@ -2115,7 +2115,7 @@ PrepareRenderer
 
 ====================
 */
-void CBSPRenderer::PrepareRenderer(void)
+void CBSPRenderer::PrepareRenderer()
 {
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
@@ -2131,8 +2131,8 @@ void CBSPRenderer::PrepareRenderer(void)
 	// clear all chains
 	for (int i = 0; i < m_iNumTextures; i++)
 	{
-		m_pNormalTextureList[i].texturechain = NULL;
-		m_pMultiPassTextureList[i].texturechain = NULL;
+		m_pNormalTextureList[i].texturechain = nullptr;
+		m_pMultiPassTextureList[i].texturechain = nullptr;
 	}
 };
 
@@ -2142,13 +2142,13 @@ DrawNormalTriangles
 
 ====================
 */
-void CBSPRenderer::DrawNormalTriangles(void)
+void CBSPRenderer::DrawNormalTriangles()
 {
 	if (!m_bCanDraw)
 		return;
 
 	// Disable water fog, it's just black anyway
-	if (glIsEnabled(GL_FOG))
+	if (glIsEnabled(GL_FOG) != 0u)
 		glDisable(GL_FOG);
 
 	// Set up view leaf
@@ -2175,9 +2175,9 @@ DrawTransparentTriangles
 
 ====================
 */
-void CBSPRenderer::DrawTransparentTriangles(void)
+void CBSPRenderer::DrawTransparentTriangles()
 {
-	if (!m_pCvarDrawWorld->value)
+	if (m_pCvarDrawWorld->value == 0.0f)
 		return;
 
 	m_pCurrentEntity = gEngfuncs.GetEntityByIndex(0);
@@ -2189,7 +2189,7 @@ void CBSPRenderer::DrawTransparentTriangles(void)
 	{
 		for (int i = 0; i < m_iNumRenderEntities; i++)
 		{
-			if (IsEntityTransparent(m_pRenderEntities[i]) && m_pRenderEntities[i]->curstate.renderfx != 70)
+			if ((IsEntityTransparent(m_pRenderEntities[i]) != 0) && m_pRenderEntities[i]->curstate.renderfx != 70)
 				DrawBrushModel(m_pRenderEntities[i], false);
 		}
 	}
@@ -2207,12 +2207,12 @@ DrawWorld
 
 ====================
 */
-void CBSPRenderer::DrawWorld(void)
+void CBSPRenderer::DrawWorld()
 {
 	// Restore mins/maxs
 	RestoreWorldDrawing();
 
-	if (!m_pCvarDrawWorld->value)
+	if (m_pCvarDrawWorld->value == 0.0f)
 		return;
 
 	m_pCurrentEntity = gEngfuncs.GetEntityByIndex(0);
@@ -2225,7 +2225,7 @@ void CBSPRenderer::DrawWorld(void)
 	// Draw all static entities
 	for (int i = 0; i < m_iNumRenderEntities; i++)
 	{
-		if ((m_pRenderEntities[i]->curstate.renderfx != 70) && !IsEntityMoved(m_pRenderEntities[i]) && !IsEntityTransparent(m_pRenderEntities[i]))
+		if ((m_pRenderEntities[i]->curstate.renderfx != 70) && (IsEntityMoved(m_pRenderEntities[i]) == 0) && (IsEntityTransparent(m_pRenderEntities[i]) == 0))
 			DrawBrushModel(m_pRenderEntities[i], true);
 	}
 
@@ -2236,7 +2236,7 @@ void CBSPRenderer::DrawWorld(void)
 	// Now render moved entities seperately each
 	for (int i = 0; i < m_iNumRenderEntities; i++)
 	{
-		if (m_pRenderEntities[i]->curstate.renderfx != 70 && IsEntityMoved(m_pRenderEntities[i]) && !IsEntityTransparent(m_pRenderEntities[i]))
+		if (m_pRenderEntities[i]->curstate.renderfx != 70 && (IsEntityMoved(m_pRenderEntities[i]) != 0) && (IsEntityTransparent(m_pRenderEntities[i]) == 0))
 			DrawBrushModel(m_pRenderEntities[i], false);
 	}
 
@@ -2256,8 +2256,8 @@ void CBSPRenderer::DrawWorld(void)
 	// clear texture chains
 	for (int i = 0; i < m_iNumTextures; i++)
 	{
-		m_pNormalTextureList[i].texturechain = NULL;
-		m_pMultiPassTextureList[i].texturechain = NULL;
+		m_pNormalTextureList[i].texturechain = nullptr;
+		m_pMultiPassTextureList[i].texturechain = nullptr;
 	}
 };
 
@@ -2267,9 +2267,9 @@ DrawDetails
 
 ====================
 */
-void CBSPRenderer::DrawDetails(void)
+void CBSPRenderer::DrawDetails()
 {
-	if (!m_iNumDetailObjects)
+	if (m_iNumDetailObjects == 0)
 		return;
 
 	VectorCopy(m_vRenderOrigin, m_vVecToEyes);
@@ -2280,7 +2280,7 @@ void CBSPRenderer::DrawDetails(void)
 	{
 		int j = 0;
 		for (j = 0; j < pCurObject->numleafs; j++)
-			if (m_pPVS[pCurObject->leafnums[j] >> 3] & (1 << (pCurObject->leafnums[j] & 7)))
+			if ((m_pPVS[pCurObject->leafnums[j] >> 3] & (1 << (pCurObject->leafnums[j] & 7))) != 0)
 				break;
 
 		if (j == pCurObject->numleafs)
@@ -2296,13 +2296,13 @@ void CBSPRenderer::DrawDetails(void)
 
 			for (int j = 0; j < MAX_DYNLIGHTS; j++)
 			{
-				if (dl[j].die < time || !dl[j].radius)
+				if (dl[j].die < time || (dl[j].radius == 0.0f))
 					continue;
 
 				m_pCurrentDynLight = &dl[j];
 				m_vCurDLightOrigin = m_pCurrentDynLight->origin;
 
-				if (m_pCurrentDynLight->cone_size)
+				if (m_pCurrentDynLight->cone_size != 0.0f)
 				{
 					if (m_pCurrentDynLight->frustum.CullBox(pCurObject->mins, pCurObject->maxs))
 						continue;
@@ -2310,7 +2310,7 @@ void CBSPRenderer::DrawDetails(void)
 				else
 				{
 					SetDynLightBBox();
-					if (CullDynLightBBox(pCurObject->mins, pCurObject->maxs))
+					if (CullDynLightBBox(pCurObject->mins, pCurObject->maxs) != 0)
 						continue;
 				}
 
@@ -2336,8 +2336,8 @@ void CBSPRenderer::DrawDetails(void)
 			mplane_t* pplane = psurf->plane;
 			SSEDotProductSub(&dot, &m_vVecToEyes, &pplane->normal, &pplane->dist);
 
-			if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
-				(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+			if ((((psurf->flags & SURF_PLANEBACK) != 0) && (dot < -BACKFACE_EPSILON)) ||
+				(((psurf->flags & SURF_PLANEBACK) == 0) && (dot > BACKFACE_EPSILON)))
 			{
 				SurfaceToChain(m_pDetailObjectSurfaces, psurf, bDynLit);
 				psurf->visframe = m_iFrameCount;
@@ -2373,10 +2373,10 @@ void CBSPRenderer::RenderFirstPass(bool bSecond)
 		msurface_t* psurface = m_pNormalTextureList[i].texturechain;
 
 		// Nothing to draw
-		if (!psurface)
+		if (psurface == nullptr)
 			continue;
 
-		if (pTexture->offsets[3] && m_pCvarDetailTextures->value >= 1)
+		if ((pTexture->offsets[3] != 0u) && m_pCvarDetailTextures->value >= 1)
 		{
 			SetTexEnvs(ENVSTATE_REPLACE, ENVSTATE_MUL_X2, ENVSTATE_MUL_X2);
 			Bind2DTexture(GL_TEXTURE1_ARB, pTexture->gl_texturenum);
@@ -2394,9 +2394,9 @@ void CBSPRenderer::RenderFirstPass(bool bSecond)
 			glAlphaFunc(GL_GREATER, 0.5);
 		}
 
-		if ((m_pCurrentEntity->curstate.effects & FL_CONVEYOR) && stristr(pTexture->name, "scroll"))
+		if (((m_pCurrentEntity->curstate.effects & FL_CONVEYOR) != 0) && (stristr(pTexture->name, "scroll") != nullptr))
 		{
-			while (psurface)
+			while (psurface != nullptr)
 			{
 				DrawScrollingPoly(psurfbase, psurface);
 				psurface = psurface->texturechain;
@@ -2405,7 +2405,7 @@ void CBSPRenderer::RenderFirstPass(bool bSecond)
 		}
 		else
 		{
-			while (psurface)
+			while (psurface != nullptr)
 			{
 				DrawPolyFromArray(psurfbase, psurface);
 				psurface = psurface->texturechain;
@@ -2437,7 +2437,7 @@ void CBSPRenderer::RenderFirstPass(bool bSecond)
 				glColor4f(GL_ONE, GL_ZERO, GL_ONE, GL_ONE);
 
 			psurface = pTexture->texturechain;
-			while (psurface)
+			while (psurface != nullptr)
 			{
 				DrawPolyFromArray(psurfbase, psurface);
 				psurface = psurface->texturechain;
@@ -2464,7 +2464,7 @@ void CBSPRenderer::RenderFirstPass(bool bSecond)
 		msurface_t* psurface = m_pMultiPassTextureList[i].texturechain;
 
 		// Nothing to draw
-		if (!psurface)
+		if (psurface == nullptr)
 			continue;
 
 		if (pTexture->name[0] == '{')
@@ -2475,7 +2475,7 @@ void CBSPRenderer::RenderFirstPass(bool bSecond)
 			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 			SetTexEnvs(ENVSTATE_REPLACE, ENVSTATE_REPLACE);
 			Bind2DTexture(GL_TEXTURE1_ARB, pTexture->gl_texturenum);
-			while (psurface)
+			while (psurface != nullptr)
 			{
 				DrawPolyFromArray(psurfbase, psurface);
 				psurface = psurface->texturechain;
@@ -2486,7 +2486,7 @@ void CBSPRenderer::RenderFirstPass(bool bSecond)
 			SetTexEnvs(ENVSTATE_REPLACE);
 
 			psurface = pTexture->texturechain;
-			while (psurface)
+			while (psurface != nullptr)
 			{
 				DrawPolyFromArray(psurfbase, psurface);
 				psurface = psurface->texturechain;
@@ -2500,7 +2500,7 @@ void CBSPRenderer::RenderFirstPass(bool bSecond)
 		else
 		{
 			SetTexEnvs(ENVSTATE_REPLACE);
-			while (psurface)
+			while (psurface != nullptr)
 			{
 				DrawPolyFromArray(psurfbase, psurface);
 				psurface = psurface->texturechain;
@@ -2555,10 +2555,10 @@ void CBSPRenderer::RenderFinalPasses(bool bSecond)
 		texture_t* pTexture = TextureAnimation(&m_pNormalTextureList[i], m_pCurrentEntity->curstate.frame);
 		msurface_t* psurface = m_pMultiPassTextureList[i].texturechain;
 
-		if (!psurface)
+		if (psurface == nullptr)
 			continue;
 
-		if (pTexture->offsets[3] && m_pCvarDetailTextures->value)
+		if ((pTexture->offsets[3] != 0u) && (m_pCvarDetailTextures->value != 0.0f))
 		{
 			// has detail texture
 			SetTexEnvs(ENVSTATE_REPLACE, ENVSTATE_MUL_X2);
@@ -2571,9 +2571,9 @@ void CBSPRenderer::RenderFinalPasses(bool bSecond)
 			Bind2DTexture(GL_TEXTURE0_ARB, pTexture->gl_texturenum);
 		}
 
-		if ((m_pCurrentEntity->curstate.effects & FL_CONVEYOR) && stristr(pTexture->name, "scroll"))
+		if (((m_pCurrentEntity->curstate.effects & FL_CONVEYOR) != 0) && (stristr(pTexture->name, "scroll") != nullptr))
 		{
-			while (psurface)
+			while (psurface != nullptr)
 			{
 				DrawScrollingPoly(psurfbase, psurface);
 				psurface = psurface->texturechain;
@@ -2581,7 +2581,7 @@ void CBSPRenderer::RenderFinalPasses(bool bSecond)
 		}
 		else
 		{
-			while (psurface)
+			while (psurface != nullptr)
 			{
 				DrawPolyFromArray(psurfbase, psurface);
 				psurface = psurface->texturechain;
@@ -2598,7 +2598,7 @@ void CBSPRenderer::RenderFinalPasses(bool bSecond)
 		for (int i = 0; i < m_iNumTextures; i++)
 		{
 			msurface_t* s = m_pMultiPassTextureList[i].texturechain;
-			while (s)
+			while (s != nullptr)
 			{
 				DrawPolyFromArray(psurfbase, s);
 				msurface_t* next = s->texturechain;
@@ -2633,7 +2633,7 @@ void CBSPRenderer::RenderFinalPasses(bool bSecond)
 		for (int i = 0; i < m_iNumTextures; i++)
 		{
 			msurface_t* s = m_pMultiPassTextureList[i].texturechain;
-			while (s)
+			while (s != nullptr)
 			{
 				DrawPolyFromArray(psurfbase, s);
 				msurface_t* next = s->texturechain;
@@ -2677,13 +2677,13 @@ void CBSPRenderer::RecursiveWorldNode(mnode_t* node)
 		mark = pleaf->firstmarksurface;
 		c = pleaf->nummarksurfaces;
 
-		if (c)
+		if (c != 0)
 		{
 			do
 			{
 				(*mark)->visframe = m_iFrameCount;
 				mark++;
-			} while (--c);
+			} while (--c != 0);
 		}
 		return;
 	}
@@ -2717,7 +2717,7 @@ void CBSPRenderer::RecursiveWorldNode(mnode_t* node)
 
 	// draw stuff
 	c = node->numsurfaces;
-	if (c)
+	if (c != 0)
 	{
 		bool bIsLit = DynamicLighted(node->minmaxs, node->minmaxs + 3);
 		surf = m_pWorld->surfaces + node->firstsurface;
@@ -2733,13 +2733,13 @@ void CBSPRenderer::RecursiveWorldNode(mnode_t* node)
 				continue;
 
 			// don't backface underwater surfaces, because they warp
-			if (!(surf->flags & SURF_UNDERWATER) && ((dot < 0) ^ !!(surf->flags & SURF_PLANEBACK)))
+			if (((surf->flags & SURF_UNDERWATER) == 0) && (((dot < 0) ^ !((surf->flags & SURF_PLANEBACK) == 0)) != 0))
 				continue; // wrong side
 
-			if (surf->flags & SURF_DRAWSKY)
+			if ((surf->flags & SURF_DRAWSKY) != 0)
 				continue;
 
-			if (surf->flags & SURF_DRAWTURB)
+			if ((surf->flags & SURF_DRAWTURB) != 0)
 				EmitWaterPolys(surf);
 			else
 				SurfaceToChain(m_pWorld->surfaces, surf, bIsLit);
@@ -2749,7 +2749,7 @@ void CBSPRenderer::RecursiveWorldNode(mnode_t* node)
 	}
 
 	// recurse down the back side
-	RecursiveWorldNode(node->children[!side]);
+	RecursiveWorldNode(node->children[side == 0]);
 };
 
 /*
@@ -2769,14 +2769,14 @@ void CBSPRenderer::MarkBrushFaces(Vector mins, Vector maxs)
 	cl_dlight_t* dl = m_pDynLights;
 	for (int i = 0; i < MAX_DYNLIGHTS; i++, dl++)
 	{
-		if (dl->die <= gEngfuncs.GetClientTime() || !dl->radius)
+		if (dl->die <= gEngfuncs.GetClientTime() || (dl->radius == 0.0f))
 			continue;
 
 		m_pCurrentDynLight = dl;
 		VectorCopy(dl->origin, m_vCurDLightOrigin);
 		SetDynLightBBox();
 
-		if (CullDynLightBBox(mins, maxs))
+		if (CullDynLightBBox(mins, maxs) != 0)
 			continue;
 
 		model_t* pmodel = m_pCurrentEntity->model;
@@ -2820,7 +2820,7 @@ void CBSPRenderer::DrawBrushModel(cl_entity_t* pEntity, bool bStatic)
 	if (m_pCurrentEntity->curstate.rendermode != NULL && m_pCurrentEntity->curstate.renderamt == NULL)
 		return;
 
-	if (m_pCurrentEntity->angles[0] || m_pCurrentEntity->angles[1] || m_pCurrentEntity->angles[2])
+	if ((m_pCurrentEntity->angles[0] != 0.0f) || (m_pCurrentEntity->angles[1] != 0.0f) || (m_pCurrentEntity->angles[2] != 0.0f))
 	{
 		bRotated = true;
 		for (i = 0; i < 3; i++)
@@ -2837,7 +2837,7 @@ void CBSPRenderer::DrawBrushModel(cl_entity_t* pEntity, bool bStatic)
 
 	if (m_pCurrentEntity->curstate.renderfx == 70)
 	{
-		if (!m_fSkySpeed)
+		if (m_fSkySpeed == 0.0f)
 		{
 			trans = (m_pCurrentEntity->origin - m_vSkyOrigin) + m_vRenderOrigin;
 			VectorSubtract(m_vSkyOrigin, m_pCurrentEntity->origin, m_vVecToEyes);
@@ -2932,14 +2932,14 @@ void CBSPRenderer::DrawBrushModel(cl_entity_t* pEntity, bool bStatic)
 	{
 		pplane = psurf->plane;
 		SSEDotProductSub(&dot, &m_vVecToEyes, &pplane->normal, &pplane->dist);
-		if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) || (!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+		if ((((psurf->flags & SURF_PLANEBACK) != 0) && (dot < -BACKFACE_EPSILON)) || (((psurf->flags & SURF_PLANEBACK) == 0) && (dot > BACKFACE_EPSILON)))
 		{
 			psurf->visframe = m_iFrameCount;
 
-			if (psurf->flags & SURF_DRAWSKY)
+			if ((psurf->flags & SURF_DRAWSKY) != 0)
 				continue;
 
-			if (psurf->flags & SURF_DRAWTURB)
+			if ((psurf->flags & SURF_DRAWTURB) != 0)
 				EmitWaterPolys(psurf);
 			else
 				SurfaceToChain(m_pWorld->surfaces, psurf, bIsLit);
@@ -2994,10 +2994,10 @@ void CBSPRenderer::SurfaceToChain(msurface_t* psurfbase, msurface_t* s, bool dyn
 	brushface_t* pbrushface = m_pSurfacePointersArray[surfaceIndex];
 	clientsurfdata_t* pclsurf = &m_pSurfaces[pbrushface->index];
 
-	for (int i = 1; i < MAXLIGHTMAPS && s->styles[i] != 255 || s->dlightframe; i++)
+	for (int i = 1; i < MAXLIGHTMAPS && s->styles[i] != 255 || (s->dlightframe != 0); i++)
 	{
 
-		if (m_iLightStyleValue[s->styles[i]] != pclsurf->cached_light[i] || s->dlightframe)
+		if (m_iLightStyleValue[s->styles[i]] != pclsurf->cached_light[i] || (s->dlightframe != 0))
 		{
 			BuildLightmap(s, surfaceIndex, m_pEngineLightmaps);
 
@@ -3013,12 +3013,12 @@ void CBSPRenderer::SurfaceToChain(msurface_t* psurfbase, msurface_t* s, bool dyn
 		}
 	}
 
-	if (dynlit && pclsurf->mptexture)
+	if (dynlit && (pclsurf->mptexture != nullptr))
 	{
 		s->texturechain = pclsurf->mptexture->texturechain;
 		pclsurf->mptexture->texturechain = s;
 	}
-	else if (pclsurf->regtexture)
+	else if (pclsurf->regtexture != nullptr)
 	{
 		s->texturechain = pclsurf->regtexture->texturechain;
 		pclsurf->regtexture->texturechain = s;
@@ -3081,7 +3081,7 @@ void CBSPRenderer::EmitWaterPolys(msurface_t* fa)
 	if (m_pCurrentEntity->curstate.skin == CONTENTS_WATER || m_pCurrentEntity->curstate.skin == CONTENTS_SLIME || m_pCurrentEntity->curstate.skin == CONTENTS_LAVA)
 	{
 		// only draw if it's on the top
-		for (glpoly_t* bp = fa->polys; bp; bp = bp->next)
+		for (glpoly_t* bp = fa->polys; bp != nullptr; bp = bp->next)
 		{
 			for (int i = 0; i < bp->numverts; i++)
 			{
@@ -3097,7 +3097,7 @@ void CBSPRenderer::EmitWaterPolys(msurface_t* fa)
 	Bind2DTexture(GL_TEXTURE0_ARB, fa->texinfo->texture->gl_texturenum);
 
 	float fltime = gEngfuncs.GetClientTime();
-	for (glpoly_t* p = fa->polys; p; p = p->next)
+	for (glpoly_t* p = fa->polys; p != nullptr; p = p->next)
 	{
 		glBegin(GL_POLYGON);
 		for (int i = 0; i < p->numverts; i++)
@@ -3134,7 +3134,7 @@ void CBSPRenderer::EmitWaterPolys(msurface_t* fa)
 		else
 			glColor4f(1.0, 0.0, 1.0, 1.0);
 
-		for (glpoly_t* p = fa->polys; p; p = p->next)
+		for (glpoly_t* p = fa->polys; p != nullptr; p = p->next)
 		{
 			glBegin(GL_POLYGON);
 			for (int i = 0; i < p->numverts; i++)
@@ -3201,7 +3201,7 @@ PushDynLights
 
 ====================
 */
-void CBSPRenderer::PushDynLights(void)
+void CBSPRenderer::PushDynLights()
 {
 	if (m_bShaderSupport && m_pCvarWorldShaders->value >= 1)
 		return;
@@ -3212,7 +3212,7 @@ void CBSPRenderer::PushDynLights(void)
 	cl_dlight_t* dl = m_pDynLights;
 	for (int i = 0; i < MAX_DYNLIGHTS; i++, dl++)
 	{
-		if (dl->die <= gEngfuncs.GetClientTime() || !dl->radius)
+		if (dl->die <= gEngfuncs.GetClientTime() || (dl->radius == 0.0f))
 			continue;
 
 		MarkLights(dl, 1 << i, m_pWorld->nodes);
@@ -3225,14 +3225,14 @@ AnimateLight
 
 ====================
 */
-void CBSPRenderer::AnimateLight(void)
+void CBSPRenderer::AnimateLight()
 {
 	int i, j, k;
 
 	i = (int)(gEngfuncs.GetClientTime() * 10);
 	for (j = 0; j < MAX_LIGHTSTYLES; j++)
 	{
-		if (!m_pLightStyles[j].length)
+		if (m_pLightStyles[j].length == 0)
 		{
 			m_iLightStyleValue[j] = 256;
 			continue;
@@ -3261,14 +3261,14 @@ void CBSPRenderer::AddDynamicLights(msurface_t* surf)
 	cl_dlight_t* dl = m_pDynLights;
 	for (int i = 0; i < MAX_DYNLIGHTS; i++, dl++)
 	{
-		if (!(surf->dlightbits & (1 << i)))
+		if ((surf->dlightbits & (1 << i)) == 0)
 			continue;
 
 		Vector origin = dl->origin;
-		if (IsEntityMoved(m_pCurrentEntity))
+		if (IsEntityMoved(m_pCurrentEntity) != 0)
 		{
 			VectorSubtract(origin, m_pCurrentEntity->origin, origin);
-			if (m_pCurrentEntity->angles[0] || m_pCurrentEntity->angles[1] || m_pCurrentEntity->angles[2])
+			if ((m_pCurrentEntity->angles[0] != 0.0f) || (m_pCurrentEntity->angles[1] != 0.0f) || (m_pCurrentEntity->angles[2] != 0.0f))
 			{
 				Vector forward, right, up, temp;
 				AngleVectors(m_pCurrentEntity->angles, forward, right, up);
@@ -3343,7 +3343,7 @@ void CBSPRenderer::BuildLightmap(msurface_t* surf, int surfindex, color24* out)
 	int tmax = (surf->extents[1] >> 4) + 1;
 	int size = smax * tmax;
 
-	if (!lightmap || size > BLOCKLIGHTS_SIZE)
+	if ((lightmap == nullptr) || size > BLOCKLIGHTS_SIZE)
 		return;
 
 	for (int i = 0; i < size; i++)
@@ -3370,9 +3370,9 @@ void CBSPRenderer::BuildLightmap(msurface_t* surf, int surfindex, color24* out)
 		}
 	}
 
-	if (surf->dlightframe == m_iFrameCount && surf->dlightbits)
+	if (surf->dlightframe == m_iFrameCount && (surf->dlightbits != 0))
 		AddDynamicLights(surf);
-	else if (surf->dlightframe && surf->dlightframe != m_iFrameCount)
+	else if ((surf->dlightframe != 0) && surf->dlightframe != m_iFrameCount)
 		surf->dlightframe = 0;
 
 	for (int i = 0; i < size; i++)
@@ -3416,7 +3416,7 @@ UploadLightmaps
 
 ====================
 */
-void CBSPRenderer::UploadLightmaps(void)
+void CBSPRenderer::UploadLightmaps()
 {
 	memset(m_iLightStyleValue, 0, sizeof(m_iLightStyleValue));
 	memset(m_pEngineLightmaps, 0, sizeof(m_pEngineLightmaps));
@@ -3430,7 +3430,7 @@ void CBSPRenderer::UploadLightmaps(void)
 	memset(m_pSurfaces, NULL, sizeof(clientsurfdata_t) * (m_pWorld->numsurfaces + m_iNumDetailSurfaces));
 	m_iNumSurfaces = m_pWorld->numsurfaces + m_iNumDetailSurfaces;
 
-	if (m_pWorld->lightdata)
+	if (m_pWorld->lightdata != nullptr)
 	{
 		//
 		// Convert and merge lightmaps into one
@@ -3439,7 +3439,7 @@ void CBSPRenderer::UploadLightmaps(void)
 		{
 			msurface_t* pSurf = &m_pWorld->surfaces[i];
 
-			if (pSurf->flags & (SURF_DRAWSKY | SURF_DRAWTURB))
+			if ((pSurf->flags & (SURF_DRAWSKY | SURF_DRAWTURB)) != 0)
 				continue;
 
 			BuildLightmap(pSurf, i, m_pEngineLightmaps);
@@ -3457,7 +3457,7 @@ void CBSPRenderer::UploadLightmaps(void)
 		{
 			msurface_t* pSurf = &m_pWorld->surfaces[i];
 
-			if (pSurf->flags & (SURF_DRAWSKY | SURF_DRAWTURB))
+			if ((pSurf->flags & (SURF_DRAWSKY | SURF_DRAWTURB)) != 0)
 				continue;
 
 			if (pSurf->lightmaptexturenum > m_iNumLightmaps)
@@ -3478,7 +3478,7 @@ void CBSPRenderer::UploadLightmaps(void)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, LIGHTMAP_RESOLUTION, LIGHTMAP_RESOLUTION, 0, GL_RGB, GL_UNSIGNED_BYTE, m_pEngineLightmaps);
 
-	if (!m_iNumDetailSurfaces)
+	if (m_iNumDetailSurfaces == 0)
 		return;
 
 	//
@@ -3661,13 +3661,13 @@ texture_t* CBSPRenderer::TextureAnimation(texture_t* base, int frame)
 	int reletive;
 	int count;
 
-	if (frame)
+	if (frame != 0)
 	{
-		if (base->alternate_anims)
+		if (base->alternate_anims != nullptr)
 			base = base->alternate_anims;
 	}
 
-	if ((base->name[0] != '+') || (!base->anim_total))
+	if ((base->name[0] != '+') || (base->anim_total == 0))
 		return base;
 
 	reletive = (int)(gEngfuncs.GetClientTime() * 20) % base->anim_total;
@@ -3676,7 +3676,7 @@ texture_t* CBSPRenderer::TextureAnimation(texture_t* base, int frame)
 	while (base->anim_min > reletive || base->anim_max <= reletive)
 	{
 		base = base->anim_next;
-		if (!base)
+		if (base == nullptr)
 			gEngfuncs.Con_Printf("TextureAnimation: broken cycle");
 		if (++count > 100)
 			gEngfuncs.Con_Printf("TextureAnimation: infinite cycle");
@@ -3698,8 +3698,8 @@ cl_texture_t* CBSPRenderer::LoadDetailTexture(char* texname)
 	sprintf(szPath, "gfx/textures/details/%s.dds", texname);
 	cl_texture_t* pTexture = gTextureLoader.LoadTexture(szPath);
 
-	if (!pTexture)
-		return 0;
+	if (pTexture == nullptr)
+		return nullptr;
 
 	return pTexture;
 };
@@ -3710,7 +3710,7 @@ ParseDetailTextureFile
 
 ====================
 */
-void CBSPRenderer::ParseDetailTextureFile(void)
+void CBSPRenderer::ParseDetailTextureFile()
 {
 	char szLevelName[256];
 	m_iNumDetailTextures = 0;
@@ -3723,15 +3723,15 @@ void CBSPRenderer::ParseDetailTextureFile(void)
 	szLevelName[strlen(szLevelName) - 4] = 0;
 	strcat(szLevelName, "_detail.txt");
 
-	char* pfile = (char*)gEngfuncs.COM_LoadFile(szLevelName, 5, NULL);
-	if (!pfile)
+	char* pfile = (char*)gEngfuncs.COM_LoadFile(szLevelName, 5, nullptr);
+	if (pfile == nullptr)
 	{
 		gEngfuncs.Con_Printf("BSP Renderer: Failed to load detail texture file for %s\n", szLevelName);
 		return;
 	}
 
 	char* ptext = pfile;
-	while (1)
+	while (true)
 	{
 		char temp[256];
 		char texture[256];
@@ -3746,7 +3746,7 @@ void CBSPRenderer::ParseDetailTextureFile(void)
 		}
 
 		ptext = gEngfuncs.COM_ParseFile(ptext, texture);
-		if (!ptext)
+		if (ptext == nullptr)
 			break;
 
 		if (texture[0] == '{')
@@ -3755,19 +3755,19 @@ void CBSPRenderer::ParseDetailTextureFile(void)
 			strcat(texture, temp);
 		}
 
-		if (!ptext)
+		if (ptext == nullptr)
 			break;
 
 		ptext = gEngfuncs.COM_ParseFile(ptext, detailtexture);
-		if (!ptext)
+		if (ptext == nullptr)
 			break;
 
 		ptext = gEngfuncs.COM_ParseFile(ptext, sz_xscale);
-		if (!ptext)
+		if (ptext == nullptr)
 			break;
 
 		ptext = gEngfuncs.COM_ParseFile(ptext, sz_yscale);
-		if (!ptext)
+		if (ptext == nullptr)
 			break;
 
 		float i_xscale = atof(sz_xscale);
@@ -3782,7 +3782,7 @@ void CBSPRenderer::ParseDetailTextureFile(void)
 
 		cl_texture_t* pTexture = LoadDetailTexture(detailtexture);
 
-		if (!pTexture)
+		if (pTexture == nullptr)
 			continue;
 
 		strLower(texture);
@@ -3802,7 +3802,7 @@ LoadDetailTextures
 
 ====================
 */
-void CBSPRenderer::LoadDetailTextures(void)
+void CBSPRenderer::LoadDetailTextures()
 {
 	ParseDetailTextureFile();
 
@@ -3819,7 +3819,7 @@ void CBSPRenderer::LoadDetailTextures(void)
 		int j = 0;
 		for (; j < m_iNumDetailTextures; j++)
 		{
-			if (!strcmp(m_pDetailTextures[j].texname, szName))
+			if (strcmp(m_pDetailTextures[j].texname, szName) == 0)
 				break;
 		}
 
@@ -3971,7 +3971,7 @@ void CBSPRenderer::GetUpRight(Vector forward, Vector& up, Vector& right)
 {
 	VectorClear(up);
 
-	if (forward.x || forward.y)
+	if ((forward.x != 0.0f) || (forward.y != 0.0f))
 		up.z = 1;
 	else
 		up.x = 1;
@@ -3996,10 +3996,10 @@ cl_texture_t* CBSPRenderer::LoadDecalTexture(const char* texname)
 
 	cl_texture_t* pTexture = gTextureLoader.LoadTexture(path);
 
-	if (!pTexture)
+	if (pTexture == nullptr)
 	{
 		gEngfuncs.Con_Printf("BSP Renderer: Missing decal texture %s!\n", path);
-		return NULL;
+		return nullptr;
 	}
 
 	// ALWAYS Bind
@@ -4016,10 +4016,10 @@ LoadDecals
 
 ====================
 */
-void CBSPRenderer::LoadDecals(void)
+void CBSPRenderer::LoadDecals()
 {
-	char* pfile = (char*)gEngfuncs.COM_LoadFile("gfx/textures/decals/decalinfo.txt", 5, NULL);
-	if (!pfile)
+	char* pfile = (char*)gEngfuncs.COM_LoadFile("gfx/textures/decals/decalinfo.txt", 5, nullptr);
+	if (pfile == nullptr)
 	{
 		gEngfuncs.Con_Printf("BSP Renderer: Cannot open file \"gfx/textures/decals/decalinfo.txt\"\n");
 		return;
@@ -4027,7 +4027,7 @@ void CBSPRenderer::LoadDecals(void)
 
 	int counter = 0;
 	char* ptext = pfile;
-	while (1)
+	while (true)
 	{
 		// store position where group names recorded
 		char* groupnames = ptext;
@@ -4035,10 +4035,10 @@ void CBSPRenderer::LoadDecals(void)
 		// loop until we'll find decal names
 		int numgroups = 0;
 		char token[256];
-		while (1)
+		while (true)
 		{
 			ptext = gEngfuncs.COM_ParseFile(ptext, token);
-			if (!ptext)
+			if (ptext == nullptr)
 				goto getout;
 
 			if (token[0] == '{')
@@ -4049,13 +4049,13 @@ void CBSPRenderer::LoadDecals(void)
 
 		decalgroupentry_t tempentries[MAX_GROUPENTRIES];
 		int numtemp = 0;
-		while (1)
+		while (true)
 		{
 			char sz_xsize[64];
 			char sz_ysize[64];
 			ptext = gEngfuncs.COM_ParseFile(ptext, token);
 
-			if (!ptext)
+			if (ptext == nullptr)
 				goto getout;
 			if (token[0] == '}')
 				break;
@@ -4063,17 +4063,17 @@ void CBSPRenderer::LoadDecals(void)
 
 			ptext = gEngfuncs.COM_ParseFile(ptext, sz_xsize);
 
-			if (!ptext)
+			if (ptext == nullptr)
 				goto getout;
 
 			ptext = gEngfuncs.COM_ParseFile(ptext, sz_ysize);
 
-			if (!ptext)
+			if (ptext == nullptr)
 				goto getout;
 
 			cl_texture_t* pTexture = LoadDecalTexture(token);
 
-			if (!pTexture)
+			if (pTexture == nullptr)
 				continue;
 
 			strcpy(tempentries[numtemp].szName, token);
@@ -4087,7 +4087,7 @@ void CBSPRenderer::LoadDecals(void)
 		for (int i = 0; i < numgroups; i++)
 		{
 			groupnames = gEngfuncs.COM_ParseFile(groupnames, token);
-			if (!numtemp)
+			if (numtemp == 0)
 			{
 				gEngfuncs.Con_Printf("BSP Renderer: got empty decal group: %s\n", token);
 				continue;
@@ -4113,7 +4113,7 @@ AllocDecal
 
 ====================
 */
-customdecal_t* CBSPRenderer::AllocDecal(void)
+customdecal_t* CBSPRenderer::AllocDecal()
 {
 	customdecal_t* ret = &m_pDecals[m_iCurDecal];
 
@@ -4124,7 +4124,7 @@ customdecal_t* CBSPRenderer::AllocDecal(void)
 	if (m_iCurDecal == MAX_CUSTOMDECALS)
 		m_iCurDecal = 0; // get decals from root again
 
-	if (ret->inumpolys)
+	if (ret->inumpolys != 0)
 	{
 		for (int i = 0; i < ret->inumpolys; i++)
 			delete[] ret->polys[i].pverts;
@@ -4142,7 +4142,7 @@ AllocStaticDecal
 
 ====================
 */
-customdecal_t* CBSPRenderer::AllocStaticDecal(void)
+customdecal_t* CBSPRenderer::AllocStaticDecal()
 {
 	if (m_iNumStaticDecals < MAX_STATICDECALS)
 	{
@@ -4150,7 +4150,7 @@ customdecal_t* CBSPRenderer::AllocStaticDecal(void)
 		m_iNumStaticDecals++;
 		return ret;
 	}
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -4168,11 +4168,11 @@ decalgroupentry_t* CBSPRenderer::FindDecalByName(const char* szName)
 
 		for (int j = 0; j < m_pDecalGroups[i].iSize; j++)
 		{
-			if (!strcmp(m_pDecalGroups[i].entries[j].szName, szName))
+			if (strcmp(m_pDecalGroups[i].entries[j].szName, szName) == 0)
 				return &m_pDecalGroups[i].entries[j];
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -4184,7 +4184,7 @@ GetRandomDecal
 decalgroupentry_t* CBSPRenderer::GetRandomDecal(decalgroup_t* group)
 {
 	if (group->iSize == 0)
-		return NULL;
+		return nullptr;
 
 	if (group->iSize == 1)
 		return &group->entries[0];
@@ -4204,11 +4204,11 @@ decalgroup_t* CBSPRenderer::FindGroup(const char* _name)
 {
 	for (int i = 0; i < m_iNumDecalGroups; i++)
 	{
-		if (!strcmp(m_pDecalGroups[i].szName, _name))
+		if (strcmp(m_pDecalGroups[i].szName, _name) == 0)
 			return &m_pDecalGroups[i];
 	}
 
-	return NULL; // nothing found
+	return nullptr; // nothing found
 }
 
 /*
@@ -4253,7 +4253,7 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 	decalgroupentry_t* pDecalTex;
 
 	m_pWorld = IEngineStudio.GetModelByIndex(1);
-	if (!m_pWorld)
+	if (m_pWorld == nullptr)
 	{
 		if (m_iCacheDecals >= MAX_DECAL_MSG_CACHE)
 			return;
@@ -4266,11 +4266,11 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 		return;
 	}
 
-	if (!persistent)
+	if (persistent == 0)
 	{
 		decalgroup_t* pGroup = FindGroup(name);
 
-		if (!pGroup)
+		if (pGroup == nullptr)
 			return;
 
 		pDecalTex = GetRandomDecal(pGroup);
@@ -4280,7 +4280,7 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 		pDecalTex = FindDecalByName(name);
 	}
 
-	if (!pDecalTex)
+	if (pDecalTex == nullptr)
 		return;
 
 	int xsize = pDecalTex->xsize;
@@ -4295,12 +4295,12 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 	m_vDecalMaxs[1] = endpos[1] + radius;
 	m_vDecalMaxs[2] = endpos[2] + radius;
 
-	customdecal_t* pDecal = NULL;
-	if (persistent)
+	customdecal_t* pDecal = nullptr;
+	if (persistent != 0)
 	{
 		pDecal = AllocStaticDecal();
 
-		if (!pDecal)
+		if (pDecal == nullptr)
 			return;
 	}
 	else
@@ -4333,11 +4333,11 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 			}
 		}
 
-		if (!pDecal)
+		if (pDecal == nullptr)
 			pDecal = AllocDecal();
 	}
 
-	if (!pDecal)
+	if (pDecal == nullptr)
 		return;
 
 	pDecal->texinfo = pDecalTex;
@@ -4350,10 +4350,10 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 	{
 		cl_entity_t* pEntity = gEngfuncs.GetEntityByIndex(i);
 
-		if (!pEntity)
+		if (pEntity == nullptr)
 			break;
 
-		if (!pEntity->model)
+		if (pEntity->model == nullptr)
 			continue;
 
 		if (pEntity->model->type != mod_brush)
@@ -4362,7 +4362,7 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 		if (pEntity->curstate.solid == SOLID_NOT)
 			continue;
 
-		if (pEntity->angles[0] || pEntity->angles[1] || pEntity->angles[2])
+		if ((pEntity->angles[0] != 0.0f) || (pEntity->angles[1] != 0.0f) || (pEntity->angles[2] != 0.0f))
 		{
 			mins[0] = pEntity->origin[0] - pEntity->model->radius;
 			mins[1] = pEntity->origin[1] - pEntity->model->radius;
@@ -4380,10 +4380,10 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 		if (CullDecalBBox(mins, maxs))
 			continue;
 
-		if (pEntity->origin[0] || pEntity->origin[1] || pEntity->origin[2])
+		if ((pEntity->origin[0] != 0.0f) || (pEntity->origin[1] != 0.0f) || (pEntity->origin[2] != 0.0f))
 		{
 			VectorSubtract(endpos, pEntity->origin, decalpos);
-			if (pEntity->angles[0] || pEntity->angles[1] || pEntity->angles[2])
+			if ((pEntity->angles[0] != 0.0f) || (pEntity->angles[1] != 0.0f) || (pEntity->angles[2] != 0.0f))
 			{
 				Vector temp, forward, right, up;
 				AngleVectors(pEntity->angles, forward, right, up);
@@ -4424,7 +4424,7 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 			{
 				Vector normal = pplane->normal;
 
-				if (surf->flags & SURF_PLANEBACK)
+				if ((surf->flags & SURF_PLANEBACK) != 0)
 					VectorInverse(normal);
 
 				if (DotProduct(normal, decalnormal) < 0.01)
@@ -4488,7 +4488,7 @@ void CBSPRenderer::RecursiveCreateDecal(mnode_t* node, decalgroupentry_t* texptr
 
 	// draw stuff
 	int c = node->numsurfaces;
-	if (c)
+	if (c != 0)
 	{
 		msurface_t* surf = m_pWorld->surfaces + node->firstsurface;
 
@@ -4497,7 +4497,7 @@ void CBSPRenderer::RecursiveCreateDecal(mnode_t* node, decalgroupentry_t* texptr
 		else if (dot > BACKFACE_EPSILON)
 			side = 0;
 
-		for (; c; c--, surf++)
+		for (; c != 0; c--, surf++)
 		{
 			float dot;
 			mplane_t* pplane = surf->plane;
@@ -4510,18 +4510,18 @@ void CBSPRenderer::RecursiveCreateDecal(mnode_t* node, decalgroupentry_t* texptr
 			{
 				Vector normal = pplane->normal;
 
-				if (surf->flags & SURF_PLANEBACK)
+				if ((surf->flags & SURF_PLANEBACK) != 0)
 					VectorInverse(normal);
 
 				if (DotProduct(normal, pnormal) < 0.01)
 					continue;
 
-				DecalSurface(surf, texptr, NULL, pDecal, endpos, pnormal);
+				DecalSurface(surf, texptr, nullptr, pDecal, endpos, pnormal);
 			}
 		}
 	}
 
-	RecursiveCreateDecal(node->children[!side], texptr, pDecal, endpos, pnormal);
+	RecursiveCreateDecal(node->children[side == 0], texptr, pDecal, endpos, pnormal);
 }
 
 /*
@@ -4538,13 +4538,13 @@ void CBSPRenderer::DecalSurface(msurface_t* surf, decalgroupentry_t* texptr, cl_
 	Vector dverts1[64];
 	Vector dverts2[64];
 
-	if (pEntity && surf->texinfo->texture->name[0] == '{' && pEntity->curstate.rendermode == kRenderTransAlpha)
+	if ((pEntity != nullptr) && surf->texinfo->texture->name[0] == '{' && pEntity->curstate.rendermode == kRenderTransAlpha)
 		return;
 
-	if (stristr(surf->texinfo->texture->name, "scroll") && pEntity->curstate.eflags == EFLAG_CONVEYOR)
+	if ((stristr(surf->texinfo->texture->name, "scroll") != nullptr) && pEntity->curstate.eflags == EFLAG_CONVEYOR)
 		return;
 
-	if (surf->flags & SURF_DRAWTURB || surf->flags & SURF_DRAWSKY)
+	if (((surf->flags & SURF_DRAWTURB) != 0) || ((surf->flags & SURF_DRAWSKY) != 0))
 		return;
 
 	GetUpRight(pnormal, up, right);
@@ -4575,10 +4575,10 @@ void CBSPRenderer::DecalSurface(msurface_t* surf, decalgroupentry_t* texptr, cl_
 	VectorMASSE(endpos, ysize, up, planepoint);
 	nv = ClipPolygonByPlane(dverts2, nv, up * -1, planepoint, dverts1);
 
-	if (!nv)
+	if (nv == 0)
 		return;
 
-	if (pDecal->polys)
+	if (pDecal->polys != nullptr)
 	{
 		customdecalpoly_t* ppolys = new customdecalpoly_t[(pDecal->inumpolys + 1)];
 		memcpy(ppolys, pDecal->polys, sizeof(customdecalpoly_t) * pDecal->inumpolys);
@@ -4616,7 +4616,7 @@ CreateCachedDecals
 
 ====================
 */
-void CBSPRenderer::CreateCachedDecals(void)
+void CBSPRenderer::CreateCachedDecals()
 {
 	for (int i = 0; i < gPropManager.m_iNumDecals; i++)
 	{
@@ -4675,9 +4675,9 @@ void CBSPRenderer::DrawSingleDecal(customdecal_t* decal)
 		if (ppoly->surface->visframe != m_iFrameCount)
 			continue;
 
-		if (ppoly->entity)
+		if (ppoly->entity != nullptr)
 		{
-			if (IsEntityMoved(ppoly->entity))
+			if (IsEntityMoved(ppoly->entity) != 0)
 			{
 				glPushMatrix();
 				ppoly->entity->angles[0] = -ppoly->entity->angles[0]; // stupid quake bug
@@ -4694,7 +4694,7 @@ void CBSPRenderer::DrawSingleDecal(customdecal_t* decal)
 		}
 		glEnd();
 
-		if (m_pCvarWireFrame->value)
+		if (m_pCvarWireFrame->value != 0.0f)
 		{
 			glDisable(GL_TEXTURE_2D);
 			glLineWidth(1);
@@ -4728,7 +4728,7 @@ void CBSPRenderer::DrawSingleDecal(customdecal_t* decal)
 			glColor4f(GL_ONE, GL_ZERO, GL_ONE, GL_ONE);
 		}
 
-		if (ppoly->entity && IsEntityMoved(ppoly->entity))
+		if ((ppoly->entity != nullptr) && (IsEntityMoved(ppoly->entity) != 0))
 			glPopMatrix();
 	}
 }
@@ -4739,11 +4739,11 @@ DrawDecals
 
 ====================
 */
-void CBSPRenderer::DrawDecals(void)
+void CBSPRenderer::DrawDecals()
 {
 	CreateCachedDecals();
 
-	if (!m_iNumDecals && !m_iNumStaticDecals)
+	if ((m_iNumDecals == 0) && (m_iNumStaticDecals == 0))
 		return;
 
 	ResetCache();
@@ -4765,7 +4765,7 @@ void CBSPRenderer::DrawDecals(void)
 	SetTexEnvs(ENVSTATE_REPLACE);
 	glActiveTextureARB(GL_TEXTURE0_ARB);
 
-	if (gHUD.m_pFogSettings.active && m_pCvarWorldShaders->value && m_bShaderSupport)
+	if (gHUD.m_pFogSettings.active && (m_pCvarWorldShaders->value != 0.0f) && m_bShaderSupport)
 	{
 		glDisable(GL_FOG);
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
@@ -4790,7 +4790,7 @@ void CBSPRenderer::DrawDecals(void)
 	glColor4f(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
 	glDisable(GL_POLYGON_OFFSET_FILL);
 
-	if (gHUD.m_pFogSettings.active && m_pCvarWorldShaders->value && m_bShaderSupport)
+	if (gHUD.m_pFogSettings.active && (m_pCvarWorldShaders->value != 0.0f) && m_bShaderSupport)
 	{
 		glDisable(GL_FRAGMENT_PROGRAM_ARB);
 		glEnable(GL_FOG);
@@ -4829,11 +4829,11 @@ DeleteDecals
 
 ====================
 */
-void CBSPRenderer::DeleteDecals(void)
+void CBSPRenderer::DeleteDecals()
 {
 	m_iCurDecal = 0;
 
-	if (m_iNumDecals)
+	if (m_iNumDecals != 0)
 	{
 		for (int i = 0; i < m_iNumDecals; i++)
 		{
@@ -4848,7 +4848,7 @@ void CBSPRenderer::DeleteDecals(void)
 		m_iNumDecals = NULL;
 	}
 
-	if (m_iNumStaticDecals)
+	if (m_iNumStaticDecals != 0)
 	{
 		for (int i = 0; i < m_iNumStaticDecals; i++)
 		{
@@ -4870,7 +4870,7 @@ SetDynLightBBox
 
 ====================
 */
-void CBSPRenderer::SetDynLightBBox(void)
+void CBSPRenderer::SetDynLightBBox()
 {
 	m_vDLightMins[0] = m_vCurDLightOrigin[0] - m_pCurrentDynLight->radius;
 	m_vDLightMins[1] = m_vCurDLightOrigin[1] - m_pCurrentDynLight->radius;
@@ -4915,7 +4915,7 @@ SetupDynLight
 
 ====================
 */
-void CBSPRenderer::SetupDynLight(void)
+void CBSPRenderer::SetupDynLight()
 {
 	glBlendFunc(GL_ONE, GL_ONE);
 	glColor3fv(m_pCurrentDynLight->color);
@@ -4954,7 +4954,7 @@ FinishDynLight
 
 ====================
 */
-void CBSPRenderer::FinishDynLight(void)
+void CBSPRenderer::FinishDynLight()
 {
 	glActiveTextureARB(GL_TEXTURE0_ARB);
 	glDisable(GL_TEXTURE_3D);
@@ -4971,7 +4971,7 @@ LightCanShadow
 
 ====================
 */
-bool CBSPRenderer::LightCanShadow(void)
+bool CBSPRenderer::LightCanShadow()
 {
 	if (!m_bShadowSupport)
 		return false;
@@ -4979,13 +4979,13 @@ bool CBSPRenderer::LightCanShadow(void)
 	if (m_pCvarShadows->value < 1)
 		return false;
 
-	if (m_pCurrentEntity->angles[0])
+	if (m_pCurrentEntity->angles[0] != 0.0f)
 		return false;
 
-	if (m_pCurrentEntity->angles[2])
+	if (m_pCurrentEntity->angles[2] != 0.0f)
 		return false;
 
-	if (m_pCurrentDynLight->noshadow)
+	if (m_pCurrentDynLight->noshadow != 0)
 		return false;
 
 	return true;
@@ -4997,7 +4997,7 @@ SetupSpotLight
 
 ====================
 */
-void CBSPRenderer::SetupSpotLight(void)
+void CBSPRenderer::SetupSpotLight()
 {
 	glBlendFunc(GL_ONE, GL_ONE);
 
@@ -5055,7 +5055,7 @@ void CBSPRenderer::SetupSpotLight(void)
 	glScalef(0.5, 0.5, 0.5);
 	glMultMatrixf(flFrustum);
 
-	MyLookAt(m_vCurDLightOrigin[0], m_vCurDLightOrigin[1], m_vCurDLightOrigin[2], vTarget[0], vTarget[1], vTarget[2], 0, 0, bReversed ? -1 : 1);
+	MyLookAt(m_vCurDLightOrigin[0], m_vCurDLightOrigin[1], m_vCurDLightOrigin[2], vTarget[0], vTarget[1], vTarget[2], 0, 0, (bReversed != 0) ? -1 : 1);
 	glMatrixMode(GL_MODELVIEW);
 
 	// attenuation
@@ -5096,7 +5096,7 @@ void CBSPRenderer::SetupSpotLight(void)
 		glScalef(0.5, 0.5, 0.5);
 
 		glMultMatrixf(flFrustum);
-		MyLookAt(m_vCurDLightOrigin[0], m_vCurDLightOrigin[1], m_vCurDLightOrigin[2], vTarget[0], vTarget[1], vTarget[2], 0, 0, bReversed ? -1 : 1);
+		MyLookAt(m_vCurDLightOrigin[0], m_vCurDLightOrigin[1], m_vCurDLightOrigin[2], vTarget[0], vTarget[1], vTarget[2], 0, 0, (bReversed != 0) ? -1 : 1);
 		glMatrixMode(GL_MODELVIEW);
 
 		if (m_pCvarPCFShadows->value >= 1 && m_bShadowPCFSupport)
@@ -5113,7 +5113,7 @@ FinishSpotLight
 
 ====================
 */
-void CBSPRenderer::FinishSpotLight(void)
+void CBSPRenderer::FinishSpotLight()
 {
 	glActiveTextureARB(GL_TEXTURE0_ARB);
 	glMatrixMode(GL_TEXTURE);
@@ -5156,7 +5156,7 @@ DrawDynamicLightsForDetails
 
 ====================
 */
-void CBSPRenderer::DrawDynamicLightsForDetails(void)
+void CBSPRenderer::DrawDynamicLightsForDetails()
 {
 	if (!m_bShaderSupport || m_pCvarWorldShaders->value <= 0)
 		return;
@@ -5182,17 +5182,17 @@ void CBSPRenderer::DrawDynamicLightsForDetails(void)
 
 	for (int i = 0; i < MAX_DYNLIGHTS; i++, dl++)
 	{
-		if (dl->die < time || !dl->radius)
+		if (dl->die < time || (dl->radius == 0.0f))
 			continue;
 
 		m_pCurrentDynLight = dl;
 		m_vCurDLightOrigin = m_pCurrentDynLight->origin;
 
-		if (dl->cone_size)
+		if (dl->cone_size != 0.0f)
 		{
 			Vector lightangles = m_pCurrentDynLight->angles;
 			FixVectorForSpotlight(lightangles);
-			AngleVectors(lightangles, m_vCurSpotForward, NULL, NULL);
+			AngleVectors(lightangles, m_vCurSpotForward, nullptr, nullptr);
 			SetupSpotLight();
 		}
 		else
@@ -5207,14 +5207,14 @@ void CBSPRenderer::DrawDynamicLightsForDetails(void)
 			if (pObject->visframe != m_iFrameCount)
 				continue;
 
-			if (dl->cone_size)
+			if (dl->cone_size != 0.0f)
 			{
 				if (dl->frustum.CullBox(pObject->mins, pObject->maxs))
 					continue;
 			}
 			else
 			{
-				if (CullDynLightBBox(pObject->mins, pObject->maxs))
+				if (CullDynLightBBox(pObject->mins, pObject->maxs) != 0)
 					continue;
 			}
 
@@ -5226,8 +5226,8 @@ void CBSPRenderer::DrawDynamicLightsForDetails(void)
 					float dot;
 					mplane_t* pplane = psurf->plane;
 					SSEDotProductSub(&dot, &m_vCurDLightOrigin, &pplane->normal, &pplane->dist);
-					if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
-						(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+					if ((((psurf->flags & SURF_PLANEBACK) != 0) && (dot < -BACKFACE_EPSILON)) ||
+						(((psurf->flags & SURF_PLANEBACK) == 0) && (dot > BACKFACE_EPSILON)))
 					{
 						if (dot < m_pCurrentDynLight->radius)
 							DrawPolyFromArray(m_pDetailObjectSurfaces, psurf);
@@ -5236,7 +5236,7 @@ void CBSPRenderer::DrawDynamicLightsForDetails(void)
 			}
 		}
 
-		if (dl->cone_size)
+		if (dl->cone_size != 0.0f)
 			FinishSpotLight();
 		else
 			FinishDynLight();
@@ -5257,7 +5257,7 @@ DrawDynamicLightsForWorld
 
 ====================
 */
-void CBSPRenderer::DrawDynamicLightsForWorld(void)
+void CBSPRenderer::DrawDynamicLightsForWorld()
 {
 	if (!m_bShaderSupport || m_pCvarWorldShaders->value <= 0)
 		return;
@@ -5283,17 +5283,17 @@ void CBSPRenderer::DrawDynamicLightsForWorld(void)
 
 	for (int i = 0; i < MAX_DYNLIGHTS; i++, dl++)
 	{
-		if (dl->die < time || !dl->radius)
+		if (dl->die < time || (dl->radius == 0.0f))
 			continue;
 
 		m_pCurrentDynLight = dl;
 		m_vCurDLightOrigin = m_pCurrentDynLight->origin;
 
-		if (dl->cone_size)
+		if (dl->cone_size != 0.0f)
 		{
 			Vector lightangles = m_pCurrentDynLight->angles;
 			FixVectorForSpotlight(lightangles);
-			AngleVectors(lightangles, m_vCurSpotForward, NULL, NULL);
+			AngleVectors(lightangles, m_vCurSpotForward, nullptr, nullptr);
 			SetupSpotLight();
 		}
 		else
@@ -5306,16 +5306,16 @@ void CBSPRenderer::DrawDynamicLightsForWorld(void)
 
 		for (int i = 0; i < m_iNumRenderEntities; i++)
 		{
-			if ((m_pRenderEntities[i]->curstate.renderfx != 70) && !IsEntityMoved(m_pRenderEntities[i]) && !IsEntityTransparent(m_pRenderEntities[i]) && m_pRenderEntities[i]->visframe == m_iFrameCount)
+			if ((m_pRenderEntities[i]->curstate.renderfx != 70) && (IsEntityMoved(m_pRenderEntities[i]) == 0) && (IsEntityTransparent(m_pRenderEntities[i]) == 0) && m_pRenderEntities[i]->visframe == m_iFrameCount)
 			{
-				if (dl->cone_size)
+				if (dl->cone_size != 0.0f)
 				{
 					if (dl->frustum.CullBox(m_pRenderEntities[i]->curstate.mins, m_pRenderEntities[i]->curstate.maxs))
 						continue;
 				}
 				else
 				{
-					if (CullDynLightBBox(m_pRenderEntities[i]->curstate.mins, m_pRenderEntities[i]->curstate.maxs))
+					if (CullDynLightBBox(m_pRenderEntities[i]->curstate.mins, m_pRenderEntities[i]->curstate.maxs) != 0)
 						continue;
 				}
 
@@ -5323,7 +5323,7 @@ void CBSPRenderer::DrawDynamicLightsForWorld(void)
 			}
 		}
 
-		if (dl->cone_size)
+		if (dl->cone_size != 0.0f)
 			FinishSpotLight();
 		else
 			FinishDynLight();
@@ -5358,9 +5358,9 @@ void CBSPRenderer::RecursiveWorldNodeLight(mnode_t* node)
 	if (node->contents < 0)
 		return;
 
-	if (!m_pCurrentDynLight->cone_size)
+	if (m_pCurrentDynLight->cone_size == 0.0f)
 	{
-		if (CullDynLightBBox(node->minmaxs, node->minmaxs + 3)) // cull from point light bbox
+		if (CullDynLightBBox(node->minmaxs, node->minmaxs + 3) != 0) // cull from point light bbox
 			return;
 	}
 	else
@@ -5398,7 +5398,7 @@ void CBSPRenderer::RecursiveWorldNodeLight(mnode_t* node)
 
 	// draw stuff
 	int c = node->numsurfaces;
-	if (c)
+	if (c != 0)
 	{
 		msurface_t* surf = m_pWorld->surfaces + node->firstsurface;
 
@@ -5407,19 +5407,19 @@ void CBSPRenderer::RecursiveWorldNodeLight(mnode_t* node)
 		else if (dot > BACKFACE_EPSILON)
 			side = 0;
 
-		for (; c; c--, surf++)
+		for (; c != 0; c--, surf++)
 		{
 			if (surf->visframe != m_iFrameCount)
 				continue;
 
-			if (surf->flags & SURF_DRAWTURB)
+			if ((surf->flags & SURF_DRAWTURB) != 0)
 				continue;
 
-			if (surf->flags & SURF_DRAWSKY)
+			if ((surf->flags & SURF_DRAWSKY) != 0)
 				continue;
 
 			// don't backface underwater surfaces, because they warp
-			if (!(surf->flags & SURF_UNDERWATER) && ((dot < 0) ^ !!(surf->flags & SURF_PLANEBACK)))
+			if (((surf->flags & SURF_UNDERWATER) == 0) && (((dot < 0) ^ !((surf->flags & SURF_PLANEBACK) == 0)) != 0))
 				continue; // wrong side
 
 			mplane_t* pplane = surf->plane;
@@ -5431,7 +5431,7 @@ void CBSPRenderer::RecursiveWorldNodeLight(mnode_t* node)
 	}
 
 	// recurse down the back side
-	RecursiveWorldNodeLight(node->children[!side]);
+	RecursiveWorldNodeLight(node->children[side == 0]);
 }
 
 /*
@@ -5445,7 +5445,7 @@ bool CBSPRenderer::DynamicLighted(const Vector& vmins, const Vector& vmaxs)
 	if (!m_bSecondPassNeeded)
 		return false;
 
-	if (IsEntityTransparent(m_pCurrentEntity))
+	if (IsEntityTransparent(m_pCurrentEntity) != 0)
 		return false;
 
 	float time = gEngfuncs.GetClientTime();
@@ -5453,13 +5453,13 @@ bool CBSPRenderer::DynamicLighted(const Vector& vmins, const Vector& vmaxs)
 
 	for (int i = 0; i < MAX_DYNLIGHTS; i++)
 	{
-		if (dl[i].die < time || !dl[i].radius)
+		if (dl[i].die < time || (dl[i].radius == 0.0f))
 			continue;
 
 		m_pCurrentDynLight = &dl[i];
 		m_vCurDLightOrigin = m_pCurrentDynLight->origin;
 
-		if (m_pCurrentDynLight->cone_size)
+		if (m_pCurrentDynLight->cone_size != 0.0f)
 		{
 			if (m_pCurrentDynLight->frustum.CullBox(vmins, vmaxs))
 				continue;
@@ -5467,7 +5467,7 @@ bool CBSPRenderer::DynamicLighted(const Vector& vmins, const Vector& vmaxs)
 		else
 		{
 			SetDynLightBBox();
-			if (CullDynLightBBox(vmins, vmaxs))
+			if (CullDynLightBBox(vmins, vmaxs) != 0)
 				continue;
 		}
 
@@ -5497,9 +5497,9 @@ void CBSPRenderer::DrawDynamicLightsForEntity(cl_entity_t* pEntity)
 	if (m_pCvarDynamic->value < 1)
 		return;
 
-	if (pEntity->angles[0] || pEntity->angles[1] || pEntity->angles[2])
+	if ((pEntity->angles[0] != 0.0f) || (pEntity->angles[1] != 0.0f) || (pEntity->angles[2] != 0.0f))
 	{
-		rotated = true;
+		rotated = 1;
 		for (int i = 0; i < 3; i++)
 		{
 			mins[i] = -pEntity->model->radius;
@@ -5508,7 +5508,7 @@ void CBSPRenderer::DrawDynamicLightsForEntity(cl_entity_t* pEntity)
 	}
 	else
 	{
-		rotated = false;
+		rotated = 0;
 		mins = pEntity->model->mins;
 		maxs = pEntity->model->maxs;
 	}
@@ -5527,13 +5527,13 @@ void CBSPRenderer::DrawDynamicLightsForEntity(cl_entity_t* pEntity)
 	{
 		Vector temp, forward, right, up;
 
-		if (dl->die < time || !dl->radius)
+		if (dl->die < time || (dl->radius == 0.0f))
 			continue;
 
 		m_pCurrentDynLight = dl;
 
 		VectorSubtract(m_pCurrentDynLight->origin, pEntity->origin, m_vCurDLightOrigin);
-		if (rotated)
+		if (rotated != 0)
 		{
 			AngleVectors(pEntity->angles, forward, right, up);
 
@@ -5543,7 +5543,7 @@ void CBSPRenderer::DrawDynamicLightsForEntity(cl_entity_t* pEntity)
 			m_vCurDLightOrigin[2] = DotProduct(temp, up);
 		}
 
-		if (m_pCurrentDynLight->cone_size)
+		if (m_pCurrentDynLight->cone_size != 0.0f)
 		{
 			Vector tmins, tmaxs;
 			VectorAdd(mins, m_pCurrentEntity->origin, tmins);
@@ -5552,8 +5552,8 @@ void CBSPRenderer::DrawDynamicLightsForEntity(cl_entity_t* pEntity)
 			if (m_pCurrentDynLight->frustum.CullBox(tmins, tmaxs))
 				continue;
 
-			AngleVectors(m_pCurrentDynLight->angles, m_vCurSpotForward, NULL, NULL);
-			if (rotated)
+			AngleVectors(m_pCurrentDynLight->angles, m_vCurSpotForward, nullptr, nullptr);
+			if (rotated != 0)
 			{
 				VectorCopy(m_vCurSpotForward, temp);
 				m_vCurSpotForward[0] = DotProduct(temp, forward);
@@ -5567,7 +5567,7 @@ void CBSPRenderer::DrawDynamicLightsForEntity(cl_entity_t* pEntity)
 		{
 
 			SetDynLightBBox();
-			if (CullDynLightBBox(mins, maxs))
+			if (CullDynLightBBox(mins, maxs) != 0)
 				continue;
 
 			SetupDynLight();
@@ -5575,7 +5575,7 @@ void CBSPRenderer::DrawDynamicLightsForEntity(cl_entity_t* pEntity)
 
 		DrawEntityFacesForLight(pEntity);
 
-		if (dl->cone_size)
+		if (dl->cone_size != 0.0f)
 			FinishSpotLight();
 		else
 			FinishDynLight();
@@ -5601,18 +5601,18 @@ void CBSPRenderer::DrawEntityFacesForLight(cl_entity_t* pEntity)
 	msurface_t* psurf = &m_pWorld->surfaces[pEntity->model->firstmodelsurface];
 	for (int i = 0; i < pEntity->model->nummodelsurfaces; i++, psurf++)
 	{
-		if (psurf->flags & SURF_DRAWTURB)
+		if ((psurf->flags & SURF_DRAWTURB) != 0)
 			continue;
 
-		if (psurf->flags & SURF_DRAWSKY)
+		if ((psurf->flags & SURF_DRAWSKY) != 0)
 			continue;
 
 		if (psurf->visframe == m_iFrameCount) // visible
 		{
 			mplane_t* pplane = psurf->plane;
 			SSEDotProductSub(&dot, &m_vCurDLightOrigin, &pplane->normal, &pplane->dist);
-			if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
-				(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+			if ((((psurf->flags & SURF_PLANEBACK) != 0) && (dot < -BACKFACE_EPSILON)) ||
+				(((psurf->flags & SURF_PLANEBACK) == 0) && (dot > BACKFACE_EPSILON)))
 			{
 				if (dot < m_pCurrentDynLight->radius)
 					DrawPolyFromArray(m_pWorld->surfaces, psurf);
@@ -5627,7 +5627,7 @@ InitSky
 
 ====================
 */
-void CBSPRenderer::InitSky(void)
+void CBSPRenderer::InitSky()
 {
 	m_bDrawSky = true;
 	if (m_szSkyName[0] == 0)
@@ -5648,7 +5648,7 @@ void CBSPRenderer::InitSky(void)
 
 		cl_texture_t* pTexture = gTextureLoader.LoadTexture(szPathL, FALSE, false, true);
 
-		if (pTexture)
+		if (pTexture != nullptr)
 		{
 			m_iSkyTextures[i] = pTexture->iIndex;
 		}
@@ -5656,7 +5656,7 @@ void CBSPRenderer::InitSky(void)
 		{
 			pTexture = gTextureLoader.LoadTexture(szPathS, FALSE, true, true);
 
-			if (!pTexture)
+			if (pTexture == nullptr)
 			{
 				m_bDrawSky = false;
 				return;
@@ -5679,7 +5679,7 @@ DrawSky
 
 ====================
 */
-void CBSPRenderer::DrawSky(void)
+void CBSPRenderer::DrawSky()
 {
 	fog_settings_t pSaved;
 	static float projection[16];
@@ -5800,7 +5800,7 @@ cl_dlight_t* CBSPRenderer::CL_AllocDLight(int key)
 	float time = gEngfuncs.GetClientTime();
 
 	// first look for an exact key match
-	if (key)
+	if (key != 0)
 	{
 		dl = m_pDynLights;
 		for (i = 0; i < MAX_DYNLIGHTS; i++, dl++)
@@ -5844,7 +5844,7 @@ DecayLights
 
 ====================
 */
-void CBSPRenderer::DecayLights(void)
+void CBSPRenderer::DecayLights()
 {
 	static float lasttime = 0;
 
@@ -5862,7 +5862,7 @@ void CBSPRenderer::DecayLights(void)
 	cl_dlight_t* dl = m_pDynLights;
 	for (int i = 0; i < MAX_DYNLIGHTS; i++, dl++)
 	{
-		if (dl->die < time || !dl->radius)
+		if (dl->die < time || (dl->radius == 0.0f))
 			continue;
 
 		dl->radius -= frametime * dl->decay;
@@ -5949,7 +5949,7 @@ DrawShadowPasses
 
 ====================
 */
-void CBSPRenderer::DrawShadowPasses(void)
+void CBSPRenderer::DrawShadowPasses()
 {
 	if (!m_bShaderSupport || m_pCvarWorldShaders->value <= 0)
 		return;
@@ -5968,7 +5968,7 @@ void CBSPRenderer::DrawShadowPasses(void)
 
 	for (int i = 0; i < MAX_DYNLIGHTS; i++, dl++)
 	{
-		if (dl->die < time || !dl->radius || !dl->cone_size || dl->noshadow)
+		if (dl->die < time || (dl->radius == 0.0f) || (dl->cone_size == 0.0f) || (dl->noshadow != 0))
 			continue;
 
 		m_pCurrentDynLight = dl;
@@ -5983,7 +5983,7 @@ CreateShadowMap
 
 ====================
 */
-void CBSPRenderer::CreateShadowMap(void)
+void CBSPRenderer::CreateShadowMap()
 {
 	float flProj[16];
 	float flModel[16];
@@ -6022,14 +6022,14 @@ void CBSPRenderer::CreateShadowMap(void)
 	// Asscawks
 	Vector vAngles = m_pCurrentDynLight->angles;
 	FixVectorForSpotlight(vAngles);
-	AngleVectors(vAngles, m_vCurSpotForward, NULL, NULL);
+	AngleVectors(vAngles, m_vCurSpotForward, nullptr, nullptr);
 
 	int bReversed = IsPitchReversed(m_pCurrentDynLight->angles[PITCH]);
 	Vector vTarget = m_pCurrentDynLight->origin + (m_vCurSpotForward * m_pCurrentDynLight->radius);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	MyLookAt(m_pCurrentDynLight->origin[0], m_pCurrentDynLight->origin[1], m_pCurrentDynLight->origin[2], vTarget[0], vTarget[1], vTarget[2], 0, 0, bReversed ? -1 : 1);
+	MyLookAt(m_pCurrentDynLight->origin[0], m_pCurrentDynLight->origin[1], m_pCurrentDynLight->origin[2], vTarget[0], vTarget[1], vTarget[2], 0, 0, (bReversed != 0) ? -1 : 1);
 
 	DrawWorldSolid();
 
@@ -6038,7 +6038,7 @@ void CBSPRenderer::CreateShadowMap(void)
 		if (m_pRenderEntities[i]->model->type != mod_studio)
 			continue;
 
-		if (!m_pRenderEntities[i]->player)
+		if (m_pRenderEntities[i]->player == 0)
 		{
 			g_StudioRenderer.m_pCurrentEntity = gBSPRenderer.m_pRenderEntities[i];
 			g_StudioRenderer.StudioDrawModelSolid();
@@ -6069,7 +6069,7 @@ DrawWorldSolid
 
 ====================
 */
-void CBSPRenderer::DrawWorldSolid(void)
+void CBSPRenderer::DrawWorldSolid()
 {
 	gHUD.viewFrustum.SetFrustum(m_pCurrentDynLight->angles, m_pCurrentDynLight->origin, m_pCurrentDynLight->cone_size, m_pCurrentDynLight->radius);
 	VectorCopy(m_pCurrentDynLight->angles, m_vViewAngles);
@@ -6092,11 +6092,11 @@ void CBSPRenderer::DrawWorldSolid(void)
 	RecursiveWorldNodeSolid(m_pWorld->nodes);
 	DrawDetailsSolid();
 
-	if (g_StudioRenderer.m_pCvarDrawEntities->value)
+	if (g_StudioRenderer.m_pCvarDrawEntities->value != 0.0f)
 	{
 		for (int i = 0; i < m_iNumRenderEntities; i++)
 		{
-			if (!IsEntityTransparent(m_pRenderEntities[i]))
+			if (IsEntityTransparent(m_pRenderEntities[i]) == 0)
 				DrawBrushModelSolid(m_pRenderEntities[i]);
 		}
 	}
@@ -6133,13 +6133,13 @@ void CBSPRenderer::RecursiveWorldNodeSolid(mnode_t* node)
 		mark = pleaf->firstmarksurface;
 		c = pleaf->nummarksurfaces;
 
-		if (c)
+		if (c != 0)
 		{
 			do
 			{
 				(*mark)->visframe = m_iFrameCount;
 				mark++;
-			} while (--c);
+			} while (--c != 0);
 		}
 		return;
 	}
@@ -6173,7 +6173,7 @@ void CBSPRenderer::RecursiveWorldNodeSolid(mnode_t* node)
 
 	// draw stuff
 	c = node->numsurfaces;
-	if (c)
+	if (c != 0)
 	{
 		surf = m_pWorld->surfaces + node->firstsurface;
 
@@ -6188,13 +6188,13 @@ void CBSPRenderer::RecursiveWorldNodeSolid(mnode_t* node)
 				continue;
 
 			// don't backface underwater surfaces, because they warp
-			if (!(surf->flags & SURF_UNDERWATER) && ((dot < 0) ^ !!(surf->flags & SURF_PLANEBACK)))
+			if (((surf->flags & SURF_UNDERWATER) == 0) && (((dot < 0) ^ !((surf->flags & SURF_PLANEBACK) == 0)) != 0))
 				continue; // wrong side
 
-			if (surf->flags & SURF_DRAWSKY)
+			if ((surf->flags & SURF_DRAWSKY) != 0)
 				continue;
 
-			if (surf->flags & SURF_DRAWTURB)
+			if ((surf->flags & SURF_DRAWTURB) != 0)
 				continue;
 
 			DrawPolyFromArray(m_pWorld->surfaces, surf);
@@ -6202,7 +6202,7 @@ void CBSPRenderer::RecursiveWorldNodeSolid(mnode_t* node)
 	}
 
 	// recurse down the back side
-	RecursiveWorldNodeSolid(node->children[!side]);
+	RecursiveWorldNodeSolid(node->children[side == 0]);
 };
 
 
@@ -6212,9 +6212,9 @@ DrawDetailsSolid
 
 ====================
 */
-void CBSPRenderer::DrawDetailsSolid(void)
+void CBSPRenderer::DrawDetailsSolid()
 {
-	if (!m_iNumDetailObjects)
+	if (m_iNumDetailObjects == 0)
 		return;
 
 	detailobject_t* pCurObject = m_pDetailObjects;
@@ -6222,7 +6222,7 @@ void CBSPRenderer::DrawDetailsSolid(void)
 	{
 		int j = 0;
 		for (j = 0; j < pCurObject->numleafs; j++)
-			if (m_pPVS[pCurObject->leafnums[j] >> 3] & (1 << (pCurObject->leafnums[j] & 7)))
+			if ((m_pPVS[pCurObject->leafnums[j] >> 3] & (1 << (pCurObject->leafnums[j] & 7))) != 0)
 				break;
 
 		if (j == pCurObject->numleafs)
@@ -6248,8 +6248,8 @@ void CBSPRenderer::DrawDetailsSolid(void)
 			mplane_t* pplane = psurf->plane;
 			SSEDotProductSub(&dot, &m_vVecToEyes, &pplane->normal, &pplane->dist);
 
-			if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
-				(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+			if ((((psurf->flags & SURF_PLANEBACK) != 0) && (dot < -BACKFACE_EPSILON)) ||
+				(((psurf->flags & SURF_PLANEBACK) == 0) && (dot > BACKFACE_EPSILON)))
 			{
 				if (pCurObject->rendermode == kRenderTransAlpha)
 					Bind2DTexture(GL_TEXTURE0_ARB, psurf->texinfo->texture->gl_texturenum);
@@ -6294,7 +6294,7 @@ void CBSPRenderer::DrawBrushModelSolid(cl_entity_t* pEntity)
 	if (m_pCurrentEntity->curstate.rendermode != NULL && m_pCurrentEntity->curstate.renderamt == NULL)
 		return;
 
-	if (m_pCurrentEntity->angles[0] || m_pCurrentEntity->angles[1] || m_pCurrentEntity->angles[2])
+	if ((m_pCurrentEntity->angles[0] != 0.0f) || (m_pCurrentEntity->angles[1] != 0.0f) || (m_pCurrentEntity->angles[2] != 0.0f))
 	{
 		bRotated = true;
 		for (i = 0; i < 3; i++)
@@ -6348,14 +6348,14 @@ void CBSPRenderer::DrawBrushModelSolid(cl_entity_t* pEntity)
 	{
 		pplane = psurf->plane;
 		SSEDotProductSub(&dot, &m_vVecToEyes, &pplane->normal, &pplane->dist);
-		if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) || (!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+		if ((((psurf->flags & SURF_PLANEBACK) != 0) && (dot < -BACKFACE_EPSILON)) || (((psurf->flags & SURF_PLANEBACK) == 0) && (dot > BACKFACE_EPSILON)))
 		{
 			psurf->visframe = m_iFrameCount;
 
-			if (psurf->flags & SURF_DRAWSKY)
+			if ((psurf->flags & SURF_DRAWSKY) != 0)
 				continue;
 
-			if (psurf->flags & SURF_DRAWTURB)
+			if ((psurf->flags & SURF_DRAWTURB) != 0)
 				continue;
 
 			Bind2DTexture(GL_TEXTURE0_ARB, psurf->texinfo->texture->gl_texturenum);

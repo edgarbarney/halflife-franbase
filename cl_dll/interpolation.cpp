@@ -30,13 +30,13 @@ bool SolveLSE(Vector v0, Vector v1, Vector v2, Vector v3, float* x, float* y, fl
 	if (d == 0.0f)
 		return false;
 
-	if (x)
+	if (x != nullptr)
 		*x = Determinant(v0, v2, v3) / d;
 
-	if (y)
+	if (y != nullptr)
 		*y = Determinant(v1, v0, v3) / d;
 
-	if (z)
+	if (z != nullptr)
 		*z = Determinant(v1, v2, v0) / d;
 
 	return true;
@@ -50,7 +50,7 @@ bool GetPointBetweenLines(Vector& p, Vector a1, Vector m1, Vector a2, Vector m2)
 	Vector t1 = CrossProduct(m1, m2);
 	Vector t2 = a2 - a1;
 
-	if (!SolveLSE(t2, m1, t1, m2, &x, NULL, &z))
+	if (!SolveLSE(t2, m1, t1, m2, &x, nullptr, &z))
 		return false;
 
 	t1 = a1 + x * m1;
@@ -97,12 +97,12 @@ void CInterpolation::SetWaypoints(Vector* prev, Vector start, Vector end, Vector
 
 	Vector a, b, c, d;
 
-	if (!prev && !next)
+	if ((prev == nullptr) && (next == nullptr))
 	{
 		// no direction given, straight linear interpolation
 		m_Center = (m_StartPoint + m_EndPoint) / 2.0f;
 	}
-	else if (!prev)
+	else if (prev == nullptr)
 	{
 		a = start - end;
 		float dist = a.Length() / 2.0f;
@@ -113,7 +113,7 @@ void CInterpolation::SetWaypoints(Vector* prev, Vector start, Vector end, Vector
 		c = c.Normalize();
 		m_Center = end + c * dist;
 	}
-	else if (!next)
+	else if (next == nullptr)
 	{
 		a = *prev - start;
 		a = a.Normalize();
@@ -160,17 +160,17 @@ void CInterpolation::Interpolate(float t, Vector& point, Vector& angle, float* f
 		t = -(t * t) + 1;
 	}
 
-	if (point)
+	if (point != nullptr)
 	{
 		BezierInterpolatePoint(t, point);
 	}
 
-	if (angle)
+	if (angle != nullptr)
 	{
 		InterpolateAngle(t, angle);
 	}
 
-	if (fov)
+	if (fov != nullptr)
 	{
 		*fov = m_StartFov + (t * (m_EndFov - m_StartFov));
 	}

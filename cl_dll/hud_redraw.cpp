@@ -45,7 +45,7 @@ void CHud::Think()
 	int newfov;
 	HUDLIST* pList = m_pHudList;
 
-	while (pList)
+	while (pList != nullptr)
 	{
 		if ((pList->p->m_iFlags & HUD_ACTIVE) != 0)
 			pList->p->Think();
@@ -103,7 +103,7 @@ bool CHud::Redraw(float flTime, bool intermission)
 		m_flTimeDelta = 0;
 
 	// Bring up the scoreboard during intermission
-	if (gViewPort)
+	if (gViewPort != nullptr)
 	{
 		if (m_iIntermission && !intermission)
 		{
@@ -139,7 +139,7 @@ bool CHud::Redraw(float flTime, bool intermission)
 	// return 0;
 
 	// trigger_viewset stuff
-	if ((viewFlags & 1) && (viewFlags & 4)) //AJH Draw the camera hud
+	if (((viewFlags & 1) != 0) && ((viewFlags & 4) != 0)) //AJH Draw the camera hud
 	{
 
 		int r, g, b, x, y, a;
@@ -165,7 +165,7 @@ bool CHud::Redraw(float flTime, bool intermission)
 		int i = (int)(flTime) % 2;
 		i = grgLogoFrame[i] - 1;
 
-		SPR_DrawAdditive(i, x, y, NULL);
+		SPR_DrawAdditive(i, x, y, nullptr);
 
 		//Draw the camera reticle (top left)
 		HUD_camera_rect = gHUD.GetSpriteIndex("camera_rect_tl");
@@ -209,7 +209,7 @@ bool CHud::Redraw(float flTime, bool intermission)
 		SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(HUD_camera_rect));
 	}
 
-	if ((viewFlags & 1) && !(viewFlags & 2)) // custom view active, and flag "draw hud" isnt set
+	if (((viewFlags & 1) != 0) && ((viewFlags & 2) == 0)) // custom view active, and flag "draw hud" isnt set
 		return true;
 
 	// draw all registered HUD elements
@@ -217,7 +217,7 @@ bool CHud::Redraw(float flTime, bool intermission)
 	{
 		HUDLIST* pList = m_pHudList;
 
-		while (pList)
+		while (pList != nullptr)
 		{
 			if (!intermission)
 			{
@@ -252,7 +252,7 @@ bool CHud::Redraw(float flTime, bool intermission)
 		int iFrame = (int)(flTime * 20) % MAX_LOGO_FRAMES;
 		i = grgLogoFrame[iFrame] - 1;
 
-		SPR_DrawAdditive(i, x, y, NULL);
+		SPR_DrawAdditive(i, x, y, nullptr);
 	}
 
 	/*

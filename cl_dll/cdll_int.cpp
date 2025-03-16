@@ -60,7 +60,7 @@ extern engine_studio_api_t IEngineStudio;
 cl_enginefunc_t gEngfuncs;
 CHud gHUD;
 CMP3 gMP3; //AJH - Killars MP3player
-TeamFortressViewport* gViewPort = NULL;
+TeamFortressViewport* gViewPort = nullptr;
 
 // RENDERERS START
 CBSPRenderer gBSPRenderer;
@@ -420,14 +420,14 @@ public:
 	// ingame voice manipulation
 	bool IsPlayerGameVoiceMuted(int playerIndex) override
 	{
-		if (GetClientVoiceMgr())
+		if (GetClientVoiceMgr() != nullptr)
 			return GetClientVoiceMgr()->IsPlayerBlocked(playerIndex);
 		return false;
 	}
 
 	void MutePlayerGameVoice(int playerIndex) override
 	{
-		if (GetClientVoiceMgr())
+		if (GetClientVoiceMgr() != nullptr)
 		{
 			GetClientVoiceMgr()->SetPlayerBlockedState(playerIndex, true);
 		}
@@ -435,7 +435,7 @@ public:
 
 	void UnmutePlayerGameVoice(int playerIndex) override
 	{
-		if (GetClientVoiceMgr())
+		if (GetClientVoiceMgr() != nullptr)
 		{
 			GetClientVoiceMgr()->SetPlayerBlockedState(playerIndex, false);
 		}

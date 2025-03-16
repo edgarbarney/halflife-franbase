@@ -48,7 +48,7 @@
 #define CUSTOMMENU_WINDOW_PLAYERS_Y YRES(42)
 
 // Creation
-CCustomMenu::CCustomMenu(int iTrans, int iRemoveMe, int x, int y, int wide, int tall) : CMenuPanel(iTrans, iRemoveMe, x, y, wide, tall)
+CCustomMenu::CCustomMenu(int iTrans, int iRemoveMe, int x, int y, int wide, int tall) : CMenuPanel(iTrans, iRemoveMe != 0, x, y, wide, tall)
 {
 	// don't show class graphics at below 640x480 resolution
 	bool bShowClassGraphic = true;
@@ -102,7 +102,7 @@ CCustomMenu::CCustomMenu(int iTrans, int iRemoveMe, int x, int y, int wide, int 
 		char sz[256];
 		int iYPos = CUSTOMMENU_TOPLEFT_BUTTON_Y + ((CUSTOMMENU_BUTTON_SIZE_Y + CUSTOMMENU_BUTTON_SPACER_Y) * i);
 
-		ActionSignal* pASignal = new CMenuHandler_StringCommandClassSelect(sTFClassSelection[i], true);
+		ActionSignal* pASignal = new CMenuHandler_StringCommandClassSelect(sTFClassSelection[i], 1);
 
 		// Class button
 		sprintf(sz, "%s", CHudTextMessage::BufferedLocaliseTextString(sLocalisedClasses[i]));
@@ -193,8 +193,8 @@ CCustomMenu::CCustomMenu(int iTrans, int iRemoveMe, int x, int y, int wide, int 
 		// Open up the Class Briefing File
 		sprintf(sz, "classes/short_%s.txt", sTFClassSelection[i]);
 		const char* cText = "Class Description not available.";
-		char* pfile = (char*)gEngfuncs.COM_LoadFile(sz, 5, NULL);
-		if (pfile)
+		char* pfile = (char*)gEngfuncs.COM_LoadFile(sz, 5, nullptr);
+		if (pfile != nullptr)
 		{
 			cText = pfile;
 		}
@@ -230,7 +230,7 @@ CCustomMenu::CCustomMenu(int iTrans, int iRemoveMe, int x, int y, int wide, int 
 		}
 
 		m_pClassInfoPanel[i]->setSize(maxX, maxY);
-		if (pfile)
+		if (pfile != nullptr)
 			gEngfuncs.COM_FreeFile(pfile);
 		//m_pClassInfoPanel[i]->setBorder(new LineBorder());
 	}
@@ -248,7 +248,7 @@ CCustomMenu::CCustomMenu(int iTrans, int iRemoveMe, int x, int y, int wide, int 
 void CCustomMenu::Update()
 {
 	// Don't allow the player to join a team if they're not in a team
-	if (!g_iTeamNumber)
+	if (g_iTeamNumber == 0)
 		return;
 
 	int iYPos = CUSTOMMENU_TOPLEFT_BUTTON_Y;
@@ -285,7 +285,7 @@ void CCustomMenu::Update()
 				iYPos += CUSTOMMENU_BUTTON_SIZE_Y + CUSTOMMENU_BUTTON_SPACER_Y;
 
 				// Start with the first option up
-				if (!m_iCurrentInfo)
+				if (m_iCurrentInfo == 0)
 					SetActiveInfo(i);
 			}
 		}
@@ -294,11 +294,11 @@ void CCustomMenu::Update()
 		int iTotal = 0;
 		for (int j = 1; j < MAX_PLAYERS; j++)
 		{
-			if (g_PlayerInfoList[j].name == NULL)
+			if (g_PlayerInfoList[j].name == nullptr)
 				continue; // empty player slot, skip
 			if (g_PlayerExtraInfo[j].teamname[0] == 0)
 				continue; // skip over players who are not in a team
-			if (g_PlayerInfoList[j].thisplayer)
+			if (g_PlayerInfoList[j].thisplayer != 0u)
 				continue; // skip this player
 			if (g_PlayerExtraInfo[j].teamnumber != g_iTeamNumber)
 				continue; // skip over players in other teams
@@ -324,17 +324,17 @@ void CCustomMenu::Update()
 		for (int team = 0; team < MAX_TEAMS; team++)
 		{
 			// unset all the other images
-			if (m_pClassImages[team][i])
+			if (m_pClassImages[team][i] != nullptr)
 			{
 				m_pClassImages[team][i]->setVisible(false);
 			}
 
 			// set the current team image
-			if (m_pClassImages[g_iTeamNumber - 1][i] != NULL)
+			if (m_pClassImages[g_iTeamNumber - 1][i] != nullptr)
 			{
 				m_pClassImages[g_iTeamNumber - 1][i]->setVisible(true);
 			}
-			else if (m_pClassImages[0][i])
+			else if (m_pClassImages[0][i] != nullptr)
 			{
 				m_pClassImages[0][i]->setVisible(true);
 			}
@@ -342,7 +342,7 @@ void CCustomMenu::Update()
 	}
 
 	// If the player already has a class, make the cancel button visible
-	if (g_iPlayerClass)
+	if (g_iPlayerClass != 0)
 	{
 		m_pCancelButton->setPos(CUSTOMMENU_TOPLEFT_BUTTON_X, iYPos);
 		m_pCancelButton->setVisible(true);
@@ -359,7 +359,7 @@ bool CCustomMenu::SlotInput(int iSlot)
 {
 	if ((iSlot < 0) || (iSlot > 9))
 		return false;
-	if (!m_pButtons[iSlot])
+	if (m_pButtons[iSlot] == nullptr)
 		return false;
 
 	// Is the button pushable? (0 is special case)
@@ -387,7 +387,7 @@ bool CCustomMenu::SlotInput(int iSlot)
 
 //======================================
 // Update the Class menu before opening it
-void CCustomMenu::Open(void)
+void CCustomMenu::Open()
 {
 	Update();
 	CMenuPanel::Open();
@@ -396,7 +396,7 @@ void CCustomMenu::Open(void)
 //-----------------------------------------------------------------------------
 // Purpose: Called each time a new level is started.
 //-----------------------------------------------------------------------------
-void CCustomMenu::Initialize(void)
+void CCustomMenu::Initialize()
 {
 	setVisible(false);
 	m_pScrollPanel->setScrollValue(0, 0);

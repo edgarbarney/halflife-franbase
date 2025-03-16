@@ -106,7 +106,7 @@ void FrustumCheck::SetFrustum(Vector vAngles, Vector vOrigin, float flFOV_x, flo
 	if (bView && !gHUD.m_pFogSettings.affectsky)
 		return;
 
-	if (flFarDist)
+	if (flFarDist != 0.0f)
 	{
 		if (gBSPRenderer.m_pCvarRadialFog->value > 0 && gBSPRenderer.m_bRadialFogSupport && bView)
 		{
@@ -163,7 +163,7 @@ DisableExtraCullBox
 
 =====================
 */
-void FrustumCheck::DisableExtraCullBox(void)
+void FrustumCheck::DisableExtraCullBox()
 {
 	m_bExtraCull = false;
 }

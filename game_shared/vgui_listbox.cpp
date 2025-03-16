@@ -53,7 +53,7 @@ void CListBox::Term()
 	LBItem* pNext;
 	for (LBItem* pItem = m_Items.m_pNext; pItem != &m_Items; pItem = pNext)
 	{
-		pItem->m_pPanel->setParent(NULL); // detach the panel from us
+		pItem->m_pPanel->setParent(nullptr); // detach the panel from us
 		pNext = pItem->m_pNext;
 		delete pItem;
 	}
@@ -64,7 +64,7 @@ void CListBox::AddItem(Panel* panel)
 {
 	// Add the item.
 	LBItem* pItem = new LBItem;
-	if (!pItem)
+	if (pItem == nullptr)
 		return;
 
 	pItem->m_pPanel = panel;

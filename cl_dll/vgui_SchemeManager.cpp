@@ -78,7 +78,7 @@ CSchemeManager::CScheme::CScheme()
 	fontName[0] = 0;
 	fontSize = 0;
 	fontWeight = 0;
-	font = NULL;
+	font = nullptr;
 	ownFontPointer = false;
 }
 
@@ -117,24 +117,24 @@ static byte* LoadFileByResolution(const char* filePrefix, int xRes, const char* 
 		resNum--;
 
 		if (resNum < 0)
-			return NULL;
+			return nullptr;
 	}
 
 	// try open the file
-	byte* pFile = NULL;
+	byte* pFile = nullptr;
 	while (true)
 	{
 
 		// try load
 		char fname[256];
 		sprintf(fname, "%s%d%s", filePrefix, g_ResArray[resNum], filePostfix);
-		pFile = gEngfuncs.COM_LoadFile(fname, 5, NULL);
+		pFile = gEngfuncs.COM_LoadFile(fname, 5, nullptr);
 
-		if (pFile)
+		if (pFile != nullptr)
 			break;
 
 		if (resNum == 0)
-			return NULL;
+			return nullptr;
 
 		resNum--;
 	}
@@ -171,7 +171,7 @@ static void ParseRGBAFromString(byte colorArray[4], const char* colorVector)
 CSchemeManager::CSchemeManager(int xRes, int yRes)
 {
 	// basic setup
-	m_pSchemeList = NULL;
+	m_pSchemeList = nullptr;
 	m_iNumSchemes = 0;
 
 	// find the closest matching scheme file to our resolution
@@ -197,9 +197,9 @@ CSchemeManager::CSchemeManager(int xRes, int yRes)
 	static CScheme tmpSchemes[numTmpSchemes];
 	memset(tmpSchemes, 0, sizeof(tmpSchemes));
 	int currentScheme = -1;
-	CScheme* pScheme = NULL;
+	CScheme* pScheme = nullptr;
 
-	if (!pFile)
+	if (pFile == nullptr)
 	{
 		gEngfuncs.Con_DPrintf("Unable to find *_textscheme.txt\n");
 		goto buildDefaultFont;
@@ -242,7 +242,7 @@ CSchemeManager::CSchemeManager(int xRes, int yRes)
 		if (!stricmp(paramName, "SchemeName"))
 		{
 			// setup the defaults for the current scheme
-			if (pScheme)
+			if (pScheme != nullptr)
 			{
 				// foreground color defaults (normal -> armed -> mouse down)
 				if (!hasFgColor)
@@ -292,7 +292,7 @@ CSchemeManager::CSchemeManager(int xRes, int yRes)
 			pScheme->schemeName[CScheme::SCHEME_NAME_LENGTH - 1] = '\0'; // ensure null termination of string
 		}
 
-		if (!pScheme)
+		if (pScheme == nullptr)
 		{
 			gEngfuncs.Con_Printf("font scheme text file MUST start with a 'SchemeName'\n");
 			break;
@@ -381,7 +381,7 @@ buildDefaultFont:
 	// create the fonts
 	for (int i = 0; i < m_iNumSchemes; i++)
 	{
-		m_pSchemeList[i].font = NULL;
+		m_pSchemeList[i].font = nullptr;
 
 		// see if the current font values exist in a previously loaded font
 		for (int j = 0; j < i; j++)
@@ -396,12 +396,12 @@ buildDefaultFont:
 		}
 
 		// if we haven't found the font already, load it ourselves
-		if (!m_pSchemeList[i].font)
+		if (m_pSchemeList[i].font == nullptr)
 		{
 			fontFileLength = -1;
-			pFontData = NULL;
+			pFontData = nullptr;
 
-			if (g_CV_BitmapFonts && 0 != g_CV_BitmapFonts->value)
+			if ((g_CV_BitmapFonts != nullptr) && 0 != g_CV_BitmapFonts->value)
 			{
 				int fontRes = 640;
 				if (m_xRes >= 1600)
@@ -417,7 +417,7 @@ buildDefaultFont:
 
 				sprintf(fontFilename, "gfx\\vgui\\fonts\\%d_%s.tga", fontRes, m_pSchemeList[i].schemeName);
 				pFontData = gEngfuncs.COM_LoadFile(fontFilename, 5, &fontFileLength);
-				if (!pFontData)
+				if (pFontData == nullptr)
 					gEngfuncs.Con_Printf("Missing bitmap font: %s\n", fontFilename);
 			}
 

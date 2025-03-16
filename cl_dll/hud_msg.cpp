@@ -58,9 +58,9 @@ bool CHud::MsgFunc_ResetHUD(const char* pszName, int iSize, void* pbuf)
 	// clear all hud data
 	HUDLIST* pList = m_pHudList;
 
-	while (pList)
+	while (pList != nullptr)
 	{
-		if (pList->p)
+		if (pList->p != nullptr)
 			pList->p->Reset();
 		pList = pList->pNext;
 	}
@@ -112,15 +112,15 @@ void CHud::MsgFunc_InitHUD(const char* pszName, int iSize, void* pbuf)
 	// prepare all hud data
 	HUDLIST* pList = m_pHudList;
 
-	while (pList)
+	while (pList != nullptr)
 	{
-		if (pList->p)
+		if (pList->p != nullptr)
 			pList->p->InitHUDData();
 		pList = pList->pNext;
 	}
 
 	//Probably not a good place to put this.
-	pBeam = pBeam2 = NULL;
+	pBeam = pBeam2 = nullptr;
 }
 
 //LRC
@@ -138,7 +138,7 @@ void CHud ::MsgFunc_KeyedDLight(const char* pszName, int iSize, void* pbuf)
 	dlight_t* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(iKey);
 
 	int bActive = READ_BYTE();
-	if (!bActive)
+	if (bActive == 0)
 	{
 		// die instantly
 		dl->die = gEngfuncs.GetClientTime();
@@ -334,12 +334,12 @@ int CHud ::MsgFunc_StudioDecal(const char* pszName, int iSize, void* pbuf)
 	normal.z = READ_COORD();
 	int entindex = READ_SHORT();
 
-	if (!entindex)
+	if (entindex == 0)
 		return 1;
 
 	cl_entity_t* pEntity = gEngfuncs.GetEntityByIndex(entindex);
 
-	if (!pEntity)
+	if (pEntity == nullptr)
 		return 1;
 
 	g_StudioRenderer.StudioDecalForEntity(pos, normal, READ_STRING(), pEntity);
@@ -352,16 +352,16 @@ int CHud ::MsgFunc_FreeEnt(const char* pszName, int iSize, void* pbuf)
 
 	int iEntIndex = READ_SHORT();
 
-	if (!iEntIndex)
+	if (iEntIndex == 0)
 		return 1;
 
 
 	cl_entity_t* pEntity = gEngfuncs.GetEntityByIndex(iEntIndex);
 
-	if (!pEntity)
+	if (pEntity == nullptr)
 		return 1;
 
-	pEntity->efrag = NULL;
+	pEntity->efrag = nullptr;
 	return 1;
 }
 

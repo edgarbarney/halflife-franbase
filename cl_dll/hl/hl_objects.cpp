@@ -63,13 +63,13 @@ void UpdateBeams()
 
 	gEngfuncs.pEventAPI->EV_PopPMStates();
 
-	if (pBeam)
+	if (pBeam != nullptr)
 	{
 		pBeam->target = tr.endpos;
 		pBeam->die = gEngfuncs.GetClientTime() + 0.1; // We keep it alive just a little bit forward in the future, just in case.
 	}
 
-	if (pBeam2)
+	if (pBeam2 != nullptr)
 	{
 		pBeam2->target = tr.endpos;
 		pBeam2->die = gEngfuncs.GetClientTime() + 0.1; // We keep it alive just a little bit forward in the future, just in case.
@@ -85,6 +85,6 @@ Add game specific, client-side objects here
 */
 void Game_AddObjects()
 {
-	if (pBeam || pBeam2)
+	if ((pBeam != nullptr) || (pBeam2 != nullptr))
 		UpdateBeams();
 }

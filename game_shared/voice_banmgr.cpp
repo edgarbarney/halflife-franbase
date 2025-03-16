@@ -50,7 +50,7 @@ bool CVoiceBanMgr::Init(char const* pGameDir)
 
 	// Load in the squelch file.
 	FILE* fp = fopen(filename, "rb");
-	if (fp)
+	if (fp != nullptr)
 	{
 		int version;
 		if (sizeof(version) == fread(&version, 1, sizeof(version), fp))
@@ -104,7 +104,7 @@ void CVoiceBanMgr::SaveState(char const* pGameDir)
 	snprintf(filename, sizeof(filename), "%s/%s", pGameDir, g_pBanMgrFilename);
 
 	FILE* fp = fopen(filename, "wb");
-	if (fp)
+	if (fp != nullptr)
 	{
 		int version = BANMGR_FILEVERSION;
 		fwrite(&version, 1, sizeof(version), fp);
@@ -142,7 +142,7 @@ void CVoiceBanMgr::SetPlayerBan(char const playerID[16], bool bSquelch)
 	else
 	{
 		BannedPlayer* pPlayer = InternalFindPlayerSquelch(playerID);
-		if (pPlayer)
+		if (pPlayer != nullptr)
 		{
 			pPlayer->m_pPrev->m_pNext = pPlayer->m_pNext;
 			pPlayer->m_pNext->m_pPrev = pPlayer->m_pPrev;
@@ -182,15 +182,15 @@ CVoiceBanMgr::BannedPlayer* CVoiceBanMgr::InternalFindPlayerSquelch(char const p
 			return pCur;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 
 CVoiceBanMgr::BannedPlayer* CVoiceBanMgr::AddBannedPlayer(char const playerID[16])
 {
 	BannedPlayer* pNew = new BannedPlayer;
-	if (!pNew)
-		return NULL;
+	if (pNew == nullptr)
+		return nullptr;
 
 	int index = HashPlayerID(playerID);
 	memcpy(pNew->m_PlayerID, playerID, 16);

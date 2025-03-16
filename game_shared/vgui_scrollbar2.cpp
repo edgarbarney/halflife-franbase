@@ -71,7 +71,7 @@ public:
 	ScrollBarButton(const char* filename, int x, int y, int wide, int tall) : m_Border(Color(60, 60, 60, 0)), Button("", x, y, wide, tall)
 	{
 		Image* image = vgui_LoadTGA(filename);
-		if (image)
+		if (image != nullptr)
 		{
 			image->setColor(Color(140, 140, 140, 0));
 			setImage(image);

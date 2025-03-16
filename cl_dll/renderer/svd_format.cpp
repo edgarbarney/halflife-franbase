@@ -62,7 +62,7 @@ void SVD_BuildFaces( svdsubmodel_t* psubmodel, mstudiomodel_t* pstudiosubmodel, 
 	{
 		int j;
 		short *ptricmds = (short *)((byte *)phdr + pmeshes[i].triindex);		
-		while (j = *(ptricmds++))
+		while (j = *(ptricmds++) != 0)
 		{
 			if (j < 0) 
 				j *= -1;
@@ -89,7 +89,7 @@ void SVD_BuildFaces( svdsubmodel_t* psubmodel, mstudiomodel_t* pstudiosubmodel, 
 		short *ptricmds = (short *)((byte *)phdr + pmeshes[i].triindex);
 
 		int j;
-		while (j = *(ptricmds++))
+		while (j = *(ptricmds++) != 0)
 		{	
 			if (j > 0) 
 			{
@@ -174,7 +174,7 @@ SVD_BuildEdges
 */
 void SVD_BuildEdges( svdsubmodel_t* psubmodel )
 {
-	if(!psubmodel->numfaces)
+	if(psubmodel->numfaces == 0)
 		return;
 
 	// Allocate a temporary buffer
@@ -353,8 +353,8 @@ svdheader_t* SVD_Create( char* filename, model_t* pmodel )
 	sprintf(outPath, "%s/%s", gEngfuncs.pfnGetGameDirectory(), filename);
 
 	FILE *pFile = fopen(outPath, "wb");
-	if(!pFile)
-		return NULL;
+	if(pFile == nullptr)
+		return nullptr;
 
 	fwrite(g_pSVDBufferData, sizeof(byte)*g_iSVDDataOffset, 1, pFile);
 	fclose(pFile);
@@ -365,7 +365,7 @@ svdheader_t* SVD_Create( char* filename, model_t* pmodel )
 
 	// Free temp buffer
 	delete [] g_pSVDBufferData;
-	g_pSVDBufferData = NULL;
+	g_pSVDBufferData = nullptr;
 
 	return (svdheader_t*)pbuffer;
 }
@@ -390,17 +390,17 @@ bool SVD_LoadSVDForModel( model_t* pmodel )
 	byte* pFile = gEngfuncs.COM_LoadFile(outName, 5, &fileSize);
 
 	// Pointer to svd header
-	svdheader_t* psvdheader = NULL;
+	svdheader_t* psvdheader = nullptr;
 
 	// File was found, verify that sizes match
-	if(pFile)
+	if(pFile != nullptr)
 	{
 		svdheader_t *pfileheader = (svdheader_t *)pFile;
 		studiohdr_t* pstudiohdr = (studiohdr_t *)IEngineStudio.Mod_Extradata( pmodel );
 
 		if(pfileheader->version == SVD_VERSION
 			&& pfileheader->mdl_size == pstudiohdr->length
-			&& !strcmp(pfileheader->modelname, pmodel->name))
+			&& (strcmp(pfileheader->modelname, pmodel->name) == 0))
 		{
 			// Allocate new buffer
 			byte* pbuffer = new byte[fileSize];
@@ -414,11 +414,11 @@ bool SVD_LoadSVDForModel( model_t* pmodel )
 	}
 
 	// Failed for some reason, so create
-	if(!psvdheader)
+	if(psvdheader == nullptr)
 		psvdheader = SVD_Create(outName, pmodel);
 
 	// Total failure
-	if(!psvdheader)
+	if(psvdheader == nullptr)
 		return false;
 
 	// Add it to the array
@@ -436,16 +436,16 @@ SVD_CheckInit
 
 ====================
 */
-void SVD_CheckInit( void )
+void SVD_CheckInit( )
 {
 	if(!g_bNeedLoadSVD)
 		return;
 
-	model_t* pmodel = NULL;
+	model_t* pmodel = nullptr;
 	for(int i = 0; i < MAX_SVD_FILES; i++)
 	{
 		pmodel = IEngineStudio.GetModelByIndex(i+1);
-		if(!pmodel)
+		if(pmodel == nullptr)
 			break;
 
 		if(pmodel->type != mod_studio)
@@ -472,12 +472,12 @@ SVD_Clear
 
 ====================
 */
-void SVD_Clear( void )
+void SVD_Clear( )
 {
 	for(int i = 0; i < g_iNumSVDFiles; i++)
 	{
 		delete g_pSVDHeaders[i];
-		g_pSVDHeaders[i] = NULL;
+		g_pSVDHeaders[i] = nullptr;
 	}
 
 	g_iNumSVDFiles = NULL;
@@ -489,7 +489,7 @@ SVD_VidInit
 
 ====================
 */
-void SVD_VidInit( void )
+void SVD_VidInit( )
 {
 	SVD_Clear();
 

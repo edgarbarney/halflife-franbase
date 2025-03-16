@@ -98,7 +98,7 @@ void SVD_DrawBrushModel(cl_entity_t* pentity)
 	// set model-local view origin
 	VectorCopy(g_viewOrigin, vlocalview);
 
-	if (pentity->angles[0] || pentity->angles[1] || pentity->angles[2])
+	if ((pentity->angles[0] != 0.0f) || (pentity->angles[1] != 0.0f) || (pentity->angles[2] != 0.0f))
 	{
 		for (int i = 0; i < 3; i++)
 		{
@@ -113,7 +113,7 @@ void SVD_DrawBrushModel(cl_entity_t* pentity)
 	}
 	VectorSubtract(vlocalview, pentity->origin, vlocalview);
 
-	if (pentity->angles[0] || pentity->angles[1] || pentity->angles[2])
+	if ((pentity->angles[0] != 0.0f) || (pentity->angles[1] != 0.0f) || (pentity->angles[2] != 0.0f))
 	{
 		Vector	vtemp, vforward, vright, vup;
 		VectorCopy(vlocalview, vtemp);
@@ -123,8 +123,8 @@ void SVD_DrawBrushModel(cl_entity_t* pentity)
 		vlocalview[2] = DotProduct(vtemp, vup);
 	}
 
-	if (pentity->curstate.origin[0] || pentity->curstate.origin[1] || pentity->curstate.origin[2]
-		|| pentity->curstate.angles[0] || pentity->curstate.angles[1] || pentity->curstate.angles[2])
+	if ((pentity->curstate.origin[0] != 0.0f) || (pentity->curstate.origin[1] != 0.0f) || (pentity->curstate.origin[2] != 0.0f)
+		|| (pentity->curstate.angles[0] != 0.0f) || (pentity->curstate.angles[1] != 0.0f) || (pentity->curstate.angles[2] != 0.0f))
 	{
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
@@ -144,13 +144,13 @@ void SVD_DrawBrushModel(cl_entity_t* pentity)
 
 		float fldot = DotProduct(vlocalview, pplane->normal) - pplane->dist;
 
-		if (((psurface->flags & SURF_PLANEBACK) && (fldot < -BACKFACE_EPSILON))
-			|| (!(psurface->flags & SURF_PLANEBACK) && (fldot > BACKFACE_EPSILON)))
+		if ((((psurface->flags & SURF_PLANEBACK) != 0) && (fldot < -BACKFACE_EPSILON))
+			|| (((psurface->flags & SURF_PLANEBACK) == 0) && (fldot > BACKFACE_EPSILON)))
 		{
-			if (psurface->flags & SURF_DRAWSKY)
+			if ((psurface->flags & SURF_DRAWSKY) != 0)
 				continue;
 
-			if (psurface->flags & SURF_DRAWTURB)
+			if ((psurface->flags & SURF_DRAWTURB) != 0)
 				continue;
 
 			glpoly_t* p = psurface->polys;
@@ -166,8 +166,8 @@ void SVD_DrawBrushModel(cl_entity_t* pentity)
 		}
 	}
 
-	if (pentity->curstate.origin[0] || pentity->curstate.origin[1] || pentity->curstate.origin[2]
-		|| pentity->curstate.angles[0] || pentity->curstate.angles[1] || pentity->curstate.angles[2])
+	if ((pentity->curstate.origin[0] != 0.0f) || (pentity->curstate.origin[1] != 0.0f) || (pentity->curstate.origin[2] != 0.0f)
+		|| (pentity->curstate.angles[0] != 0.0f) || (pentity->curstate.angles[1] != 0.0f) || (pentity->curstate.angles[2] != 0.0f))
 	{
 		glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
@@ -180,7 +180,7 @@ R_DetermineSurfaceStructSize
 
 ====================
 */
-int R_DetermineSurfaceStructSize(void)
+int R_DetermineSurfaceStructSize()
 {
 	model_t* pworld = IEngineStudio.GetModelByIndex(1);
 	assert(pworld);
@@ -236,7 +236,7 @@ SVD_RecursiveDrawWorld
 */
 void SVD_RecursiveDrawWorld ( mnode_t *node )
 {
-	if (!g_msurfaceStructSize)
+	if (g_msurfaceStructSize == 0)
 		g_msurfaceStructSize = R_DetermineSurfaceStructSize();
 
 	if (node->contents == CONTENTS_SOLID)
@@ -254,16 +254,16 @@ void SVD_RecursiveDrawWorld ( mnode_t *node )
 
 	// draw stuff
 	int c = node->numsurfaces;
-	if (c)
+	if (c != 0)
 	{
 		msurface_t	*surf = g_pWorld->surfaces + node->firstsurface;
 
-		for ( ; c ; c--, surf++)
+		for ( ; c != 0 ; c--, surf++)
 		{
 			if (surf->visframe != g_frameCount)
 				continue;
 
-			if (surf->flags & (SURF_DRAWSKY|SURF_DRAWTURB|SURF_UNDERWATER))
+			if ((surf->flags & (SURF_DRAWSKY|SURF_DRAWTURB|SURF_UNDERWATER)) != 0)
 				continue;
 
 			glpoly_t *p = surf->polys;
@@ -305,7 +305,7 @@ SVD_DrawNormalTriangles
 
 ====================
 */
-void SVD_DrawNormalTriangles ( void )
+void SVD_DrawNormalTriangles ( )
 {
 
 	if(IEngineStudio.IsHardware() != 1)
@@ -356,11 +356,11 @@ void SVD_DrawNormalTriangles ( void )
 	for (int i = 1; i < 512; i++)
 	{
 		cl_entity_t* pentity = gEngfuncs.GetEntityByIndex(i);
-		if (!pentity)
+		if (pentity == nullptr)
 			break;
 
 		// brushmodels
-		if(!(!pentity->model || pentity->model->type != mod_brush) && !(pentity->curstate.messagenum != plocalplayer->curstate.messagenum) && (!(pentity->curstate.rendermode != kRenderNormal) || (pentity->curstate.rendermode == kRenderTransTexture && pentity->curstate.renderamt == 30)))
+		if(!((pentity->model == nullptr) || pentity->model->type != mod_brush) && !(pentity->curstate.messagenum != plocalplayer->curstate.messagenum) && (!(pentity->curstate.rendermode != kRenderNormal) || (pentity->curstate.rendermode == kRenderTransTexture && pentity->curstate.renderamt == 30)))
 			SVD_DrawBrushModel(pentity);
 
 		/*

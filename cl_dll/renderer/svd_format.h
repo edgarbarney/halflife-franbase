@@ -68,7 +68,7 @@ void SVD_BuildFaces ( svdsubmodel_t* psubmodel, mstudiomodel_t* pstudiosubmodel,
 void SVD_BuildEdges ( svdsubmodel_t* psubmodel );
 void SVD_AddEdge ( svdedge_t* pedgebuffer, int* pnumedges, int face, int v0, int v1 );
 
-void SVD_VidInit( void );
-void SVD_Clear( void );
-void SVD_CheckInit( void );
+void SVD_VidInit( );
+void SVD_Clear( );
+void SVD_CheckInit( );
 #endif

@@ -373,7 +373,7 @@ void V_CalcGunAngle(struct ref_params_s* pparams)
 	cl_entity_t* viewent;
 
 	viewent = gEngfuncs.GetViewModel();
-	if (!viewent)
+	if (viewent == nullptr)
 		return;
 
 	viewent->angles[YAW] = pparams->viewangles[YAW] + pparams->crosshairangle[YAW];
@@ -413,7 +413,7 @@ void V_CalcViewRoll(struct ref_params_s* pparams)
 	cl_entity_t* viewentity;
 
 	viewentity = gEngfuncs.GetEntityByIndex(pparams->viewentity);
-	if (!viewentity)
+	if (viewentity == nullptr)
 		return;
 
 	side = V_CalcRoll(viewentity->angles, pparams->simvel, cl_rollangle->value, cl_rollspeed->value);
@@ -432,7 +432,7 @@ void V_CalcViewRoll(struct ref_params_s* pparams)
 int GetAnimBoneFromFile(char* name)
 {
 	char *pfile, *pfile2;
-	pfile = pfile2 = (char*)gEngfuncs.COM_LoadFile("models/animbonelist.txt", 5, NULL);
+	pfile = pfile2 = (char*)gEngfuncs.COM_LoadFile("models/animbonelist.txt", 5, nullptr);
 	char token[500];
 	int index = -1;
 
@@ -441,7 +441,7 @@ int GetAnimBoneFromFile(char* name)
 		return -1;
 	}
 
-	while (pfile = gEngfuncs.COM_ParseFile(pfile, token))
+	while (pfile = gEngfuncs.COM_ParseFile(pfile, token) != nullptr)
 	{
 		if (!stricmp(token, name))
 		{
@@ -470,7 +470,7 @@ void V_CamAnims(struct ref_params_s* pparams, cl_entity_s* view)
 	if (view->model == nullptr || view->model->name == nullptr)
 		return;
 
-	if (g_viewinfo.phdr == NULL)
+	if (g_viewinfo.phdr == nullptr)
 		return;
 
 	mstudiobone_t* pbone = nullptr;
@@ -556,7 +556,7 @@ void V_CalcIntermissionRefdef(struct ref_params_s* pparams)
 	VectorCopy(pparams->simorg, pparams->vieworg);
 	VectorCopy(pparams->cl_viewangles, pparams->viewangles);
 
-	view->model = NULL;
+	view->model = nullptr;
 
 	// allways idle in intermission
 	old = v_idlescale;
@@ -629,11 +629,11 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 		pparams->vieworg[2] = v_origin.z;
 		pparams->nextView = 0;
 
-		if (gHUD.viewFlags & 1) // custom view active (trigger_viewset) //AJH (copied function from below)
+		if ((gHUD.viewFlags & 1) != 0) // custom view active (trigger_viewset) //AJH (copied function from below)
 		{
 			cl_entity_t* viewentity;
 			viewentity = gEngfuncs.GetEntityByIndex(gHUD.viewEntityIndex);
-			if (viewentity)
+			if (viewentity != nullptr)
 			{
 				pparams->vieworg[0] = viewentity->origin[0];
 				pparams->vieworg[1] = viewentity->origin[1];
@@ -644,11 +644,11 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 				pparams->viewangles[2] = viewentity->angles[2];
 				pparams->crosshairangle[PITCH] = 100; // test // ugly method to remove crosshair from screen
 
-				if (gHUD.viewFlags & 8) //AJH Do we draw the player in the camera?
+				if ((gHUD.viewFlags & 8) != 0) //AJH Do we draw the player in the camera?
 				{
 					gHUD.m_iCameraMode = 2;
 				}
-				if (gHUD.viewFlags & 4) //AJH Invert the x view angle again if we are using an item camera?
+				if ((gHUD.viewFlags & 4) != 0) //AJH Invert the x view angle again if we are using an item camera?
 				{
 					pparams->viewangles[0] = -viewentity->angles[0];
 				}
@@ -682,14 +682,14 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 	view = gEngfuncs.GetViewModel();
 
 	// trigger_viewset - dont show weapon model when custom view is enabled
-	if (gHUD.viewFlags & 1)
-		view->model = NULL;
+	if ((gHUD.viewFlags & 1) != 0)
+		view->model = nullptr;
 
 	//LRC - don't show weapon models when we're drawing the sky.
 	if (gHUD.m_iSkyMode == SKY_ON)
 	{
 		savedviewmodel = view->model;
-		view->model = NULL;
+		view->model = nullptr;
 	}
 
 	// transform the view offset by the model's matrix to get the offset from
@@ -731,7 +731,7 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 			if (waterEntity >= 0 && waterEntity < pparams->max_entities)
 			{
 				pwater = gEngfuncs.GetEntityByIndex(waterEntity);
-				if (pwater && (pwater->model != NULL))
+				if ((pwater != nullptr) && (pwater->model != nullptr))
 				{
 					waterDist += (pwater->curstate.scale * 16); // Add in wave height
 				}
@@ -750,7 +750,7 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 			point[2] -= waterDist;
 			for (i = 0; i < waterDist; i++)
 			{
-				contents = gEngfuncs.PM_PointContents(point, NULL);
+				contents = gEngfuncs.PM_PointContents(point, nullptr);
 				if (contents > CONTENTS_WATER)
 					break;
 				point[2] += 1;
@@ -764,7 +764,7 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 
 			for (i = 0; i < waterDist; i++)
 			{
-				contents = gEngfuncs.PM_PointContents(point, NULL);
+				contents = gEngfuncs.PM_PointContents(point, nullptr);
 				if (contents <= CONTENTS_WATER)
 					break;
 				point[2] -= 1;
@@ -899,7 +899,7 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 	}
 
 	// Smooth out whole view in multiplayer when on trains, lifts
-	if (cl_vsmoothing && 0 != cl_vsmoothing->value &&
+	if ((cl_vsmoothing != nullptr) && 0 != cl_vsmoothing->value &&
 		(0 != pparams->smoothing && (pparams->maxclients > 1)))
 	{
 		int foundidx;
@@ -960,7 +960,7 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 	{
 		cl_entity_t* viewentity;
 		viewentity = gEngfuncs.GetEntityByIndex(pparams->viewentity);
-		if (viewentity)
+		if (viewentity != nullptr)
 		{
 			VectorCopy(viewentity->origin, pparams->vieworg);
 			VectorCopy(viewentity->angles, pparams->viewangles);
@@ -983,11 +983,11 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 
 	v_origin = pparams->vieworg;
 
-	if (gHUD.viewFlags & 1 && gHUD.m_iSkyMode == SKY_OFF) // custom view active (trigger_viewset) //AJH (added skymode check and copied function to above)
+	if (((gHUD.viewFlags & 1) != 0) && gHUD.m_iSkyMode == SKY_OFF) // custom view active (trigger_viewset) //AJH (added skymode check and copied function to above)
 	{
 		cl_entity_t* viewentity;
 		viewentity = gEngfuncs.GetEntityByIndex(gHUD.viewEntityIndex);
-		if (viewentity)
+		if (viewentity != nullptr)
 		{
 			pparams->vieworg[0] = viewentity->origin[0];
 			pparams->vieworg[1] = viewentity->origin[1];
@@ -998,11 +998,11 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 			pparams->viewangles[2] = viewentity->angles[2];
 			pparams->crosshairangle[PITCH] = 100; // test // ugly method to remove crosshair from screen
 
-			if (gHUD.viewFlags & 8) //AJH Do we draw the player in the camera?
+			if ((gHUD.viewFlags & 8) != 0) //AJH Do we draw the player in the camera?
 			{
 				gHUD.m_iCameraMode = 2;
 			}
-			if (gHUD.viewFlags & 4) //AJH Invert the x view angle again if we are using an item camera?
+			if ((gHUD.viewFlags & 4) != 0) //AJH Invert the x view angle again if we are using an item camera?
 			{
 				pparams->viewangles[0] = -viewentity->angles[0];
 			}
@@ -1028,11 +1028,11 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 			VectorCopy(gHUD.m_vecSkyPos + v_origin / gHUD.m_iSkyScale, pparams->vieworg);
 		}
 
-		if (gHUD.viewFlags & 1) //AJH (to allow skys and cameras to coexist)
+		if ((gHUD.viewFlags & 1) != 0) //AJH (to allow skys and cameras to coexist)
 		{
 			cl_entity_t* viewentity;
 			viewentity = gEngfuncs.GetEntityByIndex(gHUD.viewEntityIndex);
-			if (viewentity)
+			if (viewentity != nullptr)
 			{
 				pparams->viewangles[0] = viewentity->angles[0];
 				pparams->viewangles[1] = viewentity->angles[1];
@@ -1113,10 +1113,10 @@ void V_GetChaseOrigin(float* angles, float* origin, float distance, float* retur
 
 	int ignoreent = -1; // first, ignore no entity
 
-	cl_entity_t* ent = NULL;
+	cl_entity_t* ent = nullptr;
 
 	// Trace back from the target using the player's view angles
-	AngleVectors(angles, forward, NULL, NULL);
+	AngleVectors(angles, forward, nullptr, nullptr);
 
 	VectorScale(forward, -1, forward);
 
@@ -1135,7 +1135,7 @@ void V_GetChaseOrigin(float* angles, float* origin, float distance, float* retur
 
 		ent = gEngfuncs.GetEntityByIndex(PM_GetPhysEntInfo(trace->ent));
 
-		if (ent == NULL)
+		if (ent == nullptr)
 			break;
 
 		// hit non-player solid BSP , stop here
@@ -1401,7 +1401,7 @@ void V_GetDirectedChasePosition(cl_entity_t* ent1, cl_entity_t* ent2, float* ang
 		// we have no second target or player just died
 		V_GetSingleTargetCam(ent1, angle, origin);
 	}
-	else if (ent2)
+	else if (ent2 != nullptr)
 	{
 		// keep both target in view
 		V_GetDoubleTargetsCam(ent1, ent2, angle, origin);
@@ -1444,7 +1444,7 @@ void V_GetDirectedChasePosition(cl_entity_t* ent1, cl_entity_t* ent2, float* ang
 
 void V_GetChasePos(cl_entity_t* ent, float* cl_angles, float* origin, float* angles)
 {
-	if (!ent)
+	if (ent == nullptr)
 	{
 		// just copy a save in-map position
 		VectorCopy(vJumpAngles, angles);
@@ -1463,7 +1463,7 @@ void V_GetChasePos(cl_entity_t* ent, float* cl_angles, float* origin, float* ang
 	}
 	else
 	{
-		if (cl_angles == NULL) // no mouse angles given, use entity angles ( locked mode )
+		if (cl_angles == nullptr) // no mouse angles given, use entity angles ( locked mode )
 		{
 			VectorCopy(ent->angles, angles);
 			angles[0] *= -1;
@@ -1501,7 +1501,7 @@ void V_GetInEyePos(int target, float* origin, float* angles)
 
 	cl_entity_t* ent = gEngfuncs.GetEntityByIndex(target);
 
-	if (!ent)
+	if (ent == nullptr)
 		return;
 
 	VectorCopy(ent->origin, origin);
@@ -1539,7 +1539,7 @@ void V_GetMapFreePosition(float* cl_angles, float* origin, float* angles)
 	zScaledTarget[2] = gHUD.m_Spectator.m_mapOrigin[2] * ((90.0f - angles[0]) / 90.0f);
 
 
-	AngleVectors(angles, forward, NULL, NULL);
+	AngleVectors(angles, forward, nullptr, nullptr);
 
 	VectorNormalize(forward);
 
@@ -1582,7 +1582,7 @@ void V_GetMapChasePosition(int target, float* cl_angles, float* origin, float* a
 	origin[2] *= ((90.0f - angles[0]) / 90.0f);
 	angles[2] = 0.0f; // don't roll angle (if chased player is dead)
 
-	AngleVectors(angles, forward, NULL, NULL);
+	AngleVectors(angles, forward, nullptr, nullptr);
 
 	VectorNormalize(forward);
 
@@ -1609,16 +1609,16 @@ int V_FindViewModelByWeaponModel(int weaponindex)
 		{"models/p_tripmine.mdl", "models/v_tripmine.mdl"},
 		{"models/p_satchel_radio.mdl", "models/v_satchel_radio.mdl"},
 		{"models/p_satchel.mdl", "models/v_satchel.mdl"},
-		{NULL, NULL}};
+		{nullptr, nullptr}};
 
 	struct model_s* weaponModel = IEngineStudio.GetModelByIndex(weaponindex);
 
-	if (weaponModel)
+	if (weaponModel != nullptr)
 	{
 		int len = strlen(weaponModel->name);
 		int i = 0;
 
-		while (modelmap[i] != NULL)
+		while (modelmap[i] != nullptr)
 		{
 			if (!strnicmp(weaponModel->name, modelmap[i][0], len))
 			{
@@ -1659,7 +1659,7 @@ void V_CalcSpectatorRefdef(struct ref_params_s* pparams)
 	VectorCopy(pparams->viewangles, v_angles);
 	VectorCopy(pparams->vieworg, v_origin);
 
-	if ((g_iUser1 == OBS_IN_EYE || gHUD.m_Spectator.m_pip->value == INSET_IN_EYE) && ent)
+	if ((g_iUser1 == OBS_IN_EYE || gHUD.m_Spectator.m_pip->value == INSET_IN_EYE) && (ent != nullptr))
 	{
 		// calculate player velocity
 		float timeDiff = ent->curstate.msg_time - ent->prevstate.msg_time;
@@ -1699,7 +1699,7 @@ void V_CalcSpectatorRefdef(struct ref_params_s* pparams)
 				else
 				{
 					// model not found
-					gunModel->model = NULL; // disable weapon model
+					gunModel->model = nullptr; // disable weapon model
 					lastWeaponModelIndex = lastViewModelIndex = 0;
 				}
 			}
@@ -1714,7 +1714,7 @@ void V_CalcSpectatorRefdef(struct ref_params_s* pparams)
 			}
 			else
 			{
-				gunModel->model = NULL; // disable weaopn model
+				gunModel->model = nullptr; // disable weaopn model
 			}
 		}
 		else
@@ -1734,7 +1734,7 @@ void V_CalcSpectatorRefdef(struct ref_params_s* pparams)
 		switch (g_iUser1)
 		{
 		case OBS_CHASE_LOCKED:
-			V_GetChasePos(gEngfuncs.GetEntityByIndex(g_iUser2), NULL, v_origin, v_angles);
+			V_GetChasePos(gEngfuncs.GetEntityByIndex(g_iUser2), nullptr, v_origin, v_angles);
 			break;
 
 		case OBS_CHASE_FREE:
@@ -1895,7 +1895,7 @@ void DLLEXPORT V_CalcRefdef(struct ref_params_s* pparams)
 	{
 		V_CalcIntermissionRefdef(pparams);
 	}
-	else if (gHUD.m_iCameraMode & 1) // XWider
+	else if ((gHUD.m_iCameraMode & 1) != 0) // XWider
 	{
 		V_CalcThirdPersonRefdef(pparams);
 	}
@@ -1960,22 +1960,22 @@ void V_PunchAxis(int axis, float punch)
 	ev_punchangle[axis] = punch;
 }
 
-void CMD_ThirdPerson(void) //G-Cont
+void CMD_ThirdPerson() //G-Cont
 {
 	gHUD.m_iCameraMode = 1;
 }
 
-void CMD_FirstPerson(void) //G-Cont
+void CMD_FirstPerson() //G-Cont
 {
 	gHUD.m_iCameraMode = 0;
 }
 
-void CMD_DrawPlayer(void) //AJH Draw player in firstperson mode
+void CMD_DrawPlayer() //AJH Draw player in firstperson mode
 {
 	gHUD.m_iCameraMode = 2;
 }
 
-void CMD_HidePlayer(void) //AJH Draw player in firstperson mode
+void CMD_HidePlayer() //AJH Draw player in firstperson mode
 {
 	gHUD.m_iCameraMode &= ~2;
 }

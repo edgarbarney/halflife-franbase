@@ -51,7 +51,7 @@ Shutdown
 
 ====================
 */
-void CPropManager::Shutdown(void)
+void CPropManager::Shutdown()
 {
 	Reset();
 }
@@ -62,39 +62,39 @@ Reset
 
 ====================
 */
-void CPropManager::Reset(void)
+void CPropManager::Reset()
 {
-	if (m_iNumEntities)
+	if (m_iNumEntities != 0)
 	{
 		memset(m_pEntities, 0, sizeof(m_pEntities));
 		m_iNumEntities = 0;
 	}
 
-	if (m_iNumModelLights)
+	if (m_iNumModelLights != 0)
 	{
 		memset(m_pModelLights, 0, sizeof(m_pModelLights));
 		m_iNumModelLights = 0;
 	}
 
-	if (m_iNumDecals)
+	if (m_iNumDecals != 0)
 	{
 		memset(m_pDecals, 0, sizeof(m_pDecals));
 		m_iNumDecals = 0;
 	}
 
-	if (m_iNumExtraData)
+	if (m_iNumExtraData != 0)
 	{
 		memset(m_pExtraData, 0, sizeof(m_pExtraData));
 		memset(m_pExtraInfo, 0, sizeof(m_pExtraInfo));
-		m_pCurrentExtraData = NULL;
+		m_pCurrentExtraData = nullptr;
 		m_iNumExtraData = 0;
 	}
 
-	if (m_iNumHeaders)
+	if (m_iNumHeaders != 0)
 	{
 		for (int i = 0; i < m_iNumHeaders; i++)
 		{
-			if (m_pHeaders[i].pHdr)
+			if (m_pHeaders[i].pHdr != nullptr)
 			{
 				for (int j = 0; j < m_pHeaders[i].pVBOHeader.numsubmodels; j++)
 					delete[] m_pHeaders[i].pVBOHeader.submodels[j].meshes;
@@ -102,16 +102,16 @@ void CPropManager::Reset(void)
 				delete[] m_pHeaders[i].pVBOHeader.submodels;
 			}
 
-			if (m_pHeaders[i].pVBOHeader.pBufferData)
+			if (m_pHeaders[i].pVBOHeader.pBufferData != nullptr)
 			{
 				delete[] m_pHeaders[i].pVBOHeader.pBufferData;
-				m_pHeaders[i].pVBOHeader.pBufferData = NULL;
+				m_pHeaders[i].pVBOHeader.pBufferData = nullptr;
 			}
 
-			if (m_pHeaders[i].pVBOHeader.indexes)
+			if (m_pHeaders[i].pVBOHeader.indexes != nullptr)
 			{
 				delete[] m_pHeaders[i].pVBOHeader.indexes;
-				m_pHeaders[i].pVBOHeader.indexes = NULL;
+				m_pHeaders[i].pVBOHeader.indexes = nullptr;
 			}
 		}
 
@@ -121,26 +121,26 @@ void CPropManager::Reset(void)
 
 	ClearEntityData();
 
-	if (m_pEntData)
+	if (m_pEntData != nullptr)
 	{
-		m_pEntData = NULL;
+		m_pEntData = nullptr;
 		m_iEntDataSize = NULL;
 	}
 
-	if (m_pVertexData)
+	if (m_pVertexData != nullptr)
 	{
 		delete[] m_pVertexData;
-		m_pVertexData = NULL;
+		m_pVertexData = nullptr;
 		m_iNumTotalVerts = NULL;
 	}
 
-	if (m_pIndexBuffer)
+	if (m_pIndexBuffer != nullptr)
 	{
 		delete[] m_pIndexBuffer;
-		m_pIndexBuffer = NULL;
+		m_pIndexBuffer = nullptr;
 	}
 
-	if (m_iNumCables)
+	if (m_iNumCables != 0)
 	{
 		memset(m_pCables, 0, sizeof(m_pCables));
 		m_iNumCables = NULL;
@@ -153,7 +153,7 @@ Init
 
 ====================
 */
-void CPropManager::Init(void)
+void CPropManager::Init()
 {
 	m_pCvarDrawClientEntities = CVAR_CREATE("te_client_entities", "1", 0);
 }
@@ -164,7 +164,7 @@ VidInit
 
 ====================
 */
-void CPropManager::VidInit(void)
+void CPropManager::VidInit()
 {
 	Reset();
 }
@@ -175,15 +175,15 @@ ClearEntityData
 
 ====================
 */
-void CPropManager::ClearEntityData(void)
+void CPropManager::ClearEntityData()
 {
-	if (!m_iNumBSPEntities)
+	if (m_iNumBSPEntities == 0)
 		return;
 
 	for (int i = 0; i < m_iNumBSPEntities; i++)
 	{
 		epair_t* pPair = m_pBSPEntities[i].epairs;
-		while (pPair)
+		while (pPair != nullptr)
 		{
 			epair_t* pFree = pPair;
 			pPair = pFree->next;
@@ -203,17 +203,17 @@ LoadBSPFile
 
 ====================
 */
-void CPropManager::GenerateEntityList(void)
+void CPropManager::GenerateEntityList()
 {
 	// reset all entity data
 	Reset();
 
 	// get pointer to world model
 	model_t* pWorld = IEngineStudio.GetModelByIndex(1);
-	if (!pWorld)
+	if (pWorld == nullptr)
 	{
 		gEngfuncs.pfnClientCmd("escape\n");
-		MessageBox(NULL, "FATAL ERROR: Failed to get world!\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
+		MessageBox(nullptr, "FATAL ERROR: Failed to get world!\n\nPress Ok to quit the game.\n", "ERROR", MB_OK);
 		exit(-1);
 	}
 
@@ -234,15 +234,15 @@ GetHeader
 */
 modeldata_t* CPropManager::GetHeader(const char* name)
 {
-	if (m_iNumHeaders)
+	if (m_iNumHeaders != 0)
 	{
 		for (int i = 0; i < m_iNumHeaders; i++)
 		{
-			if (!strcmp(m_pHeaders[i].name, name))
+			if (strcmp(m_pHeaders[i].name, name) == 0)
 				return &m_pHeaders[i];
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -253,12 +253,12 @@ ValueForKey
 */
 char* CPropManager::ValueForKey(entity_t* ent, const char* key)
 {
-	for (epair_t* pEPair = ent->epairs; pEPair; pEPair = pEPair->next)
+	for (epair_t* pEPair = ent->epairs; pEPair != nullptr; pEPair = pEPair->next)
 	{
-		if (!strcmp(pEPair->key, key))
+		if (strcmp(pEPair->key, key) == 0)
 			return pEPair->value;
 	}
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -267,16 +267,16 @@ ParseEntities
 
 ====================
 */
-void CPropManager::ParseEntities(void)
+void CPropManager::ParseEntities()
 {
 	// Entity parser done by me, parses nicely, no errors detected ever.
 	char* pCurText = m_pEntData;
-	while (pCurText && pCurText - m_pEntData < m_iEntDataSize)
+	while ((pCurText != nullptr) && pCurText - m_pEntData < m_iEntDataSize)
 	{
 		if (m_iNumBSPEntities == MAXRENDERENTS)
 			break;
 
-		while (1)
+		while (true)
 		{
 			if (pCurText[0] == '{')
 				break;
@@ -293,10 +293,10 @@ void CPropManager::ParseEntities(void)
 		entity_t* pEntity = &m_pBSPEntities[m_iNumBSPEntities];
 		m_iNumBSPEntities++;
 
-		while (1)
+		while (true)
 		{
 			// skip to next token
-			while (1)
+			while (true)
 			{
 				if (pCurText[0] == '}')
 					break;
@@ -317,14 +317,14 @@ void CPropManager::ParseEntities(void)
 			epair_t* pEPair = new epair_t;
 			memset(pEPair, 0, sizeof(epair_t));
 
-			if (pEntity->epairs)
+			if (pEntity->epairs != nullptr)
 				pEPair->next = pEntity->epairs;
 
 			pEntity->epairs = pEPair;
 
 			int iLength = 0;
 			char* pTemp = pCurText;
-			while (1)
+			while (true)
 			{
 				if (pTemp[0] == '"')
 					break;
@@ -347,7 +347,7 @@ void CPropManager::ParseEntities(void)
 			pCurText += iLength + 1;
 
 			// skip to next token
-			while (1)
+			while (true)
 			{
 				if (pCurText[0] == '}')
 				{
@@ -367,7 +367,7 @@ void CPropManager::ParseEntities(void)
 
 			iLength = 0;
 			pTemp = pCurText;
-			while (1)
+			while (true)
 			{
 				if (pCurText[0] == '}')
 				{
@@ -394,7 +394,7 @@ void CPropManager::ParseEntities(void)
 	// Get sky name for bsp renderer
 	char* szSky = ValueForKey(&m_pBSPEntities[0], "skyname");
 
-	if (szSky)
+	if (szSky != nullptr)
 		strcpy(gBSPRenderer.m_szSkyName, szSky);
 	else
 		sprintf(gBSPRenderer.m_szSkyName, "desert");
@@ -402,7 +402,7 @@ void CPropManager::ParseEntities(void)
 	// See if special fog is set
 	char* szSpecial = ValueForKey(&m_pBSPEntities[0], "specialfog");
 
-	if (szSpecial)
+	if (szSpecial != nullptr)
 		gBSPRenderer.m_bSpecialFog = true;
 }
 
@@ -412,26 +412,26 @@ LoadEntVars
 
 ====================
 */
-void CPropManager::LoadEntVars(void)
+void CPropManager::LoadEntVars()
 {
 	for (int i = 0; i < m_iNumBSPEntities; i++)
 	{
 		char* pValue = ValueForKey(&m_pBSPEntities[i], "classname");
 
-		if (!pValue)
+		if (pValue == nullptr)
 			continue;
 
-		if (!strcmp(pValue, "env_elight"))
+		if (strcmp(pValue, "env_elight") == 0)
 		{
 			pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
-			if (pValue)
+			if (pValue != nullptr)
 				continue;
 
 			memset(&m_pModelLights[m_iNumModelLights], 0, sizeof(cl_entity_t));
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "origin");
-			if (pValue)
+			if (pValue != nullptr)
 			{
 				sscanf(pValue, "%f %f %f", &m_pModelLights[m_iNumModelLights].origin[0],
 					&m_pModelLights[m_iNumModelLights].origin[1],
@@ -441,13 +441,13 @@ void CPropManager::LoadEntVars(void)
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "renderamt");
-			if (pValue)
+			if (pValue != nullptr)
 			{
 				sscanf(pValue, "%d", &m_pModelLights[m_iNumModelLights].curstate.renderamt);
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "rendercolor");
-			if (pValue)
+			if (pValue != nullptr)
 			{
 				int iColR, iColG, iColB;
 				sscanf(pValue, "%d %d %d", &iColR, &iColG, &iColB);
@@ -459,30 +459,30 @@ void CPropManager::LoadEntVars(void)
 			model_t* pWorld = IEngineStudio.GetModelByIndex(1);
 			mleaf_t* pLeaf = Mod_PointInLeaf(m_pModelLights[m_iNumModelLights].origin, pWorld);
 
-			if (pLeaf)
+			if (pLeaf != nullptr)
 			{
 				// In-void entities can go eat a dick
 				m_pModelLights[m_iNumModelLights].visframe = pLeaf - pWorld->leafs - 1;
 				m_iNumModelLights++;
 			}
 		}
-		if (!strcmp(pValue, "env_cable"))
+		if (strcmp(pValue, "env_cable") == 0)
 		{
 			if (SetupCable(&m_pCables[m_iNumCables], &m_pBSPEntities[i]))
 				m_iNumCables++;
 		}
-		else if (!strcmp(pValue, "env_decal"))
+		else if (strcmp(pValue, "env_decal") == 0)
 		{
 			pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
-			if (pValue)
+			if (pValue != nullptr)
 				continue;
 
 			// Always TRUE
 			m_pDecals[m_iNumDecals].persistent = TRUE;
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "origin");
-			if (pValue)
+			if (pValue != nullptr)
 			{
 				sscanf(pValue, "%f %f %f", &m_pDecals[m_iNumDecals].pos[0],
 					&m_pDecals[m_iNumDecals].pos[1],
@@ -491,28 +491,28 @@ void CPropManager::LoadEntVars(void)
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "message");
 
-			if (!pValue)
+			if (pValue == nullptr)
 				continue;
 
-			if (!strlen(pValue))
+			if (strlen(pValue) == 0u)
 				continue;
 
 			strcpy(m_pDecals[m_iNumDecals].name, pValue);
 			m_iNumDecals++;
 		}
-		else if (!strcmp(pValue, "item_generic"))
+		else if (strcmp(pValue, "item_generic") == 0)
 		{
 			pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
-			if (pValue)
+			if (pValue != nullptr)
 				continue;
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "model");
 
-			if (!pValue)
+			if (pValue == nullptr)
 				continue;
 
-			if (!stristr(pValue, ".mdl"))
+			if (stristr(pValue, ".mdl") == nullptr)
 				continue;
 
 			m_pCurrentExtraData = &m_pExtraData[m_iNumExtraData];
@@ -533,7 +533,7 @@ void CPropManager::LoadEntVars(void)
 			m_iNumExtraData++;
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "origin");
-			if (pValue)
+			if (pValue != nullptr)
 			{
 				sscanf(pValue, "%f %f %f", &m_pEntities[m_iNumEntities].origin[0],
 					&m_pEntities[m_iNumEntities].origin[1],
@@ -543,7 +543,7 @@ void CPropManager::LoadEntVars(void)
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "angles");
-			if (pValue)
+			if (pValue != nullptr)
 			{
 				// set the yaw angle...
 				sscanf(pValue, "%f %f %f", &m_pEntities[m_iNumEntities].angles[0],
@@ -553,45 +553,45 @@ void CPropManager::LoadEntVars(void)
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "renderamt");
-			if (pValue)
+			if (pValue != nullptr)
 			{
 				sscanf(pValue, "%d", &m_pEntities[m_iNumEntities].curstate.renderamt);
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "sequence");
 
-			if (pValue)
+			if (pValue != nullptr)
 				sscanf(pValue, "%d", &m_pEntities[m_iNumEntities].curstate.sequence);
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "body");
 
-			if (pValue)
+			if (pValue != nullptr)
 				sscanf(pValue, "%d", &m_pEntities[m_iNumEntities].curstate.body);
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "skin");
 
-			if (pValue)
+			if (pValue != nullptr)
 				sscanf(pValue, "%hd", &m_pEntities[m_iNumEntities].curstate.skin);
 
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "scale");
 
-			if (pValue)
+			if (pValue != nullptr)
 				sscanf(pValue, "%f", &m_pEntities[m_iNumEntities].curstate.scale);
 
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "renderfx");
 
-			if (pValue)
+			if (pValue != nullptr)
 				sscanf(pValue, "%d", &m_pEntities[m_iNumEntities].curstate.renderfx);
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "DisableShadows");
 
-			if (pValue)
+			if (pValue != nullptr)
 				m_pEntities[m_iNumEntities].curstate.iuser2 = FL_NOSHADOW;
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "rendercolor");
-			if (pValue)
+			if (pValue != nullptr)
 			{
 				int iColR, iColG, iColB;
 				sscanf(pValue, "%d %d %d", &iColR, &iColG, &iColB);
@@ -601,7 +601,7 @@ void CPropManager::LoadEntVars(void)
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "lightorigin");
-			if (pValue && strlen(pValue))
+			if ((pValue != nullptr) && (strlen(pValue) != 0u))
 			{
 				char szLightTarget[32];
 				strcpy(szLightTarget, pValue);
@@ -611,17 +611,17 @@ void CPropManager::LoadEntVars(void)
 				{
 					pValue = ValueForKey(&m_pBSPEntities[j], "classname");
 
-					if (strcmp(pValue, "info_light_origin"))
+					if (strcmp(pValue, "info_light_origin") != 0)
 						continue;
 
 					pValue = ValueForKey(&m_pBSPEntities[j], "targetname");
 
-					if (pValue)
+					if (pValue != nullptr)
 					{
-						if (!strcmp(pValue, szLightTarget))
+						if (strcmp(pValue, szLightTarget) == 0)
 						{
 							pValue = ValueForKey(&m_pBSPEntities[j], "origin");
-							if (pValue)
+							if (pValue != nullptr)
 							{
 								sscanf(pValue, "%f %f %f", &m_pCurrentExtraData->lightorigin[0],
 									&m_pCurrentExtraData->lightorigin[1],
@@ -660,9 +660,9 @@ SetupVBO
 
 ====================
 */
-void CPropManager::SetupVBO(void)
+void CPropManager::SetupVBO()
 {
-	if (!m_iNumHeaders)
+	if (m_iNumHeaders == 0)
 		return;
 
 	m_iNumTotalVerts = NULL;
@@ -716,7 +716,7 @@ RenderModels
 
 ====================
 */
-void CPropManager::RenderProps(void)
+void CPropManager::RenderProps()
 {
 	if (m_pCvarDrawClientEntities->value < 1)
 		return;
@@ -745,12 +745,12 @@ void CPropManager::RenderProps(void)
 
 		entextradata_t* pExtraData = ((entextrainfo_t*)m_pEntities[i].topnode)->pExtraData;
 
-		if (!pExtraData)
+		if (pExtraData == nullptr)
 			return;
 
 		int j = 0;
 		for (; j < pExtraData->num_leafs; j++)
-			if (gBSPRenderer.m_pPVS[pExtraData->leafnums[j] >> 3] & (1 << (pExtraData->leafnums[j] & 7)))
+			if ((gBSPRenderer.m_pPVS[pExtraData->leafnums[j] >> 3] & (1 << (pExtraData->leafnums[j] & 7))) != 0)
 				break;
 
 		if (j == pExtraData->num_leafs)
@@ -787,7 +787,7 @@ bool CPropManager::PostLoadModel(const char* modelname, studiohdr_t* hdr, cl_ent
 
 		model_t* pModel = g_StudioRenderer.Mod_LoadModel(texturename);
 
-		if (!pModel)
+		if (pModel == nullptr)
 			return false;
 
 		m_pHeaders[m_iNumHeaders].pTexHdr = (studiohdr_t*)pModel->cache.data;
@@ -807,7 +807,7 @@ LoadMDL
 */
 bool CPropManager::LoadMDL(const char* name, cl_entity_t* pEntity, entity_t* pBSPEntity)
 {
-	if (m_pCurrentExtraData->pModelData = GetHeader(name))
+	if (m_pCurrentExtraData->pModelData = GetHeader(name) != nullptr)
 		return true;
 
 	if (m_iNumHeaders == MAXRENDERENTS)
@@ -818,7 +818,7 @@ bool CPropManager::LoadMDL(const char* name, cl_entity_t* pEntity, entity_t* pBS
 
 	model_t* pModel = g_StudioRenderer.Mod_LoadModel(name);
 
-	if (!pModel)
+	if (pModel == nullptr)
 		return false;
 
 	m_pHeaders[m_iNumHeaders].pHdr = (studiohdr_t*)pModel->cache.data;
@@ -878,7 +878,7 @@ bool CPropManager::SetupCable(cabledata_t* cable, entity_t* entity)
 	// Get our origin
 	char* pValue = ValueForKey(entity, "origin");
 
-	if (!pValue)
+	if (pValue == nullptr)
 		return false;
 
 	sscanf(pValue, "%f %f %f", &vposition1[0], &vposition1[1], &vposition1[2]);
@@ -886,7 +886,7 @@ bool CPropManager::SetupCable(cabledata_t* cable, entity_t* entity)
 	// Find our target entity
 	pValue = ValueForKey(entity, "target");
 
-	if (!pValue)
+	if (pValue == nullptr)
 		return false;
 
 	strcpy(sz, pValue);
@@ -895,14 +895,14 @@ bool CPropManager::SetupCable(cabledata_t* cable, entity_t* entity)
 	{
 		pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
-		if (!pValue)
+		if (pValue == nullptr)
 			continue;
 
-		if (!strcmp(pValue, sz))
+		if (strcmp(pValue, sz) == 0)
 		{
 			pValue = ValueForKey(&m_pBSPEntities[i], "origin");
 
-			if (!pValue)
+			if (pValue == nullptr)
 				return false;
 
 			// Copy origin over
@@ -913,7 +913,7 @@ bool CPropManager::SetupCable(cabledata_t* cable, entity_t* entity)
 	// Get our falling depth
 	pValue = ValueForKey(entity, "falldepth");
 
-	if (!pValue)
+	if (pValue == nullptr)
 		return false;
 
 	// Calculate dropping point
@@ -924,7 +924,7 @@ bool CPropManager::SetupCable(cabledata_t* cable, entity_t* entity)
 	// Get sprite width
 	pValue = ValueForKey(entity, "spritewidth");
 
-	if (!pValue)
+	if (pValue == nullptr)
 		return false;
 
 	cable->iwidth = atoi(pValue);
@@ -932,7 +932,7 @@ bool CPropManager::SetupCable(cabledata_t* cable, entity_t* entity)
 	// Get segment count
 	pValue = ValueForKey(entity, "segments");
 
-	if (!pValue)
+	if (pValue == nullptr)
 		return false;
 
 	cable->isegments = atoi(pValue);
@@ -983,7 +983,7 @@ DrawCables
 
 ====================
 */
-void CPropManager::DrawCables(void)
+void CPropManager::DrawCables()
 {
 	Vector vVertex;
 	Vector vTangent;
@@ -1003,7 +1003,7 @@ void CPropManager::DrawCables(void)
 	{
 		int j = 0;
 		for (; j < m_pCables[i].num_leafs; j++)
-			if (gBSPRenderer.m_pPVS[m_pCables[i].leafnums[j] >> 3] & (1 << (m_pCables[i].leafnums[j] & 7)))
+			if ((gBSPRenderer.m_pPVS[m_pCables[i].leafnums[j] >> 3] & (1 << (m_pCables[i].leafnums[j] & 7))) != 0)
 				break;
 
 		if (j == m_pCables[i].num_leafs)
@@ -1049,7 +1049,7 @@ RenderPropsSolid
 
 ====================
 */
-void CPropManager::RenderPropsSolid(void)
+void CPropManager::RenderPropsSolid()
 {
 	if (m_pCvarDrawClientEntities->value < 1)
 		return;
@@ -1076,12 +1076,12 @@ void CPropManager::RenderPropsSolid(void)
 
 		entextradata_t* pExtraData = ((entextrainfo_t*)m_pEntities[i].topnode)->pExtraData;
 
-		if (!pExtraData)
+		if (pExtraData == nullptr)
 			return;
 
 		int j = 0;
 		for (; j < pExtraData->num_leafs; j++)
-			if (gBSPRenderer.m_pPVS[pExtraData->leafnums[j] >> 3] & (1 << (pExtraData->leafnums[j] & 7)))
+			if ((gBSPRenderer.m_pPVS[pExtraData->leafnums[j] >> 3] & (1 << (pExtraData->leafnums[j] & 7))) != 0)
 				break;
 
 		if (j == pExtraData->num_leafs)
@@ -1103,7 +1103,7 @@ RenderSkyProps
 
 ====================
 */
-void CPropManager::RenderSkyProps(void)
+void CPropManager::RenderSkyProps()
 {
 	if (m_pCvarDrawClientEntities->value < 1)
 		return;

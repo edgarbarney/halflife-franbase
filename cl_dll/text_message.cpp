@@ -96,7 +96,7 @@ char* CHudTextMessage::LocaliseTextString(const char* msg, char* dst_buffer, int
 
 			// lookup msg name in titles.txt
 			client_textmessage_t* clmsg = TextMessageGet(word_buf);
-			if (clmsg && clmsg->pMessage)
+			if ((clmsg != nullptr) && (clmsg->pMessage != nullptr))
 			{
 				// copy string into message over the msg name
 				const std::size_t count = std::min(remainingBufferSize, std::strlen(clmsg->pMessage));
@@ -134,7 +134,7 @@ char* CHudTextMessage::BufferedLocaliseTextString(const char* msg)
 // Simplified version of LocaliseTextString;  assumes string is only one word
 const char* CHudTextMessage::LookupString(const char* msg, int* msg_dest)
 {
-	if (!msg)
+	if (msg == nullptr)
 		return "";
 
 	// '#' character indicates this is a reference to a string in titles.txt, and not the string itself
@@ -143,10 +143,10 @@ const char* CHudTextMessage::LookupString(const char* msg, int* msg_dest)
 		// this is a message name, so look up the real message
 		client_textmessage_t* clmsg = TextMessageGet(msg + 1);
 
-		if (!clmsg || !(clmsg->pMessage))
+		if ((clmsg == nullptr) || ((clmsg->pMessage) == nullptr))
 			return msg; // lookup failed, so return the original string
 
-		if (msg_dest)
+		if (msg_dest != nullptr)
 		{
 			// check to see if titles.txt info overrides msg destination
 			// if clmsg->effect is less than 0, then clmsg->effect holds -1 * message_destination
@@ -217,7 +217,7 @@ bool CHudTextMessage::MsgFunc_TextMsg(const char* pszName, int iSize, void* pbuf
 	StripEndNewlineFromString(sstr4);
 	char* psz = szBuf[5];
 
-	if (gViewPort && !gViewPort->AllowedToPrintText())
+	if ((gViewPort != nullptr) && !gViewPort->AllowedToPrintText())
 		return true;
 
 	switch (msg_dest)
