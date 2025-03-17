@@ -63,7 +63,7 @@ static bool FileSystem_InitializeGameDirectory()
 	const std::size_t BufferSize = MAX_PATH + 1;
 	gameDirectory.resize(BufferSize);
 
-	const DWORD charactersWritten = GetModuleFileNameA(NULL, gameDirectory.data(), BufferSize);
+	const DWORD charactersWritten = GetModuleFileNameA(nullptr, gameDirectory.data(), BufferSize);
 
 	if (charactersWritten == BufferSize)
 	{
@@ -235,7 +235,7 @@ bool FileSystem_CompareFileTime(const char* filename1, const char* filename2, in
 {
 	*iCompare = 0;
 
-	if (!filename1 || !filename2)
+	if ((filename1 == nullptr) || (filename2 == nullptr))
 	{
 		return false;
 	}

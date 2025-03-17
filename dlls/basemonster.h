@@ -114,7 +114,7 @@ public:
 	bool Save(CSave& save) override;
 	bool Restore(CRestore& restore) override;
 
-	STATE GetState(void) override { return (pev->deadflag == DEAD_DEAD) ? STATE_OFF : STATE_ON; }
+	STATE GetState() override { return (pev->deadflag == DEAD_DEAD) ? STATE_OFF : STATE_ON; }
 
 	static TYPEDESCRIPTION m_SaveData[];
 
@@ -129,7 +129,7 @@ public:
 	// LRC- to allow level-designers to change monster allegiances
 	int m_iClass;
 	int m_iPlayerReact;
-	int Classify() override { return m_iClass ? m_iClass : CLASS_NONE; }
+	int Classify() override { return (m_iClass != 0) ? m_iClass : CLASS_NONE; }
 
 	int BloodColor() override { return m_bloodColor; }
 
@@ -201,7 +201,7 @@ public:
 	// virtual bool CanPlaySequence() { return ((m_pCine == NULL) && (m_MonsterState == MONSTERSTATE_NONE || m_MonsterState == MONSTERSTATE_IDLE || m_IdealMonsterState == MONSTERSTATE_IDLE)); }
 	virtual bool CanPlaySequence(int interruptFlags);
 	virtual bool CanPlaySentence(bool fDisregardState) { return IsAllowedToSpeak(); }
-	virtual bool IsAllowedToSpeak() { return IsAlive() && (m_MonsterState == MONSTERSTATE_SCRIPT || pev->deadflag == DEAD_NO); }
+	bool IsAllowedToSpeak() override { return IsAlive() && (m_MonsterState == MONSTERSTATE_SCRIPT || pev->deadflag == DEAD_NO); }
 
 	Task_t* GetTask();
 	virtual MONSTERSTATE GetIdealState();
@@ -255,7 +255,7 @@ public:
 	inline void ClearConditions(int iConditions) { m_afConditions &= ~iConditions; }
 	inline bool HasConditions(int iConditions)
 	{
-		if (m_afConditions & iConditions)
+		if ((m_afConditions & iConditions) != 0)
 			return true;
 		return false;
 	}
@@ -349,7 +349,7 @@ public:
 	inline void Forget(int iMemory) { m_afMemory &= ~iMemory; }
 	inline bool HasMemory(int iMemory)
 	{
-		if (m_afMemory & iMemory)
+		if ((m_afMemory & iMemory) != 0)
 			return true;
 		return false;
 	}

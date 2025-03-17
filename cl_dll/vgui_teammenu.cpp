@@ -174,7 +174,7 @@ void CTeamMenuPanel::Update()
 	// Set the team buttons
 	for (int i = 1; i <= 4; i++)
 	{
-		if (m_pButtons[i])
+		if (m_pButtons[i] != nullptr)
 		{
 			if (i <= gViewPort->GetNumberOfTeams())
 			{
@@ -200,7 +200,7 @@ void CTeamMenuPanel::Update()
 				int iTotal = 0;
 				for (int j = 1; j < MAX_PLAYERS_HUD; j++)
 				{
-					if (g_PlayerInfoList[j].name == NULL)
+					if (g_PlayerInfoList[j].name == nullptr)
 						continue; // empty player slot, skip
 					if (0 != g_PlayerInfoList[j].thisplayer)
 						continue; // skip this player
@@ -272,7 +272,7 @@ void CTeamMenuPanel::Update()
 	if (!m_bUpdatedMapName)
 	{
 		const char* level = gEngfuncs.pfnGetLevelName();
-		if (level && '\0' != level[0])
+		if ((level != nullptr) && '\0' != level[0])
 		{
 			char sz[256];
 			char szTitle[256];
@@ -281,7 +281,7 @@ void CTeamMenuPanel::Update()
 			// Update the level name
 			strcpy(sz, level);
 			ch = strchr(sz, '/');
-			if (!ch)
+			if (ch == nullptr)
 				ch = strchr(sz, '\\');
 			strcpy(szTitle, ch + 1);
 			ch = strchr(szTitle, '.');
@@ -294,8 +294,8 @@ void CTeamMenuPanel::Update()
 			ch = strchr(sz, '.');
 			*ch = '\0';
 			strcat(sz, ".txt");
-			char* pfile = (char*)gEngfuncs.COM_LoadFile(sz, 5, NULL);
-			if (pfile)
+			char* pfile = (char*)gEngfuncs.COM_LoadFile(sz, 5, nullptr);
+			if (pfile != nullptr)
 			{
 				m_pBriefing->setText(pfile);
 
@@ -334,7 +334,7 @@ bool CTeamMenuPanel::SlotInput(int iSlot)
 	// Otherwise, see if a particular team is selectable
 	if ((iSlot < 1) || (iSlot > gViewPort->GetNumberOfTeams()))
 		return false;
-	if (!m_pButtons[iSlot])
+	if (m_pButtons[iSlot] == nullptr)
 		return false;
 
 	// Is the button pushable?

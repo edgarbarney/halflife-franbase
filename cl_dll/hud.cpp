@@ -89,7 +89,7 @@ public:
 
 	bool CanShowSpeakerLabels() override
 	{
-		if (gViewPort && gViewPort->m_pScoreBoard)
+		if ((gViewPort != nullptr) && (gViewPort->m_pScoreBoard != nullptr))
 			return !gViewPort->m_pScoreBoard->isVisible();
 		else
 			return false;
@@ -101,7 +101,7 @@ static CHLVoiceStatusHelper g_VoiceStatusHelper;
 extern client_sprite_t* GetSpriteList(client_sprite_t* pList, const char* psz, int iRes, int iCount);
 
 extern float IN_GetMouseSensitivity();
-cvar_t* cl_lw = NULL;
+cvar_t* cl_lw = nullptr;
 cvar_t* cl_rollangle = nullptr;
 cvar_t* cl_rollspeed = nullptr;
 cvar_t* cl_bobtilt = nullptr;
@@ -118,7 +118,7 @@ int __MsgFunc_Logo(const char* pszName, int iSize, void* pbuf)
 //LRC
 int __MsgFunc_HUDColor(const char* pszName, int iSize, void* pbuf)
 {
-	return gHUD.MsgFunc_HUDColor(pszName, iSize, pbuf);
+	return static_cast<int>(gHUD.MsgFunc_HUDColor(pszName, iSize, pbuf));
 }
 
 //LRC
@@ -192,7 +192,7 @@ int __MsgFunc_GameMode(const char* pszName, int iSize, void* pbuf)
 
 int __MsgFunc_PlayMP3(const char* pszName, int iSize, void* pbuf)
 {
-	return gHUD.MsgFunc_PlayMP3(pszName, iSize, pbuf);
+	return static_cast<int>(gHUD.MsgFunc_PlayMP3(pszName, iSize, pbuf));
 }
 
 int __MsgFunc_WpnSkn(const char* pszName, int iSize, void* pbuf)
@@ -216,7 +216,7 @@ int __MsgFunc_Inventory(const char* pszName, int iSize, void* pbuf)
 // TFFree Command Menu
 void __CmdFunc_OpenCommandMenu()
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 	{
 		gViewPort->ShowCommandMenu(gViewPort->m_StandardMenu);
 	}
@@ -225,7 +225,7 @@ void __CmdFunc_OpenCommandMenu()
 // TFC "special" command
 void __CmdFunc_InputPlayerSpecial()
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 	{
 		gViewPort->InputPlayerSpecial();
 	}
@@ -233,7 +233,7 @@ void __CmdFunc_InputPlayerSpecial()
 
 void __CmdFunc_CloseCommandMenu()
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 	{
 		gViewPort->InputSignalHideCommandMenu();
 	}
@@ -241,7 +241,7 @@ void __CmdFunc_CloseCommandMenu()
 
 void __CmdFunc_ForceCloseCommandMenu()
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 	{
 		gViewPort->HideCommandMenu();
 	}
@@ -255,112 +255,112 @@ void __CmdFunc_StopMP3()
 // TFFree Command Menu Message Handlers
 int __MsgFunc_ValClass(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_ValClass(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_TeamNames(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_TeamNames(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_Feign(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_Feign(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_Detpack(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_Detpack(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_VGUIMenu(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_VGUIMenu(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_MOTD(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_MOTD(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_BuildSt(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_BuildSt(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_RandomPC(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_RandomPC(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_ServerName(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_ServerName(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_ScoreInfo(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_ScoreInfo(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_TeamScore(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_TeamScore(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_TeamInfo(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_TeamInfo(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_Spectator(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_Spectator(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_SpecFade(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_SpecFade(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_ResetFade(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_ResetFade(pszName, iSize, pbuf));
 	return 0;
 }
 
 int __MsgFunc_AllowSpec(const char* pszName, int iSize, void* pbuf)
 {
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->MsgFunc_AllowSpec(pszName, iSize, pbuf));
 	return 0;
 }
@@ -434,7 +434,7 @@ void CHud::Init()
 	HOOK_MESSAGE(ClampView);   //LRC 1.8
 
 	//KILLAR: MP3
-	if (gMP3.Initialize())
+	if (gMP3.Initialize() != 0)
 	{
 		HOOK_MESSAGE(PlayMP3);
 		HOOK_COMMAND("stopaudio", StopMP3);
@@ -509,19 +509,19 @@ void CHud::Init()
 	cl_bobtilt = CVAR_CREATE("cl_bobtilt", "0", FCVAR_ARCHIVE);
 	r_decals = gEngfuncs.pfnGetCvarPointer("r_decals");
 
-	m_pSpriteList = NULL;
+	m_pSpriteList = nullptr;
 
 	// Clear any old HUD list
-	if (m_pHudList)
+	if (m_pHudList != nullptr)
 	{
 		HUDLIST* pList;
-		while (m_pHudList)
+		while (m_pHudList != nullptr)
 		{
 			pList = m_pHudList;
 			m_pHudList = m_pHudList->pNext;
 			free(pList);
 		}
-		m_pHudList = NULL;
+		m_pHudList = nullptr;
 	}
 
 	// In case we get messages before the first update -- time will be valid
@@ -545,7 +545,7 @@ void CHud::Init()
 
 	m_Menu.Init();
 
-	MsgFunc_ResetHUD(0, 0, NULL);
+	MsgFunc_ResetHUD(nullptr, 0, nullptr);
 
 #ifdef STEAM_RICH_PRESENCE
 	gEngfuncs.pfnClientCmd("richpresence_gamemode\n"); // reset
@@ -565,16 +565,16 @@ CHud::~CHud()
 	delete[] m_rgszSpriteNames;
 	gMP3.Shutdown();
 
-	if (m_pHudList)
+	if (m_pHudList != nullptr)
 	{
 		HUDLIST* pList;
-		while (m_pHudList)
+		while (m_pHudList != nullptr)
 		{
 			pList = m_pHudList;
 			m_pHudList = m_pHudList->pNext;
 			free(pList);
 		}
-		m_pHudList = NULL;
+		m_pHudList = nullptr;
 	}
 
 // RENDERERS START
@@ -624,12 +624,12 @@ void CHud::VidInit()
 		m_iRes = 320;
 
 	// Only load this once
-	if (!m_pSpriteList)
+	if (m_pSpriteList == nullptr)
 	{
 		// we need to load the hud.txt, and all sprites within
 		m_pSpriteList = SPR_GetList("sprites/hud.txt", &m_iSpriteCountAllRes);
 
-		if (m_pSpriteList)
+		if (m_pSpriteList != nullptr)
 		{
 			// count the number of sprites of the appropriate res
 			m_iSpriteCount = 0;
@@ -730,7 +730,7 @@ bool CHud::MsgFunc_HUDColor(const char* pszName, int iSize, void* pbuf)
 
 	m_iHUDColor = READ_LONG();
 
-	return 1;
+	return true;
 }
 
 float g_lastFOV = 0.0;
@@ -789,7 +789,7 @@ bool HUD_IsGame(const char* game)
 	char gd[1024];
 
 	gamedir = gEngfuncs.pfnGetGameDirectory();
-	if (gamedir && '\0' != gamedir[0])
+	if ((gamedir != nullptr) && '\0' != gamedir[0])
 	{
 		COM_FileBase(gamedir, gd);
 		if (!stricmp(gd, game))
@@ -876,17 +876,17 @@ void CHud::AddHudElem(CHudBase* phudelem)
 
 	//phudelem->Think();
 
-	if (!phudelem)
+	if (phudelem == nullptr)
 		return;
 
 	pdl = (HUDLIST*)malloc(sizeof(HUDLIST));
-	if (!pdl)
+	if (pdl == nullptr)
 		return;
 
 	memset(pdl, 0, sizeof(HUDLIST));
 	pdl->p = phudelem;
 
-	if (!m_pHudList)
+	if (m_pHudList == nullptr)
 	{
 		m_pHudList = pdl;
 		return;
@@ -894,7 +894,7 @@ void CHud::AddHudElem(CHudBase* phudelem)
 
 	ptemp = m_pHudList;
 
-	while (ptemp->pNext)
+	while (ptemp->pNext != nullptr)
 		ptemp = ptemp->pNext;
 
 	ptemp->pNext = pdl;

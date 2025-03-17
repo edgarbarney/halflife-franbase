@@ -129,7 +129,7 @@ void CFuncVehicle ::Blocked(CBaseEntity* pOther)
 		float deltaSpeed = fabs(pev->speed);
 		if (deltaSpeed > 50)
 			deltaSpeed = 50;
-		if (!pevOther->velocity.z)
+		if (pevOther->velocity.z == 0.0f)
 			pevOther->velocity.z += deltaSpeed;
 		return;
 	}
@@ -192,7 +192,7 @@ void CFuncVehicle ::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE 
 			pev->velocity = g_vecZero;
 			pev->avelocity = g_vecZero;
 			StopSound();
-			SetThink(NULL);
+			SetThink(nullptr);
 		}
 	}
 	else
@@ -297,10 +297,10 @@ void CFuncVehicle ::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE 
 }
 
 
-void CFuncVehicle ::StopSound(void)
+void CFuncVehicle ::StopSound()
 {
 	// if sound playing, stop it
-	if (m_soundPlaying && pev->noise)
+	if ((m_soundPlaying != 0) && (pev->noise != 0u))
 	{
 		unsigned short us_encode;
 		unsigned short us_sound = ((unsigned short)(m_sounds) & 0x0007) << 12;
@@ -318,11 +318,11 @@ void CFuncVehicle ::StopSound(void)
 // NOTE: when train goes through transition, m_soundPlaying should go to 0,
 // which will cause the looped sound to restart.
 
-void CFuncVehicle ::UpdateSound(void)
+void CFuncVehicle ::UpdateSound()
 {
 	float flpitch;
 
-	if (!pev->noise)
+	if (pev->noise == 0u)
 		return;
 
 	flpitch = VEHICLE_STARTPITCH + (abs(pev->speed) * (VEHICLE_MAXPITCH - VEHICLE_STARTPITCH) / VEHICLE_MAXSPEED);
@@ -330,7 +330,7 @@ void CFuncVehicle ::UpdateSound(void)
 	if (flpitch > VEHICLE_MAXPITCH)
 		flpitch = VEHICLE_MAXPITCH;
 
-	if (!m_soundPlaying)
+	if (m_soundPlaying == 0)
 	{
 		// play startup sound for train
 		if (m_sounds < 5)
@@ -361,7 +361,7 @@ void CFuncVehicle ::UpdateSound(void)
 	}
 }
 
-void CFuncVehicle ::CheckTurning(void)
+void CFuncVehicle ::CheckTurning()
 {
 	float maxspeed;
 	TraceResult tr;
@@ -459,7 +459,7 @@ void CFuncVehicle ::CheckTurning(void)
 	}
 }
 
-void CFuncVehicle ::CollisionDetection(void)
+void CFuncVehicle ::CollisionDetection()
 {
 	TraceResult tr;
 	bool bHitSomething = false;
@@ -478,13 +478,13 @@ void CFuncVehicle ::CollisionDetection(void)
 				m_vSurfaceNormal.z = 0;
 				pev->speed = pev->speed * 0.99;
 			}
-			else if ((tr.vecPlaneNormal.z < 0.65) || (tr.fStartSolid))
+			else if ((tr.vecPlaneNormal.z < 0.65) || ((tr.fStartSolid) != 0))
 				pev->speed = pev->speed * -1;
 			else
 				m_vSurfaceNormal = tr.vecPlaneNormal;
 
 			CBaseEntity* pHit = CBaseEntity::Instance(tr.pHit);
-			if (pHit && (pHit->Classify() == CLASS_VEHICLE))
+			if ((pHit != nullptr) && (pHit->Classify() == CLASS_VEHICLE))
 				ALERT(at_console, "I hit another vehicle\n");
 		}
 		if (bHitSomething == false)
@@ -499,7 +499,7 @@ void CFuncVehicle ::CollisionDetection(void)
 					m_vSurfaceNormal.z = 0;
 					pev->speed = pev->speed * 0.99;
 				}
-				else if ((tr.vecPlaneNormal.z < 0.65) || (tr.fStartSolid))
+				else if ((tr.vecPlaneNormal.z < 0.65) || ((tr.fStartSolid) != 0))
 					pev->speed = pev->speed * -1;
 				else
 					m_vSurfaceNormal = tr.vecPlaneNormal;
@@ -516,7 +516,7 @@ void CFuncVehicle ::CollisionDetection(void)
 					m_vSurfaceNormal.z = 0;
 					pev->speed = pev->speed * 0.99;
 				}
-				else if ((tr.vecPlaneNormal.z < 0.65) || (tr.fStartSolid))
+				else if ((tr.vecPlaneNormal.z < 0.65) || ((tr.fStartSolid) != 0))
 					pev->speed = pev->speed * -1;
 				else
 					m_vSurfaceNormal = tr.vecPlaneNormal;
@@ -536,7 +536,7 @@ void CFuncVehicle ::CollisionDetection(void)
 				m_vSurfaceNormal.z = 0;
 				pev->speed = pev->speed * 0.99;
 			}
-			else if ((tr.vecPlaneNormal.z < 0.65) || (tr.fStartSolid))
+			else if ((tr.vecPlaneNormal.z < 0.65) || ((tr.fStartSolid) != 0))
 				pev->speed = pev->speed * -1;
 			else
 				m_vSurfaceNormal = tr.vecPlaneNormal;
@@ -553,7 +553,7 @@ void CFuncVehicle ::CollisionDetection(void)
 					m_vSurfaceNormal.z = 0;
 					pev->speed = pev->speed * 0.99;
 				}
-				else if ((tr.vecPlaneNormal.z < 0.65) || (tr.fStartSolid))
+				else if ((tr.vecPlaneNormal.z < 0.65) || ((tr.fStartSolid) != 0))
 					pev->speed = pev->speed * -1;
 				else
 					m_vSurfaceNormal = tr.vecPlaneNormal;
@@ -571,7 +571,7 @@ void CFuncVehicle ::CollisionDetection(void)
 					m_vSurfaceNormal.z = 0;
 					pev->speed = pev->speed * 0.99;
 				}
-				else if ((tr.vecPlaneNormal.z < 0.65) || (tr.fStartSolid))
+				else if ((tr.vecPlaneNormal.z < 0.65) || ((tr.fStartSolid) != 0))
 					pev->speed = pev->speed * -1;
 				else
 					m_vSurfaceNormal = tr.vecPlaneNormal;
@@ -580,7 +580,7 @@ void CFuncVehicle ::CollisionDetection(void)
 	}
 }
 
-void CFuncVehicle ::TerrainFollowing(void)
+void CFuncVehicle ::TerrainFollowing()
 {
 	TraceResult tr;
 
@@ -590,18 +590,18 @@ void CFuncVehicle ::TerrainFollowing(void)
 	{
 		m_vSurfaceNormal = tr.vecPlaneNormal;
 	}
-	else if (tr.fInWater)
+	else if (tr.fInWater != 0)
 	{
 		m_vSurfaceNormal = Vector(0, 0, 1);
 	}
-	else if (tr.fStartSolid)
+	else if (tr.fStartSolid != 0)
 	{
 		//		ALERT(at_console,"I'm underground\n!");
 	}
 }
 
 
-void CFuncVehicle ::Next(void)
+void CFuncVehicle ::Next()
 {
 	Vector vGravityVector = g_vecZero;
 
@@ -653,7 +653,7 @@ void CFuncVehicle ::Next(void)
 		}
 	}
 
-	if (!pev->speed)
+	if (pev->speed == 0.0f)
 	{
 		m_iTurnAngle = 0;
 		pev->avelocity = g_vecZero;
@@ -754,7 +754,7 @@ void CFuncVehicle ::Next(void)
 }
 
 
-void CFuncVehicle::DeadEnd(void)
+void CFuncVehicle::DeadEnd()
 {
 	// Fire the dead-end target if there is one
 	CPathTrack *pTrack, *pNext;
@@ -765,34 +765,34 @@ void CFuncVehicle::DeadEnd(void)
 	// Find the dead end path node
 	// HACKHACK -- This is bugly, but the train can actually stop moving at a different node depending on it's speed
 	// so we have to traverse the list to it's end.
-	if (pTrack)
+	if (pTrack != nullptr)
 	{
 		if (m_oldSpeed < 0)
 		{
 			do
 			{
 				pNext = pTrack->ValidPath(pTrack->GetPrevious(), true);
-				if (pNext)
+				if (pNext != nullptr)
 					pTrack = pNext;
-			} while (pNext);
+			} while (pNext != nullptr);
 		}
 		else
 		{
 			do
 			{
 				pNext = pTrack->ValidPath(pTrack->GetNext(), true);
-				if (pNext)
+				if (pNext != nullptr)
 					pTrack = pNext;
-			} while (pNext);
+			} while (pNext != nullptr);
 		}
 	}
 
 	pev->velocity = g_vecZero;
 	pev->avelocity = g_vecZero;
-	if (pTrack)
+	if (pTrack != nullptr)
 	{
 		ALERT(at_aiconsole, "at %s\n", STRING(pTrack->pev->targetname));
-		if (pTrack->pev->netname)
+		if (pTrack->pev->netname != 0u)
 			FireTargets(STRING(pTrack->pev->netname), this, this, USE_TOGGLE, 0);
 	}
 	else
@@ -813,7 +813,7 @@ bool CFuncVehicle ::OnControls(entvars_t* pevTest)
 {
 	Vector offset = pevTest->origin - pev->origin;
 
-	if (pev->spawnflags & SF_TRACKTRAIN_NOCONTROL)
+	if ((pev->spawnflags & SF_TRACKTRAIN_NOCONTROL) != 0)
 		return false;
 
 	// Transform offset into local coordinates
@@ -831,17 +831,17 @@ bool CFuncVehicle ::OnControls(entvars_t* pevTest)
 }
 
 
-void CFuncVehicle ::Find(void)
+void CFuncVehicle ::Find()
 {
-	m_ppath = CPathTrack::Instance(FIND_ENTITY_BY_TARGETNAME(NULL, STRING(pev->target)));
-	if (!m_ppath)
+	m_ppath = CPathTrack::Instance(FIND_ENTITY_BY_TARGETNAME(nullptr, STRING(pev->target)));
+	if (m_ppath == nullptr)
 		return;
 
 	entvars_t* pevTarget = m_ppath->pev;
 	if (!FClassnameIs(pevTarget, "path_track"))
 	{
 		ALERT(at_console, "func_track_train must be on a path of path_track\n");
-		m_ppath = NULL;
+		m_ppath = nullptr;
 		return;
 	}
 
@@ -850,14 +850,14 @@ void CFuncVehicle ::Find(void)
 
 	Vector look = nextPos;
 	look.z -= m_height;
-	m_ppath->LookAhead(&look, m_length, 0);
+	m_ppath->LookAhead(&look, m_length, false);
 	look.z += m_height;
 
 	pev->angles = UTIL_VecToAngles(look - nextPos);
 	// The train actually points west
 	pev->angles.y += 180;
 
-	if (pev->spawnflags & SF_TRACKTRAIN_NOPITCH)
+	if ((pev->spawnflags & SF_TRACKTRAIN_NOPITCH) != 0)
 		pev->angles.x = 0;
 	UTIL_SetOrigin(this, nextPos);
 	NextThink(pev->ltime + 0.1, false);
@@ -868,18 +868,18 @@ void CFuncVehicle ::Find(void)
 }
 
 
-void CFuncVehicle ::NearestPath(void)
+void CFuncVehicle ::NearestPath()
 {
-	CBaseEntity* pTrack = NULL;
-	CBaseEntity* pNearest = NULL;
+	CBaseEntity* pTrack = nullptr;
+	CBaseEntity* pNearest = nullptr;
 	float dist, closest;
 
 	closest = 1024;
 
-	while ((pTrack = UTIL_FindEntityInSphere(pTrack, pev->origin, 1024)) != NULL)
+	while ((pTrack = UTIL_FindEntityInSphere(pTrack, pev->origin, 1024)) != nullptr)
 	{
 		// filter out non-tracks
-		if (!(pTrack->pev->flags & (FL_CLIENT | FL_MONSTER)) && FClassnameIs(pTrack->pev, "path_track"))
+		if (((pTrack->pev->flags & (FL_CLIENT | FL_MONSTER)) == 0) && FClassnameIs(pTrack->pev, "path_track"))
 		{
 			dist = (pev->origin - pTrack->pev->origin).Length();
 			if (dist < closest)
@@ -890,17 +890,17 @@ void CFuncVehicle ::NearestPath(void)
 		}
 	}
 
-	if (!pNearest)
+	if (pNearest == nullptr)
 	{
 		ALERT(at_console, "Can't find a nearby track !!!\n");
-		SetThink(NULL);
+		SetThink(nullptr);
 		return;
 	}
 
 	ALERT(at_aiconsole, "TRAIN: %s, Nearest track is %s\n", STRING(pev->targetname), STRING(pNearest->pev->targetname));
 	// If I'm closer to the next path_track on this path, then it's my real path
 	pTrack = ((CPathTrack*)pNearest)->GetNext();
-	if (pTrack)
+	if (pTrack != nullptr)
 	{
 		if ((pev->origin - pTrack->pev->origin).Length() < (pev->origin - pNearest->pev->origin).Length())
 			pNearest = pTrack;
@@ -927,7 +927,7 @@ CFuncVehicle* CFuncVehicle::Instance(edict_t* pent)
 {
 	if (FClassnameIs(pent, "func_vehicle"))
 		return (CFuncVehicle*)GET_PRIVATE(pent);
-	return NULL;
+	return nullptr;
 }
 
 /*QUAKED func_train (0 .5 .8) ?
@@ -970,7 +970,7 @@ void CFuncVehicle ::Spawn()
 	if (FStringNull(pev->target))
 		ALERT(at_console, "Vehicle with no target");
 
-	if (pev->spawnflags & SF_TRACKTRAIN_PASSABLE)
+	if ((pev->spawnflags & SF_TRACKTRAIN_PASSABLE) != 0)
 		pev->solid = SOLID_NOT;
 	else
 		pev->solid = SOLID_BSP;
@@ -1007,7 +1007,7 @@ void CFuncVehicle ::Restart()
 	m_dir = 1;
 	m_flTurnStartTime = -1;
 	m_flUpdateSound = -1;
-	m_pDriver = NULL;
+	m_pDriver = nullptr;
 
 	if (FStringNull(pev->target))
 		ALERT(at_console, "Vehicle with no target");
@@ -1071,8 +1071,8 @@ void CFuncVehicle ::Precache()
 class CFuncVehicleControls : public CBaseEntity
 {
 public:
-	int ObjectCaps() { return CBaseEntity ::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
-	void Spawn();
+	int ObjectCaps() override { return CBaseEntity ::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	void Spawn() override;
 	void EXPORT Find();
 };
 LINK_ENTITY_TO_CLASS(func_vehiclecontrols, CFuncVehicleControls);
@@ -1080,7 +1080,7 @@ LINK_ENTITY_TO_CLASS(func_vehiclecontrols, CFuncVehicleControls);
 
 void CFuncVehicleControls ::Find()
 {
-	edict_t* pTarget = NULL;
+	edict_t* pTarget = nullptr;
 
 	do
 	{

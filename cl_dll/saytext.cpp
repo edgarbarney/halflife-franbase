@@ -99,7 +99,7 @@ bool CHudSayText::Draw(float flTime)
 {
 	int y = Y_START;
 
-	if ((gViewPort && !gViewPort->AllowedToPrintText()) || 0 == m_HUD_saytext->value)
+	if (((gViewPort != nullptr) && !gViewPort->AllowedToPrintText()) || 0 == m_HUD_saytext->value)
 		return true;
 
 	// make sure the scrolltime is within reasonable bounds,  to guard against the clock being reset
@@ -135,7 +135,7 @@ bool CHudSayText::Draw(float flTime)
 	{
 		if ('\0' != *g_szLineBuffer[i])
 		{
-			if (*g_szLineBuffer[i] == 2 && g_pflNameColors[i])
+			if (*g_szLineBuffer[i] == 2 && (g_pflNameColors[i] != nullptr))
 			{
 				// it's a saytext string
 
@@ -187,7 +187,7 @@ void CHudSayText::SayTextPrint(const char* pszBuf, int iBufSize, int clientIndex
 	// Print it straight to the console
 	ConsolePrint(pszBuf);
 
-	if (gViewPort && gViewPort->AllowedToPrintText() == false)
+	if ((gViewPort != nullptr) && gViewPort->AllowedToPrintText() == false)
 	{
 		return;
 	}
@@ -207,7 +207,7 @@ void CHudSayText::SayTextPrint(const char* pszBuf, int iBufSize, int clientIndex
 	}
 
 	g_iNameLengths[i] = 0;
-	g_pflNameColors[i] = NULL;
+	g_pflNameColors[i] = nullptr;
 
 	// if it's a say message, search for the players name in the string
 	if (*pszBuf == 2 && clientIndex > 0)
@@ -215,11 +215,11 @@ void CHudSayText::SayTextPrint(const char* pszBuf, int iBufSize, int clientIndex
 		gEngfuncs.pfnGetPlayerInfo(clientIndex, &g_PlayerInfoList[clientIndex]);
 		const char* pName = g_PlayerInfoList[clientIndex].name;
 
-		if (pName)
+		if (pName != nullptr)
 		{
 			const char* nameInString = strstr(pszBuf, pName);
 
-			if (nameInString)
+			if (nameInString != nullptr)
 			{
 				g_iNameLengths[i] = strlen(pName) + (nameInString - pszBuf);
 				g_pflNameColors[i] = GetClientColor(clientIndex);
@@ -254,7 +254,7 @@ void CHudSayText::EnsureTextFitsInOneLineAndWrapIfHaveTo(int line)
 		// scan the string until we find what word is too long,  and wrap the end of the sentence after the word
 		int length = LINE_START;
 		int tmp_len = 0;
-		char* last_break = NULL;
+		char* last_break = nullptr;
 		for (char* x = g_szLineBuffer[line]; *x != 0; x++)
 		{
 			// check for a color change, if so skip past it
@@ -284,7 +284,7 @@ void CHudSayText::EnsureTextFitsInOneLineAndWrapIfHaveTo(int line)
 
 			if (length > MAX_LINE_WIDTH)
 			{ // needs to be broken up
-				if (!last_break)
+				if (last_break == nullptr)
 					last_break = x - 1;
 
 				x = last_break;

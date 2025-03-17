@@ -27,7 +27,7 @@ using namespace vgui;
 
 CGrid::CGridEntry::CGridEntry()
 {
-	m_pPanel = NULL;
+	m_pPanel = nullptr;
 	m_bUnderline = false;
 }
 
@@ -62,7 +62,7 @@ bool CGrid::SetDimensions(int xCols, int yRows)
 	m_ColOffsets = m_Heights + yRows;
 	m_RowOffsets = m_ColOffsets + xCols;
 
-	if (!m_GridEntries || !m_Widths)
+	if ((m_GridEntries == nullptr) || (m_Widths == nullptr))
 	{
 		Term();
 		return false;
@@ -93,14 +93,14 @@ Panel* CGrid::GetEntry(int x, int y)
 bool CGrid::SetEntry(int x, int y, Panel* pPanel)
 {
 	CGridEntry* pEntry = GridEntry(x, y);
-	if (!pEntry)
+	if (pEntry == nullptr)
 		return false;
 
-	if (pEntry->m_pPanel)
-		pEntry->m_pPanel->setParent(NULL);
+	if (pEntry->m_pPanel != nullptr)
+		pEntry->m_pPanel->setParent(nullptr);
 
 	pEntry->m_pPanel = pPanel;
-	if (pPanel)
+	if (pPanel != nullptr)
 		pPanel->setParent(this);
 
 	m_bDirty = true;
@@ -180,7 +180,7 @@ int CGrid::CalcFitColumnWidth(int iColumn)
 	for (int i = 0; i < m_yRows; i++)
 	{
 		Panel* pPanel = GridEntry(iColumn, i)->m_pPanel;
-		if (!pPanel)
+		if (pPanel == nullptr)
 			continue;
 
 		int w, h;
@@ -201,7 +201,7 @@ int CGrid::CalcFitRowHeight(int iRow)
 	for (int i = 0; i < m_xCols; i++)
 	{
 		Panel* pPanel = GridEntry(i, iRow)->m_pPanel;
-		if (!pPanel)
+		if (pPanel == nullptr)
 			continue;
 
 		int w, h;
@@ -237,7 +237,7 @@ bool CGrid::GetEntryBox(
 
 bool CGrid::CopyColumnWidths(CGrid* pOther)
 {
-	if (!pOther || pOther->m_xCols != m_xCols)
+	if ((pOther == nullptr) || pOther->m_xCols != m_xCols)
 		return false;
 
 	for (int i = 0; i < m_xCols; i++)
@@ -256,7 +256,7 @@ void CGrid::RepositionContents()
 		for (int y = 0; y < m_yRows; y++)
 		{
 			Panel* pPanel = GridEntry(x, y)->m_pPanel;
-			if (!pPanel)
+			if (pPanel == nullptr)
 				continue;
 
 			pPanel->setBounds(
@@ -331,8 +331,8 @@ void CGrid::SetRowUnderline(int row, bool enabled, int offset, int r, int g, int
 void CGrid::Clear()
 {
 	m_xCols = m_yRows = 0;
-	m_Widths = NULL;
-	m_GridEntries = NULL;
+	m_Widths = nullptr;
+	m_GridEntries = nullptr;
 	m_xSpacing = m_ySpacing = 0;
 	m_bDirty = false;
 }
@@ -381,7 +381,7 @@ bool CGrid::getCellAtPoint(int worldX, int worldY, int& row, int& col)
 		for (int y = 0; y < m_yRows; y++)
 		{
 			Panel* pPanel = GridEntry(x, y)->m_pPanel;
-			if (!pPanel)
+			if (pPanel == nullptr)
 				continue;
 
 			if (pPanel->isWithin(worldX, worldY))

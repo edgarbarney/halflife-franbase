@@ -327,19 +327,19 @@ public:
 	virtual void StudioSetupModelSVD(int bodypart);
 
 	// Draws shadows for an entity
-	virtual void StudioDrawShadow(void);
+	virtual void StudioDrawShadow();
 
 	// Draws a shadow volume
-	virtual void StudioDrawShadowVolume(void);
+	virtual void StudioDrawShadowVolume();
 
 	// Sets the buffer
-	virtual void StudioSetBuffer(void);
+	virtual void StudioSetBuffer();
 
 	// Clears the buffer
-	virtual void StudioClearBuffer(void);
+	virtual void StudioClearBuffer();
 
 	// Tells if we should draw a shadow for this ent
-	virtual bool StudioShouldDrawShadow(void);
+	virtual bool StudioShouldDrawShadow();
 
 	Vector verts[MAXSTUDIOVERTS];
 	void StudioGetVerts();

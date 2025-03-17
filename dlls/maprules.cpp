@@ -77,7 +77,7 @@ bool CRuleEntity::KeyValue(KeyValueData* pkvd)
 
 bool CRuleEntity::CanFireForActivator(CBaseEntity* pActivator)
 {
-	if (!pActivator)
+	if (pActivator == nullptr)
 	{
 		return true;
 	}
@@ -179,7 +179,7 @@ void CGameScore::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE use
 		return;
 
 	// Only players can use this
-	if (pActivator && pActivator->IsPlayer())
+	if ((pActivator != nullptr) && pActivator->IsPlayer())
 	{
 		if (AwardToTeam())
 		{
@@ -337,20 +337,20 @@ void CGameText::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useT
 	}
 	else
 	{
-		if (pActivator && pActivator->IsNetClient())
+		if ((pActivator != nullptr) && pActivator->IsNetClient())
 		{
 			UTIL_HudMessage(pActivator, m_textParms, MessageGet());
 		}
 	}
 
-	if (pev->target)
+	if (pev->target != 0u)
 	{
 		m_pActivator = pActivator;
 		SetThink(&CGameText::TriggerThink);
 		SetNextThink(m_textParms.fadeinTime + m_textParms.holdTime + m_textParms.fadeoutTime);
 		//		ALERT(at_console, "GameText sets NextThink = %f\n", m_textParms.fadeinTime + m_textParms.holdTime + m_textParms.fadeoutTime);
 	}
-	else if (pev->spawnflags & SF_ENVTEXT_ONLY_ONCE)
+	else if ((pev->spawnflags & SF_ENVTEXT_ONLY_ONCE) != 0)
 	{
 		SetThink(&CGameText::SUB_Remove);
 		SetNextThink(0.1);
@@ -363,7 +363,7 @@ void CGameText::TriggerThink()
 	//	ALERT(at_console, "GameText uses targets\n");
 	SUB_UseTargets(m_pActivator, USE_TOGGLE, 0);
 
-	if (pev->spawnflags & SF_ENVTEXT_ONLY_ONCE)
+	if ((pev->spawnflags & SF_ENVTEXT_ONLY_ONCE) != 0)
 	{
 		SetThink(&CGameText::SUB_Remove);
 		SetNextThink(0.1);
@@ -480,7 +480,7 @@ bool CGameTeamMaster::TeamMatch(CBaseEntity* pActivator)
 	if (m_teamIndex < 0 && AnyTeam())
 		return true;
 
-	if (!pActivator)
+	if (pActivator == nullptr)
 		return false;
 
 	return UTIL_TeamsMatch(pActivator->TeamID(), TeamID());
@@ -595,12 +595,12 @@ void CGamePlayerZone::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYP
 	if (!CanFireForActivator(pActivator))
 		return;
 
-	CBaseEntity* pPlayer = NULL;
+	CBaseEntity* pPlayer = nullptr;
 
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		pPlayer = UTIL_PlayerByIndex(i);
-		if (pPlayer)
+		if (pPlayer != nullptr)
 		{
 			TraceResult trace;
 			int hullNumber;
@@ -883,7 +883,7 @@ void CGamePlayerEquip::Touch(CBaseEntity* pOther)
 
 void CGamePlayerEquip::EquipPlayer(CBaseEntity* pEntity)
 {
-	if (!pEntity || !pEntity->IsPlayer())
+	if ((pEntity == nullptr) || !pEntity->IsPlayer())
 	{
 		return;
 	}
@@ -936,15 +936,15 @@ LINK_ENTITY_TO_CLASS(game_player_team, CGamePlayerTeam);
 
 const char* CGamePlayerTeam::TargetTeamName(const char* pszTargetName)
 {
-	CBaseEntity* pTeamEntity = NULL;
+	CBaseEntity* pTeamEntity = nullptr;
 
-	while ((pTeamEntity = UTIL_FindEntityByTargetname(pTeamEntity, pszTargetName)) != NULL)
+	while ((pTeamEntity = UTIL_FindEntityByTargetname(pTeamEntity, pszTargetName)) != nullptr)
 	{
 		if (FClassnameIs(pTeamEntity->pev, "game_team_master"))
 			return pTeamEntity->TeamID();
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 
@@ -956,7 +956,7 @@ void CGamePlayerTeam::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYP
 	if (pActivator->IsPlayer())
 	{
 		const char* pszTargetTeam = TargetTeamName(STRING(pev->target));
-		if (pszTargetTeam)
+		if (pszTargetTeam != nullptr)
 		{
 			CBasePlayer* pPlayer = (CBasePlayer*)pActivator;
 			g_pGameRules->ChangePlayerTeam(pPlayer, pszTargetTeam, ShouldKillPlayer(), ShouldGibPlayer());

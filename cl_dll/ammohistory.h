@@ -62,14 +62,14 @@ public:
 
 	void DropWeapon(WEAPON* wp)
 	{
-		rgSlots[wp->iSlot][wp->iSlotPos] = NULL;
+		rgSlots[wp->iSlot][wp->iSlotPos] = nullptr;
 	}
 
 	void DropAllWeapons()
 	{
 		for (int i = 0; i < MAX_WEAPONS; i++)
 		{
-			if (rgWeapons[i].iId)
+			if (rgWeapons[i].iId != 0)
 				DropWeapon(&rgWeapons[i]);
 		}
 	}

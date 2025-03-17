@@ -257,7 +257,7 @@ public:
 
 	//LRC 1.8 - FollowAlias is now available to all; the special alias class is only for mutable ones.
 	virtual bool IsMutableAlias() { return false; }
-	virtual CBaseEntity* FollowAlias(CBaseEntity* pFrom) { return NULL; }
+	virtual CBaseEntity* FollowAlias(CBaseEntity* pFrom) { return nullptr; }
 
 	/**
 	*	@brief Entity flags sent to the client in ::AddToFullPack
@@ -303,7 +303,7 @@ public:
 	virtual bool Save(CSave& save);
 	virtual bool Restore(CRestore& restore);
 	//LRC - if I MoveWith something, then only cross transitions if the MoveWith entity does too.
-	virtual int ObjectCaps() { return m_pMoveWith ? m_pMoveWith->ObjectCaps() & FCAP_ACROSS_TRANSITION : FCAP_ACROSS_TRANSITION; }
+	virtual int ObjectCaps() { return (m_pMoveWith != nullptr) ? m_pMoveWith->ObjectCaps() & FCAP_ACROSS_TRANSITION : FCAP_ACROSS_TRANSITION; }
 	virtual void Activate();	//LRC
 	void InitMoveWith();		//LRC - called by Activate() to set up moveWith values
 	virtual void PostSpawn() {} //LRC - called by Activate() to handle entity-specific initialisation.
@@ -339,14 +339,14 @@ public:
 	virtual void TraceBleed(float flDamage, Vector vecDir, TraceResult* ptr, int bitsDamageType);
 	//LRC- superceded by GetState ( pActivator ).
 	//	virtual bool    IsTriggered( CBaseEntity *pActivator ) {return true;}
-	virtual CBaseToggle* MyTogglePointer() { return NULL; }
-	virtual CBaseMonster* MyMonsterPointer() { return NULL; }
-	virtual CSquadMonster* MySquadMonsterPointer() { return NULL; }
+	virtual CBaseToggle* MyTogglePointer() { return nullptr; }
+	virtual CBaseMonster* MyMonsterPointer() { return nullptr; }
+	virtual CSquadMonster* MySquadMonsterPointer() { return nullptr; }
 	virtual int GetToggleState() { return TS_AT_TOP; }
 	virtual void AddPoints(int score, bool bAllowNegativeScore) {}
 	virtual void AddPointsToTeam(int score, bool bAllowNegativeScore) {}
-	virtual bool AddPlayerItem(CBasePlayerItem* pItem) { return 0; }
-	virtual bool RemovePlayerItem(CBasePlayerItem* pItem) { return 0; }
+	virtual bool AddPlayerItem(CBasePlayerItem* pItem) { return false; }
+	virtual bool RemovePlayerItem(CBasePlayerItem* pItem) { return false; }
 	virtual int GiveAmmo(int iAmount, const char* szName, int iMax) { return -1; }
 	virtual float GetDelay() { return 0; }
 	virtual bool IsMoving() { return pev->velocity != g_vecZero; }
@@ -364,7 +364,7 @@ public:
 	virtual bool IsSneaking() { return false; }
 	virtual bool IsAlive() { return (pev->deadflag == DEAD_NO) && pev->health > 0; }
 	virtual bool IsBSPModel() { return pev->solid == SOLID_BSP || pev->movetype == MOVETYPE_PUSHSTEP; }
-	virtual bool ReflectGauss() { return (IsBSPModel() && !pev->takedamage); }
+	virtual bool ReflectGauss() { return (IsBSPModel() && (pev->takedamage == 0.0f)); }
 	virtual bool HasTarget(string_t targetname) { return FStrEq(STRING(targetname), STRING(pev->target)); }
 	virtual bool IsInWorld();
 	virtual bool IsPlayer() { return false; }
@@ -383,22 +383,22 @@ public:
 
 	virtual void Think()
 	{
-		if (m_pfnThink)
+		if (m_pfnThink != nullptr)
 			(this->*m_pfnThink)();
 	}
 	virtual void Touch(CBaseEntity* pOther)
 	{
-		if (m_pfnTouch)
+		if (m_pfnTouch != nullptr)
 			(this->*m_pfnTouch)(pOther);
 	}
 	virtual void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 	{
-		if (m_pfnUse)
+		if (m_pfnUse != nullptr)
 			(this->*m_pfnUse)(pActivator, pCaller, useType, value);
 	}
 	virtual void Blocked(CBaseEntity* pOther)
 	{
-		if (m_pfnBlocked)
+		if (m_pfnBlocked != nullptr)
 			(this->*m_pfnBlocked)(pOther);
 	}
 
@@ -429,10 +429,10 @@ public:
 	}
 	bool ShouldToggle(USE_TYPE useType, bool currentState);
 	bool ShouldToggle(USE_TYPE useType); //LRC this version uses GetState()
-	void FireBullets(unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, int iBulletType, int iTracerFreq = 4, int iDamage = 0, entvars_t* pevAttacker = NULL);
-	Vector FireBulletsPlayer(unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, int iBulletType, int iTracerFreq = 4, int iDamage = 0, entvars_t* pevAttacker = NULL, int shared_rand = 0);
+	void FireBullets(unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, int iBulletType, int iTracerFreq = 4, int iDamage = 0, entvars_t* pevAttacker = nullptr);
+	Vector FireBulletsPlayer(unsigned int cShots, Vector vecSrc, Vector vecDirShooting, Vector vecSpread, float flDistance, int iBulletType, int iTracerFreq = 4, int iDamage = 0, entvars_t* pevAttacker = nullptr, int shared_rand = 0);
 
-	virtual CBaseEntity* Respawn() { return NULL; }
+	virtual CBaseEntity* Respawn() { return nullptr; }
 
 	void SUB_UseTargets(CBaseEntity* pActivator, USE_TYPE useType, float value);
 	// Do the bounding boxes of these two intersect?
@@ -448,16 +448,16 @@ public:
 	CBaseMonster* GetMonsterPointer(entvars_t* pevMonster)
 	{
 		CBaseEntity* pEntity = Instance(pevMonster);
-		if (pEntity)
+		if (pEntity != nullptr)
 			return pEntity->MyMonsterPointer();
-		return NULL;
+		return nullptr;
 	}
 	CBaseMonster* GetMonsterPointer(edict_t* pentMonster)
 	{
 		CBaseEntity* pEntity = Instance(pentMonster);
-		if (pEntity)
+		if (pEntity != nullptr)
 			return pEntity->MyMonsterPointer();
-		return NULL;
+		return nullptr;
 	}
 
 
@@ -465,7 +465,7 @@ public:
 #ifdef _DEBUG
 	void FunctionCheck(void* pFunction, const char* name)
 	{
-		if (pFunction && !NAME_FOR_FUNCTION((uint32)pFunction))
+		if ((pFunction != nullptr) && !NAME_FOR_FUNCTION((uint32)pFunction))
 			ALERT(at_error, "No EXPORT: %s:%s (%08lx)\n", STRING(pev->classname), name, (uint32)pFunction);
 	}
 
@@ -504,7 +504,7 @@ public:
 
 
 	//
-	static CBaseEntity* Create(const char* szName, const Vector& vecOrigin, const Vector& vecAngles, edict_t* pentOwner = NULL);
+	static CBaseEntity* Create(const char* szName, const Vector& vecOrigin, const Vector& vecAngles, edict_t* pentOwner = nullptr);
 
 	virtual bool FBecomeProne() { return false; }
 	edict_t* edict() { return ENT(pev); }
@@ -540,7 +540,7 @@ public:
 };
 
 //LRC- moved here from player.cpp. I'd put it in util.h with its friends, but it needs CBaseEntity to be declared.
-inline bool FNullEnt(CBaseEntity* ent) { return (ent == NULL) || FNullEnt(ent->edict()); }
+inline bool FNullEnt(CBaseEntity* ent) { return (ent == nullptr) || FNullEnt(ent->edict()); }
 
 
 // Ugly technique to override base member functions
@@ -750,7 +750,7 @@ public:
 	void EXPORT AngularMoveDoneNow();
 	bool IsLockedByMaster();
 
-	virtual CBaseToggle* MyTogglePointer() { return this; }
+	CBaseToggle* MyTogglePointer() override { return this; }
 
 	// monsters use this, but so could buttons for instance
 	virtual void PlaySentence(const char* pszSentence, float duration, float volume, float attenuation);
@@ -854,7 +854,7 @@ public:
 
 	static TYPEDESCRIPTION m_SaveData[];
 	int ObjectCaps() override;
-	virtual bool IsAllowedToSpeak() { return true; }
+	bool IsAllowedToSpeak() override { return true; }
 
 	bool m_fStayPushed; // button stays pushed in until touched again?
 	bool m_fRotating;	// a rotating button?  default is a sliding button.
@@ -888,13 +888,13 @@ T* GetClassPtr(T* a)
 	entvars_t* pev = (entvars_t*)a;
 
 	// allocate entity if necessary
-	if (pev == NULL)
+	if (pev == nullptr)
 		pev = VARS(CREATE_ENTITY());
 
 	// get the private data
 	a = (T*)GET_PRIVATE(ENT(pev));
 
-	if (a == NULL)
+	if (a == nullptr)
 	{
 		// allocate private data
 		a = new T;
@@ -943,7 +943,7 @@ class CBaseMutableAlias : public CPointEntity
 {
 public:
 	bool IsMutableAlias() override { return true; }
-	virtual CBaseEntity* FollowAlias(CBaseEntity* pFrom) { return NULL; };
+	CBaseEntity* FollowAlias(CBaseEntity* pFrom) override { return nullptr; };
 	virtual void ChangeValue(int iszValue) { ALERT(at_error, "%s entities cannot change value!", STRING(pev->classname)); }
 	virtual void ChangeValue(CBaseEntity* pValue) { ChangeValue(pValue->pev->targetname); }
 	virtual void FlushChanges(){};
@@ -1003,7 +1003,7 @@ class CWorld : public CBaseEntity
 {
 public:
 	CWorld();
-	~CWorld();
+	~CWorld() override;
 
 	void Spawn() override;
 	void Precache() override;
@@ -1018,14 +1018,14 @@ inline DLL_GLOBAL edict_t* g_pBodyQueueHead = nullptr;
 
 inline CBaseEntity* CBaseEntity::Instance(edict_t* pent)
 {
-	if (!pent)
+	if (pent == nullptr)
 		return CWorld::World;
 	return (CBaseEntity*)GET_PRIVATE(pent);
 }
 
 inline CBaseEntity* CBaseEntity::Instance(entvars_t* pev)
 {
-	if (!pev)
+	if (pev == nullptr)
 		return CWorld::World;
 
 	return Instance(ENT(pev));

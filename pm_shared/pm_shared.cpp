@@ -49,7 +49,7 @@ typedef enum
 	mod_studio
 } modtype_t;
 
-playermove_t* pmove = NULL;
+playermove_t* pmove = nullptr;
 
 typedef struct
 {
@@ -202,13 +202,13 @@ void PM_InitTextureTypes()
 	memset(buffer, 0, 512);
 
 	fileSize = pmove->COM_FileSize("sound/materials.txt");
-	pMemFile = pmove->COM_LoadFile("sound/materials.txt", 5, NULL);
-	if (!pMemFile)
+	pMemFile = pmove->COM_LoadFile("sound/materials.txt", 5, nullptr);
+	if (pMemFile == nullptr)
 		return;
 
 	filePos = 0;
 	// for each line in the file...
-	while (pmove->memfgets(pMemFile, fileSize, &filePos, buffer, 511) != NULL && (gcTextures < CTEXTURESMAX))
+	while (pmove->memfgets(pMemFile, fileSize, &filePos, buffer, 511) != nullptr && (gcTextures < CTEXTURESMAX))
 	{
 		// skip whitespace
 		i = 0;
@@ -290,7 +290,7 @@ void PM_PlayGroupSound(const char* szValue, int irand, float fvol)
 {
 	static char szBuf[128];
 	int i;
-	for (i = 0; szValue[i]; i++)
+	for (i = 0; szValue[i] != 0; i++)
 	{
 		if (szValue[i] == '?')
 		{
@@ -344,7 +344,7 @@ void PM_PlayStepSound(int step, float fvol)
 	{
 	case STEP_LADDER:
 		szValue = pmove->PM_Info_ValueForKey(pmove->physinfo, "lsnd");
-		if (szValue[0] && szValue[1])
+		if ((szValue[0] != 0) && (szValue[1] != 0))
 		{
 			PM_PlayGroupSound(szValue, irand, fvol);
 			return;
@@ -352,7 +352,7 @@ void PM_PlayStepSound(int step, float fvol)
 		break;
 	case STEP_SLOSH:
 		szValue = pmove->PM_Info_ValueForKey(pmove->physinfo, "psnd");
-		if (szValue[0] && szValue[1])
+		if ((szValue[0] != 0) && (szValue[1] != 0))
 		{
 			PM_PlayGroupSound(szValue, irand, fvol);
 			return;
@@ -360,7 +360,7 @@ void PM_PlayStepSound(int step, float fvol)
 		break;
 	case STEP_WADE:
 		szValue = pmove->PM_Info_ValueForKey(pmove->physinfo, "wsnd");
-		if (szValue[0] && szValue[1])
+		if ((szValue[0] != 0) && (szValue[1] != 0))
 		{
 			if (iSkipStep == 0)
 			{
@@ -379,7 +379,7 @@ void PM_PlayStepSound(int step, float fvol)
 		break;
 	default:
 		szValue = pmove->PM_Info_ValueForKey(pmove->physinfo, "ssnd");
-		if (szValue[0] && szValue[1])
+		if ((szValue[0] != 0) && (szValue[1] != 0))
 		{
 			PM_PlayGroupSound(szValue, irand, fvol);
 			return;
@@ -387,7 +387,7 @@ void PM_PlayStepSound(int step, float fvol)
 		iType = atoi(pmove->PM_Info_ValueForKey(pmove->physinfo, "stype"));
 		if (iType == -1)
 			step = STEP_CONCRETE;
-		else if (iType)
+		else if (iType != 0)
 			step = iType;
 	}
 
@@ -633,7 +633,7 @@ void PM_CatagorizeTextureType()
 	pmove->chtexturetype = CHAR_TEX_CONCRETE;
 
 	pTextureName = pmove->PM_TraceTexture(pmove->onground, start, end);
-	if (!pTextureName)
+	if (pTextureName == nullptr)
 		return;
 
 	// strip leading '-0' or '+0~' or '{' or '!'
@@ -716,13 +716,13 @@ void PM_UpdateStepSound()
 			fvol = 0.35;
 			pmove->flTimeStepSound = 350;
 		}
-		else if (pmove->PM_PointContents(knee, NULL) == CONTENTS_WATER)
+		else if (pmove->PM_PointContents(knee, nullptr) == CONTENTS_WATER)
 		{
 			step = STEP_WADE;
 			fvol = 0.65;
 			pmove->flTimeStepSound = 600;
 		}
-		else if (pmove->PM_PointContents(feet, NULL) == CONTENTS_WATER)
+		else if (pmove->PM_PointContents(feet, nullptr) == CONTENTS_WATER)
 		{
 			step = STEP_SLOSH;
 			fvol = fWalking ? 0.2 : 0.5;
@@ -1655,7 +1655,7 @@ bool PM_CheckWater()
 
 		// Now check a point that is at the player hull midpoint.
 		point[2] = pmove->origin[2] + heightover2;
-		cont = pmove->PM_PointContents(point, NULL);
+		cont = pmove->PM_PointContents(point, nullptr);
 		// If that point is also under water...
 		if ((cont <= CONTENTS_WATER && cont > CONTENTS_TRANSLUCENT) || (cont >= CONTENTS_FOG && cont <= CONTENTS_FLYFIELD))
 		{
@@ -1665,7 +1665,7 @@ bool PM_CheckWater()
 			// Now check the eye position.  (view_ofs is relative to the origin)
 			point[2] = pmove->origin[2] + pmove->view_ofs[2];
 
-			cont = pmove->PM_PointContents(point, NULL);
+			cont = pmove->PM_PointContents(point, nullptr);
 			if ((cont <= CONTENTS_WATER && cont > CONTENTS_TRANSLUCENT) || cont == CONTENTS_FOG) // Flyfields never cover the eyes
 				pmove->waterlevel = 3;															 // In over our eyes
 		}
@@ -1800,7 +1800,7 @@ bool PM_TryToUnstuck(Vector base)
 				test[1] += y;
 				test[2] += z;
 
-				if (pmove->PM_TestPlayerPosition(test, NULL) == -1)
+				if (pmove->PM_TestPlayerPosition(test, nullptr) == -1)
 				{
 					VectorCopy(test, pmove->origin);
 					return false;
@@ -1840,7 +1840,7 @@ bool PM_CheckStuck()
 	{
 		// World or BSP model
 		if ((hitent == 0) ||
-			(pmove->physents[hitent].model != NULL))
+			(pmove->physents[hitent].model != nullptr))
 		{
 			int nReps = 0;
 			PM_ResetStuckOffsets(pmove->player_index, pmove->server);
@@ -1882,7 +1882,7 @@ bool PM_CheckStuck()
 	i = PM_GetRandomStuckOffsets(pmove->player_index, pmove->server, offset);
 
 	VectorAdd(base, offset, test);
-	if ((hitent = pmove->PM_TestPlayerPosition(test, NULL)) == -1)
+	if ((hitent = pmove->PM_TestPlayerPosition(test, nullptr)) == -1)
 	{
 		//Con_DPrintf("Nudged\n");
 
@@ -2077,7 +2077,7 @@ void PM_FixPlayerCrouchStuck(int direction)
 	int i;
 	Vector test;
 
-	hitent = pmove->PM_TestPlayerPosition(pmove->origin, NULL);
+	hitent = pmove->PM_TestPlayerPosition(pmove->origin, nullptr);
 	if (hitent == -1)
 		return;
 
@@ -2085,7 +2085,7 @@ void PM_FixPlayerCrouchStuck(int direction)
 	for (i = 0; i < 36; i++)
 	{
 		pmove->origin[2] += direction;
-		hitent = pmove->PM_TestPlayerPosition(pmove->origin, NULL);
+		hitent = pmove->PM_TestPlayerPosition(pmove->origin, nullptr);
 		if (hitent == -1)
 			return;
 	}
@@ -2256,7 +2256,7 @@ void PM_LadderMove(physent_t* pLadder)
 	VectorCopy(pmove->origin, floor);
 	floor[2] += pmove->player_mins[pmove->usehull][2] - 1;
 
-	const bool onFloor = pmove->PM_PointContents(floor, NULL) == CONTENTS_SOLID;
+	const bool onFloor = pmove->PM_PointContents(floor, nullptr) == CONTENTS_SOLID;
 
 	pmove->gravity = 0;
 	PM_TraceModel(pLadder, pmove->origin, ladderCenter, &trace);
@@ -2272,7 +2272,7 @@ void PM_LadderMove(physent_t* pLadder)
 			flSpeed = pmove->maxspeed;
 		}
 
-		AngleVectors(pmove->angles, &vpn, &v_right, NULL);
+		AngleVectors(pmove->angles, &vpn, &v_right, nullptr);
 
 		if ((pmove->flags & FL_DUCKING) != 0)
 		{
@@ -2367,7 +2367,7 @@ physent_t* PM_Ladder()
 	{
 		pe = &pmove->moveents[i];
 
-		if (pe->model && (modtype_t)pmove->PM_GetModelType(pe->model) == mod_brush && pe->skin == CONTENTS_LADDER)
+		if ((pe->model != nullptr) && (modtype_t)pmove->PM_GetModelType(pe->model) == mod_brush && pe->skin == CONTENTS_LADDER)
 		{
 
 			hull = (hull_t*)pmove->PM_HullForBsp(pe, test);
@@ -2384,7 +2384,7 @@ physent_t* PM_Ladder()
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 
@@ -3029,7 +3029,7 @@ void PM_CheckParamters()
 	//
 	// JoshA: Moved this to CheckParamters rather than working on the velocity,
 	// as otherwise it affects every integration step incorrectly.
-	if ((pmove->onground != -1) && (pmove->cmd.buttons & IN_USE))
+	if ((pmove->onground != -1) && ((pmove->cmd.buttons & IN_USE) != 0))
 	{
 		pmove->maxspeed *= 1.0f / 3.0f;
 	}
@@ -3051,7 +3051,7 @@ void PM_CheckParamters()
 		pmove->cmd.buttons = 0; // LRC - no jump sounds when frozen!
 	}
 
-	if (pmove->flags & FL_ONTRAIN)
+	if ((pmove->flags & FL_ONTRAIN) != 0)
 	{
 		pmove->cmd.forwardmove = 0;
 		pmove->cmd.sidemove = 0;
@@ -3131,7 +3131,7 @@ were contacted during the move.
 */
 void PM_PlayerMove(qboolean server)
 {
-	physent_t* pLadder = NULL;
+	physent_t* pLadder = nullptr;
 
 	// Are we running server code?
 	pmove->server = server;
@@ -3196,7 +3196,7 @@ void PM_PlayerMove(qboolean server)
 	if (0 == pmove->dead && (pmove->flags & FL_ONTRAIN) == 0)
 	{
 		pLadder = PM_Ladder();
-		if (pLadder)
+		if (pLadder != nullptr)
 		{
 			g_onladder = true;
 		}
@@ -3209,7 +3209,7 @@ void PM_PlayerMove(qboolean server)
 	// Don't run ladder code if dead or on a train
 	if (0 == pmove->dead && (pmove->flags & FL_ONTRAIN) == 0)
 	{
-		if (pLadder)
+		if (pLadder != nullptr)
 		{
 			PM_LadderMove(pLadder);
 		}
@@ -3250,7 +3250,7 @@ void PM_PlayerMove(qboolean server)
 		// Also, set MOVE_TYPE to walk, too.
 		if ((pmove->cmd.buttons & IN_JUMP) != 0)
 		{
-			if (!pLadder)
+			if (pLadder == nullptr)
 			{
 				PM_Jump();
 			}
@@ -3323,7 +3323,7 @@ void PM_PlayerMove(qboolean server)
 			// Was jump button pressed?
 			if ((pmove->cmd.buttons & IN_JUMP) != 0)
 			{
-				if (!pLadder)
+				if (pLadder == nullptr)
 				{
 					PM_Jump();
 				}

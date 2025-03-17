@@ -38,7 +38,7 @@ int CFlyingMonster::CheckLocalMove(const Vector& vecStart, const Vector& vecEnd,
 	// ALERT( at_console, "%.0f %.0f %.0f : ", vecStart.x, vecStart.y, vecStart.z );
 	// ALERT( at_console, "%.0f %.0f %.0f\n", vecEnd.x, vecEnd.y, vecEnd.z );
 
-	if (pflDist)
+	if (pflDist != nullptr)
 	{
 		*pflDist = ((tr.vecEndPos - Vector(0, 0, 32)) - vecStart).Length(); // get the distance.
 	}
@@ -46,7 +46,7 @@ int CFlyingMonster::CheckLocalMove(const Vector& vecStart, const Vector& vecEnd,
 	// ALERT( at_console, "check %d %d %f\n", tr.fStartSolid, tr.fAllSolid, tr.flFraction );
 	if (0 != tr.fStartSolid || tr.flFraction < 1.0)
 	{
-		if (pTarget && pTarget->edict() == gpGlobals->trace_ent)
+		if ((pTarget != nullptr) && pTarget->edict() == gpGlobals->trace_ent)
 			return LOCALMOVE_VALID;
 		return LOCALMOVE_INVALID;
 	}
@@ -137,7 +137,7 @@ void CFlyingMonster::HandleAnimEvent(MonsterEvent_t* pEvent)
 		break;
 
 	case FLYING_AE_FLAPSOUND:
-		if (m_pFlapSound)
+		if (m_pFlapSound != nullptr)
 			EMIT_SOUND(edict(), CHAN_BODY, m_pFlapSound, 1, ATTN_NORM);
 		break;
 
@@ -192,7 +192,7 @@ void CFlyingMonster::MoveExecute(CBaseEntity* pTargetEnt, const Vector& vecDir, 
 		else
 			m_flightSpeed = UTIL_Approach(20, m_flightSpeed, 300 * gpGlobals->frametime);
 
-		if (LOCALMOVE_INVALID != CheckLocalMove(pev->origin, vecMove, pTargetEnt, NULL))
+		if (LOCALMOVE_INVALID != CheckLocalMove(pev->origin, vecMove, pTargetEnt, nullptr))
 		{
 			m_vecTravel = (vecMove - pev->origin);
 			m_vecTravel = m_vecTravel.Normalize();
@@ -218,7 +218,7 @@ float CFlyingMonster::CeilingZ(const Vector& position)
 	Vector maxUp = position;
 	maxUp.z += 4096.0;
 
-	UTIL_TraceLine(position, maxUp, ignore_monsters, NULL, &tr);
+	UTIL_TraceLine(position, maxUp, ignore_monsters, nullptr, &tr);
 	if (tr.flFraction != 1.0)
 		maxUp.z = tr.vecEndPos.z;
 
@@ -282,7 +282,7 @@ float CFlyingMonster::FloorZ(const Vector& position)
 	Vector down = position;
 	down.z -= 2048;
 
-	UTIL_TraceLine(position, down, ignore_monsters, NULL, &tr);
+	UTIL_TraceLine(position, down, ignore_monsters, nullptr, &tr);
 
 	if (tr.flFraction != 1.0)
 		return tr.vecEndPos.z;

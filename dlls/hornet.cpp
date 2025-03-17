@@ -97,7 +97,7 @@ void CHornet::Spawn()
 	SetThink(&CHornet::StartTrack);
 
 	edict_t* pSoundEnt = pev->owner;
-	if (!pSoundEnt)
+	if (pSoundEnt == nullptr)
 		pSoundEnt = edict();
 
 	if (!FNullEnt(pev->owner) && (pev->owner->v.flags & FL_CLIENT) != 0)
@@ -153,9 +153,9 @@ int CHornet::IRelationship(CBaseEntity* pTarget)
 //=========================================================
 int CHornet::Classify()
 {
-	if (m_iClass)
+	if (m_iClass != 0)
 		return m_iClass;
-	if (pev->owner && (pev->owner->v.flags & FL_CLIENT) != 0)
+	if ((pev->owner != nullptr) && (pev->owner->v.flags & FL_CLIENT) != 0)
 	{
 		return CLASS_PLAYER_BIOWEAPON;
 	}
@@ -257,20 +257,20 @@ void CHornet::TrackTarget()
 
 	if (gpGlobals->time > m_flStopAttack)
 	{
-		SetTouch(NULL);
+		SetTouch(nullptr);
 		SetThink(&CHornet::SUB_Remove);
 		SetNextThink(0.1);
 		return;
 	}
 
 	// UNDONE: The player pointer should come back after returning from another level
-	if (m_hEnemy == NULL)
+	if (m_hEnemy == nullptr)
 	{ // enemy is dead.
 		Look(512);
 		m_hEnemy = BestVisibleEnemy();
 	}
 
-	if (m_hEnemy != NULL && FVisible(m_hEnemy))
+	if (m_hEnemy != nullptr && FVisible(m_hEnemy))
 	{
 		m_vecEnemyLKP = m_hEnemy->BodyTarget(pev->origin);
 	}
@@ -312,7 +312,7 @@ void CHornet::TrackTarget()
 
 	pev->velocity = (vecFlightDir + vecDirToEnemy).Normalize();
 
-	if (pev->owner && (pev->owner->v.flags & FL_MONSTER) != 0)
+	if ((pev->owner != nullptr) && (pev->owner->v.flags & FL_MONSTER) != 0)
 	{
 		// random pattern only applies to hornets fired by monsters, not players.
 
@@ -339,7 +339,7 @@ void CHornet::TrackTarget()
 
 	// if hornet is close to the enemy, jet in a straight line for a half second.
 	// (only in the single player game)
-	if (m_hEnemy != NULL && !g_pGameRules->IsMultiplayer())
+	if (m_hEnemy != nullptr && !g_pGameRules->IsMultiplayer())
 	{
 		if (flDelta >= 0.4 && (pev->origin - m_vecEnemyLKP).Length() <= 300)
 		{
@@ -412,7 +412,7 @@ void CHornet::DieTouch(CBaseEntity* pOther)
 {
 	//Only deal damage if the owner exists in this map.
 	//Hornets that transition without their owner (e.g. Alien Grunt) will otherwise pass a null pointer down to TakeDamage.
-	if (pOther && 0 != pOther->pev->takedamage && nullptr != pev->owner)
+	if ((pOther != nullptr) && 0 != pOther->pev->takedamage && nullptr != pev->owner)
 	{ // do the damage
 
 		switch (RANDOM_LONG(0, 2))

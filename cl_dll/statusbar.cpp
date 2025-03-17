@@ -139,7 +139,7 @@ void CHudStatusBar::ParseStatusString(int line_num)
 						{
 						case 'p': // player name
 							gEngfuncs.pfnGetPlayerInfo(indexval, &g_PlayerInfoList[indexval]);
-							if (g_PlayerInfoList[indexval].name != NULL)
+							if (g_PlayerInfoList[indexval].name != nullptr)
 							{
 								strncpy(szRepString, g_PlayerInfoList[indexval].name, MAX_PLAYER_NAME_LENGTH);
 								m_pflNameColors[line_num] = GetClientColor(indexval);
@@ -202,7 +202,7 @@ bool CHudStatusBar::Draw(float fTime)
 			y = (ScreenHeight / 2) + (TextHeight * CVAR_GET_FLOAT("hud_centerid"));
 		}
 
-		if (m_pflNameColors[i])
+		if (m_pflNameColors[i] != nullptr)
 			gEngfuncs.pfnDrawSetTextColor(m_pflNameColors[i][0], m_pflNameColors[i][1], m_pflNameColors[i][2]);
 
 		DrawConsoleString(x, y, m_szStatusBar[i]);

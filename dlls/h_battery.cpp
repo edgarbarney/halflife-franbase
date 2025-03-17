@@ -152,7 +152,7 @@ void CRecharge::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useT
 
 	// Make sure that we have a caller
 	//TODO: useless, it's accessed earlier on.
-	if (!pActivator)
+	if (pActivator == nullptr)
 		return;
 
 	m_hActivator = pActivator;
@@ -224,7 +224,7 @@ STATE CRecharge::GetState()
 {
 	if (m_iOn == 2)
 		return STATE_IN_USE;
-	else if (m_iJuice)
+	else if (m_iJuice != 0)
 		return STATE_ON;
 	else
 		return STATE_OFF;

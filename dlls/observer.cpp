@@ -30,12 +30,12 @@ void CBasePlayer::Observer_FindNextPlayer(bool bReverse)
 	//				only a subset of the players. e.g. Make it check the target's team.
 
 	int iStart;
-	if (m_hObserverTarget)
+	if (m_hObserverTarget != nullptr)
 		iStart = ENTINDEX(m_hObserverTarget->edict());
 	else
 		iStart = ENTINDEX(edict());
 	int iCurrent = iStart;
-	m_hObserverTarget = NULL;
+	m_hObserverTarget = nullptr;
 	int iDir = bReverse ? -1 : 1;
 
 	do
@@ -49,7 +49,7 @@ void CBasePlayer::Observer_FindNextPlayer(bool bReverse)
 			iCurrent = gpGlobals->maxClients;
 
 		CBaseEntity* pEnt = UTIL_PlayerByIndex(iCurrent);
-		if (!pEnt)
+		if (pEnt == nullptr)
 			continue;
 		if (pEnt == this)
 			continue;
@@ -65,7 +65,7 @@ void CBasePlayer::Observer_FindNextPlayer(bool bReverse)
 	} while (iCurrent != iStart);
 
 	// Did we find a target?
-	if (m_hObserverTarget)
+	if (m_hObserverTarget != nullptr)
 	{
 		// Move to the target
 		UTIL_SetOrigin(this, m_hObserverTarget->pev->origin);
@@ -132,11 +132,11 @@ void CBasePlayer::Observer_CheckTarget()
 		return;
 
 	// try to find a traget if we have no current one
-	if (m_hObserverTarget == NULL)
+	if (m_hObserverTarget == nullptr)
 	{
 		Observer_FindNextPlayer(false);
 
-		if (m_hObserverTarget == NULL)
+		if (m_hObserverTarget == nullptr)
 		{
 			// no target found at all
 
@@ -152,7 +152,7 @@ void CBasePlayer::Observer_CheckTarget()
 
 	CBasePlayer* target = (CBasePlayer*)(UTIL_PlayerByIndex(ENTINDEX(m_hObserverTarget->edict())));
 
-	if (!target)
+	if (target == nullptr)
 	{
 		Observer_FindNextPlayer(false);
 		return;
@@ -173,28 +173,28 @@ void CBasePlayer::Observer_CheckTarget()
 void CBasePlayer::Observer_CheckProperties()
 {
 	// try to find a traget if we have no current one
-	if (pev->iuser1 == OBS_IN_EYE && m_hObserverTarget != NULL)
+	if (pev->iuser1 == OBS_IN_EYE && m_hObserverTarget != nullptr)
 	{
 		CBasePlayer* target = (CBasePlayer*)(UTIL_PlayerByIndex(ENTINDEX(m_hObserverTarget->edict())));
 
-		if (!target)
+		if (target == nullptr)
 			return;
 
-		int weapon = (target->m_pActiveItem != NULL) ? target->m_pActiveItem->m_iId : 0;
+		int weapon = (target->m_pActiveItem != nullptr) ? target->m_pActiveItem->m_iId : 0;
 		// use fov of tracked client
 		if (m_iFOV != target->m_iFOV || m_iObserverWeapon != weapon)
 		{
 			m_iFOV = target->m_iFOV;
 			m_iClientFOV = m_iFOV;
 			// write fov before wepon data, so zoomed crosshair is set correctly
-			MESSAGE_BEGIN(MSG_ONE, gmsgSetFOV, NULL, pev);
+			MESSAGE_BEGIN(MSG_ONE, gmsgSetFOV, nullptr, pev);
 			WRITE_BYTE(m_iFOV);
 			MESSAGE_END();
 
 
 			m_iObserverWeapon = weapon;
 			//send weapon update
-			MESSAGE_BEGIN(MSG_ONE, gmsgCurWeapon, NULL, pev);
+			MESSAGE_BEGIN(MSG_ONE, gmsgCurWeapon, nullptr, pev);
 			WRITE_BYTE(1); // 1 = current weapon, not on target
 			WRITE_BYTE(m_iObserverWeapon);
 			WRITE_BYTE(0); // clip
@@ -209,7 +209,7 @@ void CBasePlayer::Observer_CheckProperties()
 		{
 			m_iObserverWeapon = 0;
 
-			MESSAGE_BEGIN(MSG_ONE, gmsgCurWeapon, NULL, pev);
+			MESSAGE_BEGIN(MSG_ONE, gmsgCurWeapon, nullptr, pev);
 			WRITE_BYTE(1); // 1 = current weapon
 			WRITE_BYTE(m_iObserverWeapon);
 			WRITE_BYTE(0); // clip
@@ -230,26 +230,26 @@ void CBasePlayer::Observer_SetMode(int iMode)
 	if (iMode < OBS_CHASE_LOCKED || iMode > OBS_MAP_CHASE)
 		iMode = OBS_IN_EYE; // now it is
 	// verify observer target again
-	if (m_hObserverTarget != NULL)
+	if (m_hObserverTarget != nullptr)
 	{
 		CBaseEntity* pEnt = m_hObserverTarget;
 
-		if ((pEnt == this) || (pEnt == NULL))
-			m_hObserverTarget = NULL;
+		if ((pEnt == this) || (pEnt == nullptr))
+			m_hObserverTarget = nullptr;
 		else if (((CBasePlayer*)pEnt)->IsObserver() || (pEnt->pev->effects & EF_NODRAW) != 0)
-			m_hObserverTarget = NULL;
+			m_hObserverTarget = nullptr;
 	}
 
 	// set spectator mode
 	pev->iuser1 = iMode;
 
 	// if we are not roaming, we need a valid target to track
-	if ((iMode != OBS_ROAMING) && (m_hObserverTarget == NULL))
+	if ((iMode != OBS_ROAMING) && (m_hObserverTarget == nullptr))
 	{
 		Observer_FindNextPlayer(false);
 
 		// if we didn't find a valid target switch to roaming
-		if (m_hObserverTarget == NULL)
+		if (m_hObserverTarget == nullptr)
 		{
 			ClientPrint(pev, HUD_PRINTCENTER, "#Spec_NoTarget");
 			pev->iuser1 = OBS_ROAMING;

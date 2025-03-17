@@ -331,7 +331,7 @@ IMPLEMENT_CUSTOM_SCHEDULES(CIchthyosaur, CFlyingMonster);
 //=========================================================
 int CIchthyosaur::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_ALIEN_MONSTER;
+	return (m_iClass != 0) ? m_iClass : CLASS_ALIEN_MONSTER;
 }
 
 
@@ -424,7 +424,7 @@ void CIchthyosaur::HandleAnimEvent(MonsterEvent_t* pEvent)
 	case ICHTHYOSAUR_AE_SHAKE_RIGHT:
 	case ICHTHYOSAUR_AE_SHAKE_LEFT:
 	{
-		if (m_hEnemy != NULL && FVisible(m_hEnemy))
+		if (m_hEnemy != nullptr && FVisible(m_hEnemy))
 		{
 			CBaseEntity* pHurt = m_hEnemy;
 
@@ -474,7 +474,7 @@ void CIchthyosaur::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/icky.mdl");
@@ -505,7 +505,7 @@ void CIchthyosaur::Spawn()
 	m_flMaxDist = 384;
 
 	Vector Forward;
-	UTIL_MakeVectorsPrivate(pev->angles, Forward, 0, 0);
+	UTIL_MakeVectorsPrivate(pev->angles, Forward, nullptr, nullptr);
 	pev->velocity = m_flightSpeed * Forward.Normalize();
 	m_SaveVelocity = pev->velocity;
 }
@@ -515,7 +515,7 @@ void CIchthyosaur::Spawn()
 //=========================================================
 void CIchthyosaur::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/icky.mdl");
@@ -652,7 +652,7 @@ void CIchthyosaur::RunTask(Task_t* pTask)
 	switch (pTask->iTask)
 	{
 	case TASK_ICHTHYOSAUR_CIRCLE_ENEMY:
-		if (m_hEnemy == NULL)
+		if (m_hEnemy == nullptr)
 		{
 			TaskComplete();
 		}
@@ -1154,7 +1154,7 @@ Vector CIchthyosaur::DoProbe(const Vector& Probe)
 		}
 	}
 
-	if (bBumpedSomething && (m_hEnemy == NULL || tr.pHit != m_hEnemy->edict()))
+	if (bBumpedSomething && (m_hEnemy == nullptr || tr.pHit != m_hEnemy->edict()))
 	{
 		Vector ProbeDir = Probe - pev->origin;
 

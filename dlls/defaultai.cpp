@@ -968,16 +968,16 @@ Schedule_t* CBaseMonster::ScheduleInList(const char* pName, Schedule_t** pList, 
 {
 	int i;
 
-	if (!pName)
+	if (pName == nullptr)
 	{
 		ALERT(at_debug, "%s set to unnamed schedule!\n", STRING(pev->classname));
-		return NULL;
+		return nullptr;
 	}
 
 
 	for (i = 0; i < listCount; i++)
 	{
-		if (!pList[i]->pName)
+		if (pList[i]->pName == nullptr)
 		{
 			ALERT(at_debug, "Unnamed schedule!\n");
 			continue;
@@ -985,7 +985,7 @@ Schedule_t* CBaseMonster::ScheduleInList(const char* pName, Schedule_t** pList, 
 		if (stricmp(pName, pList[i]->pName) == 0)
 			return pList[i];
 	}
-	return NULL;
+	return nullptr;
 }
 
 //=========================================================
@@ -1001,8 +1001,8 @@ Schedule_t* CBaseMonster::GetScheduleOfType(int Type)
 	case SCHED_AISCRIPT:
 	{
 		//			ALERT(at_console, "Doing AISCRIPT\n");
-		ASSERT(m_pCine != NULL);
-		if (!m_pCine)
+		ASSERT(m_pCine != nullptr);
+		if (m_pCine == nullptr)
 		{
 			ALERT(at_aiconsole, "Script failed for %s\n", STRING(pev->classname));
 			CineCleanup();
@@ -1169,5 +1169,5 @@ Schedule_t* CBaseMonster::GetScheduleOfType(int Type)
 	}
 	}
 
-	return NULL;
+	return nullptr;
 }

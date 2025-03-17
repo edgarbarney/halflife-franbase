@@ -202,7 +202,7 @@ public:
 	int GetNodeSequence()
 	{
 		CBaseEntity* pTarget = m_hTargetEnt;
-		if (pTarget)
+		if (pTarget != nullptr)
 		{
 			return pTarget->pev->netname; // netname holds node sequence
 		}
@@ -213,7 +213,7 @@ public:
 	int GetNodePresequence()
 	{
 		CInfoBM* pTarget = (CInfoBM*)(CBaseEntity*)m_hTargetEnt;
-		if (pTarget)
+		if (pTarget != nullptr)
 		{
 			return pTarget->m_preSequence;
 		}
@@ -223,7 +223,7 @@ public:
 	float GetNodeDelay()
 	{
 		CBaseEntity* pTarget = m_hTargetEnt;
-		if (pTarget)
+		if (pTarget != nullptr)
 		{
 			return pTarget->pev->speed; // Speed holds node delay
 		}
@@ -233,7 +233,7 @@ public:
 	float GetNodeRange()
 	{
 		CBaseEntity* pTarget = m_hTargetEnt;
-		if (pTarget)
+		if (pTarget != nullptr)
 		{
 			return pTarget->pev->scale; // Scale holds node delay
 		}
@@ -243,7 +243,7 @@ public:
 	float GetNodeYaw()
 	{
 		CBaseEntity* pTarget = m_hTargetEnt;
-		if (pTarget)
+		if (pTarget != nullptr)
 		{
 			if (pTarget->pev->angles.y != 0)
 				return pTarget->pev->angles.y;
@@ -409,7 +409,7 @@ bool CBigMomma::KeyValue(KeyValueData* pkvd)
 //=========================================================
 int CBigMomma::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_ALIEN_MONSTER;
+	return (m_iClass != 0) ? m_iClass : CLASS_ALIEN_MONSTER;
 }
 
 //=========================================================
@@ -447,7 +447,7 @@ void CBigMomma::HandleAnimEvent(MonsterEvent_t* pEvent)
 	{
 		Vector forward, right;
 
-		UTIL_MakeVectorsPrivate(pev->angles, forward, right, NULL);
+		UTIL_MakeVectorsPrivate(pev->angles, forward, right, nullptr);
 
 		Vector center = pev->origin + forward * 128;
 		Vector mins = center - Vector(64, 64, 0);
@@ -455,9 +455,9 @@ void CBigMomma::HandleAnimEvent(MonsterEvent_t* pEvent)
 
 		CBaseEntity* pList[8];
 		int count = UTIL_EntitiesInBox(pList, 8, mins, maxs, FL_MONSTER | FL_CLIENT);
-		CBaseEntity* pHurt = NULL;
+		CBaseEntity* pHurt = nullptr;
 
-		for (int i = 0; i < count && !pHurt; i++)
+		for (int i = 0; i < count && (pHurt == nullptr); i++)
 		{
 			if (pList[i] != this)
 			{
@@ -466,7 +466,7 @@ void CBigMomma::HandleAnimEvent(MonsterEvent_t* pEvent)
 			}
 		}
 
-		if (pHurt)
+		if (pHurt != nullptr)
 		{
 			pHurt->TakeDamage(pev, pev, gSkillData.bigmommaDmgSlash, DMG_CRUSH | DMG_SLASH);
 			pHurt->pev->punchangle.x = 15;
@@ -546,7 +546,7 @@ void CBigMomma::HandleAnimEvent(MonsterEvent_t* pEvent)
 	case BIG_AE_EARLY_TARGET:
 	{
 		CBaseEntity* pTarget = m_hTargetEnt;
-		if (pTarget && !FStringNull(pTarget->pev->message))
+		if ((pTarget != nullptr) && !FStringNull(pTarget->pev->message))
 			FireTargets(STRING(pTarget->pev->message), this, this, USE_TOGGLE, 0);
 		Remember(bits_MEMORY_FIRED_NODE);
 	}
@@ -650,9 +650,9 @@ void CBigMomma::LaunchMortar()
 	startPos.z += 180;
 	Vector vecLaunch = g_vecZero;
 
-	if (m_pCine) // is a scripted_action making me shoot?
+	if (m_pCine != nullptr) // is a scripted_action making me shoot?
 	{
-		if (m_hTargetEnt != NULL) // don't check m_fTurnType- bigmomma can fire in any direction.
+		if (m_hTargetEnt != nullptr) // don't check m_fTurnType- bigmomma can fire in any direction.
 		{
 			vecLaunch = VecCheckSplatToss(pev, startPos, m_hTargetEnt->pev->origin, RANDOM_FLOAT(150, 500));
 		}
@@ -679,7 +679,7 @@ void CBigMomma::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/big_mom.mdl");
@@ -702,7 +702,7 @@ void CBigMomma::Spawn()
 //=========================================================
 void CBigMomma::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/big_mom.mdl");
@@ -732,7 +732,7 @@ void CBigMomma::Precache()
 
 void CBigMomma::Activate()
 {
-	if (m_hTargetEnt == NULL)
+	if (m_hTargetEnt == nullptr)
 		Remember(bits_MEMORY_ADVANCE_NODE); // Start 'er up
 
 	CBaseMonster::Activate();
@@ -743,18 +743,18 @@ void CBigMomma::NodeStart(int iszNextNode)
 {
 	pev->netname = iszNextNode;
 
-	CBaseEntity* pTarget = NULL;
+	CBaseEntity* pTarget = nullptr;
 
 	if (!FStringNull(pev->netname))
 	{
-		edict_t* pentTarget = FIND_ENTITY_BY_TARGETNAME(NULL, STRING(pev->netname));
+		edict_t* pentTarget = FIND_ENTITY_BY_TARGETNAME(nullptr, STRING(pev->netname));
 
 		if (!FNullEnt(pentTarget))
 			pTarget = Instance(pentTarget);
 	}
 
 
-	if (!pTarget)
+	if (pTarget == nullptr)
 	{
 		ALERT(at_aiconsole, "BM: Finished the path!!\n");
 		Remember(bits_MEMORY_PATH_FINISHED);
@@ -771,7 +771,7 @@ void CBigMomma::NodeReach()
 
 	Forget(bits_MEMORY_ADVANCE_NODE);
 
-	if (!pTarget)
+	if (pTarget == nullptr)
 		return;
 
 	if (0 != pTarget->pev->health)
@@ -816,7 +816,7 @@ bool CBigMomma::CheckRangeAttack1(float flDot, float flDist)
 	{
 		CBaseEntity* pEnemy = m_hEnemy;
 
-		if (pEnemy)
+		if (pEnemy != nullptr)
 		{
 			Vector startPos = pev->origin;
 			startPos.z += 180;
@@ -990,7 +990,7 @@ void CBigMomma::StartTask(Task_t* pTask)
 		CBaseEntity* pTarget = m_hTargetEnt;
 		if (!HasMemory(bits_MEMORY_ADVANCE_NODE))
 		{
-			if (pTarget)
+			if (pTarget != nullptr)
 				pev->netname = m_hTargetEnt->pev->target;
 		}
 		NodeStart(pev->netname);
@@ -1054,7 +1054,7 @@ void CBigMomma::StartTask(Task_t* pTask)
 	case TASK_MOVE_TO_NODE_RANGE:
 	{
 		CBaseEntity* pTarget = m_hTargetEnt;
-		if (!pTarget)
+		if (pTarget == nullptr)
 			TaskFail();
 		else
 		{
@@ -1101,7 +1101,7 @@ void CBigMomma::RunTask(Task_t* pTask)
 	{
 		float distance;
 
-		if (m_hTargetEnt == NULL)
+		if (m_hTargetEnt == nullptr)
 			TaskFail();
 		else
 		{
@@ -1120,7 +1120,7 @@ void CBigMomma::RunTask(Task_t* pTask)
 	break;
 
 	case TASK_WAIT_NODE:
-		if (m_hTargetEnt != NULL && (m_hTargetEnt->pev->spawnflags & SF_INFOBM_WAIT) != 0)
+		if (m_hTargetEnt != nullptr && (m_hTargetEnt->pev->spawnflags & SF_INFOBM_WAIT) != 0)
 			return;
 
 		if (gpGlobals->time > m_flWaitFinished)
@@ -1253,7 +1253,7 @@ void CBMortar::Animate()
 
 CBMortar* CBMortar::Shoot(edict_t* pOwner, Vector vecStart, Vector vecVelocity)
 {
-	CBMortar* pSpit = GetClassPtr((CBMortar*)NULL);
+	CBMortar* pSpit = GetClassPtr((CBMortar*)nullptr);
 	pSpit->Spawn();
 
 	UTIL_SetOrigin(pSpit, vecStart);
@@ -1302,8 +1302,8 @@ void CBMortar::Touch(CBaseEntity* pOther)
 	// make some flecks
 	MortarSpray(tr.vecEndPos, tr.vecPlaneNormal, gSpitSprite, 24);
 
-	entvars_t* pevOwner = NULL;
-	if (pev->owner)
+	entvars_t* pevOwner = nullptr;
+	if (pev->owner != nullptr)
 		pevOwner = VARS(pev->owner);
 
 	RadiusDamage(pev->origin, pev, pevOwner, gSkillData.bigmommaDmgBlast, gSkillData.bigmommaRadiusBlast, CLASS_NONE, DMG_ACID);

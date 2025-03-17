@@ -47,7 +47,7 @@ static CBasePlayer* FindPlayerByName(const char* pTestName)
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBaseEntity* pEnt = UTIL_PlayerByIndex(i);
-		if (pEnt)
+		if (pEnt != nullptr)
 		{
 			const char* pNetName = STRING(pEnt->pev->netname);
 			if (stricmp(pNetName, pTestName) == 0)
@@ -57,7 +57,7 @@ static CBasePlayer* FindPlayerByName(const char* pTestName)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 static void VoiceServerDebug(char const* pFmt, ...)
@@ -148,7 +148,7 @@ bool CVoiceGameMgr::PlayerHasBlockedPlayer(CBasePlayer* pReceiver, CBasePlayer* 
 {
 	int iReceiverIndex, iSenderIndex;
 
-	if (!pReceiver || !pSender)
+	if ((pReceiver == nullptr) || (pSender == nullptr))
 		return false;
 
 	iReceiverIndex = pReceiver->entindex() - 1;
@@ -217,13 +217,13 @@ void CVoiceGameMgr::UpdateMasks()
 	for (int iClient = 0; iClient < m_nMaxPlayers; iClient++)
 	{
 		CBaseEntity* pEnt = UTIL_PlayerByIndex(iClient + 1);
-		if (!pEnt || !pEnt->IsPlayer())
+		if ((pEnt == nullptr) || !pEnt->IsPlayer())
 			continue;
 
 		// Request the state of their "VModEnable" cvar.
 		if (g_bWantModEnable[iClient])
 		{
-			MESSAGE_BEGIN(MSG_ONE, m_msgRequestState, NULL, pEnt->pev);
+			MESSAGE_BEGIN(MSG_ONE, m_msgRequestState, nullptr, pEnt->pev);
 			MESSAGE_END();
 		}
 
@@ -236,7 +236,7 @@ void CVoiceGameMgr::UpdateMasks()
 			for (int iOtherClient = 0; iOtherClient < m_nMaxPlayers; iOtherClient++)
 			{
 				CBaseEntity* pEnt = UTIL_PlayerByIndex(iOtherClient + 1);
-				if (pEnt && (bAllTalk || m_pHelper->CanPlayerHearPlayer(pPlayer, (CBasePlayer*)pEnt)))
+				if ((pEnt != nullptr) && (bAllTalk || m_pHelper->CanPlayerHearPlayer(pPlayer, (CBasePlayer*)pEnt)))
 				{
 					gameRulesMask[iOtherClient] = true;
 				}
@@ -250,7 +250,7 @@ void CVoiceGameMgr::UpdateMasks()
 			g_SentGameRulesMasks[iClient] = gameRulesMask;
 			g_SentBanMasks[iClient] = g_BanMasks[iClient];
 
-			MESSAGE_BEGIN(MSG_ONE, m_msgPlayerVoiceMask, NULL, pPlayer->pev);
+			MESSAGE_BEGIN(MSG_ONE, m_msgPlayerVoiceMask, nullptr, pPlayer->pev);
 			int dw;
 			for (dw = 0; dw < VOICE_MAX_PLAYERS_DW; dw++)
 			{

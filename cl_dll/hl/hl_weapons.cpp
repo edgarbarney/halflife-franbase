@@ -115,7 +115,7 @@ void HUD_PrepEntity(CBaseEntity* pEntity, CBasePlayer* pWeaponOwner)
 	pEntity->Precache();
 	pEntity->Spawn();
 
-	if (pWeaponOwner)
+	if (pWeaponOwner != nullptr)
 	{
 		ItemInfo info;
 
@@ -129,12 +129,12 @@ void HUD_PrepEntity(CBaseEntity* pEntity, CBasePlayer* pWeaponOwner)
 
 		const char* weaponName = ((info.iFlags & ITEM_FLAG_EXHAUSTIBLE) != 0) ? STRING(pEntity->pev->classname) : nullptr;
 
-		if (info.pszAmmo1 && '\0' != *info.pszAmmo1)
+		if ((info.pszAmmo1 != nullptr) && '\0' != *info.pszAmmo1)
 		{
 			AddAmmoNameToAmmoRegistry(info.pszAmmo1, weaponName);
 		}
 
-		if (info.pszAmmo2 && '\0' != *info.pszAmmo2)
+		if ((info.pszAmmo2 != nullptr) && '\0' != *info.pszAmmo2)
 		{
 			AddAmmoNameToAmmoRegistry(info.pszAmmo2, weaponName);
 		}
@@ -242,7 +242,7 @@ Vector CBaseEntity::FireBulletsPlayer(unsigned int cShots, Vector vecSrc, Vector
 
 	for (unsigned int iShot = 1; iShot <= cShots; iShot++)
 	{
-		if (pevAttacker == NULL)
+		if (pevAttacker == nullptr)
 		{
 			// get circular gaussian spread
 			do
@@ -274,25 +274,25 @@ CBasePlayer::SelectItem
 */
 void CBasePlayer::SelectItem(const char* pstr)
 {
-	if (!pstr)
+	if (pstr == nullptr)
 		return;
 
-	CBasePlayerItem* pItem = NULL;
+	CBasePlayerItem* pItem = nullptr;
 
-	if (!pItem)
+	if (pItem == nullptr)
 		return;
 
 
 	if (pItem == m_pActiveItem)
 		return;
 
-	if (m_pActiveItem)
+	if (m_pActiveItem != nullptr)
 		m_pActiveItem->Holster();
 
 	m_pLastItem = m_pActiveItem;
 	m_pActiveItem = pItem;
 
-	if (m_pActiveItem)
+	if (m_pActiveItem != nullptr)
 	{
 		m_pActiveItem->Deploy();
 	}
@@ -307,10 +307,10 @@ CBasePlayer::Killed
 void CBasePlayer::Killed(entvars_t* pevAttacker, int iGib)
 {
 	// Holster weapon immediately, to allow it to cleanup
-	if (m_pActiveItem)
+	if (m_pActiveItem != nullptr)
 		m_pActiveItem->Holster();
 
-	m_pNextItem = NULL;
+	m_pNextItem = nullptr;
 
 	g_irunninggausspred = false;
 }
@@ -323,12 +323,12 @@ CBasePlayer::Spawn
 */
 void CBasePlayer::Spawn()
 {
-	if (m_pActiveItem && m_pNextItem)
+	if ((m_pActiveItem != nullptr) && (m_pNextItem != nullptr))
 	{
 		m_pActiveItem = m_pNextItem;
 		m_pActiveItem->Deploy();
 		m_pActiveItem->UpdateItemInfo();
-		m_pNextItem = NULL;
+		m_pNextItem = nullptr;
 	}
 	g_irunninggausspred = false;
 }
@@ -393,7 +393,7 @@ void UTIL_ParticleBoxes()
 	for (idx = 1; idx < 100; idx++)
 	{
 		pe = gEngfuncs.pEventAPI->EV_GetPhysent(idx);
-		if (!pe)
+		if (pe == nullptr)
 			break;
 
 		if (pe->info >= 1 && pe->info <= gEngfuncs.GetMaxClients())
@@ -462,7 +462,7 @@ void HUD_InitClientWeapons()
 	g_engfuncs.pfnCVarGetFloat = gEngfuncs.pfnGetCvarFloat;
 
 	// Allocate a slot for the local player
-	HUD_PrepEntity(&player, NULL);
+	HUD_PrepEntity(&player, nullptr);
 
 	// Allocate slot(s) for each weapon that we are going to be predicting
 	HUD_PrepEntity(&g_Glock, &player);
@@ -528,7 +528,7 @@ void HUD_WeaponsPostThink(local_state_s* from, local_state_s* to, usercmd_t* cmd
 {
 	int i;
 	int buttonsChanged;
-	CBasePlayerWeapon* pWeapon = NULL;
+	CBasePlayerWeapon* pWeapon = nullptr;
 	CBasePlayerWeapon* pCurrent;
 	weapon_data_t nulldata, *pfrom, *pto;
 	static int lasthealth;
@@ -614,7 +614,7 @@ void HUD_WeaponsPostThink(local_state_s* from, local_state_s* to, usercmd_t* cmd
 	{
 		if (to->client.health <= 0 && lasthealth > 0)
 		{
-			player.Killed(NULL, 0);
+			player.Killed(nullptr, 0);
 		}
 		else if (to->client.health > 0 && lasthealth <= 0)
 		{
@@ -625,13 +625,13 @@ void HUD_WeaponsPostThink(local_state_s* from, local_state_s* to, usercmd_t* cmd
 	}
 
 	// We are not predicting the current weapon, just bow out here.
-	if (!pWeapon)
+	if (pWeapon == nullptr)
 		return;
 
 	for (i = 0; i < MAX_WEAPONS; i++)
 	{
 		pCurrent = g_pWpns[i];
-		if (!pCurrent)
+		if (pCurrent == nullptr)
 		{
 			continue;
 		}
@@ -737,17 +737,17 @@ void HUD_WeaponsPostThink(local_state_s* from, local_state_s* to, usercmd_t* cmd
 		if (from->weapondata[cmd->weaponselect].m_iId == cmd->weaponselect)
 		{
 			CBasePlayerWeapon* pNew = g_pWpns[cmd->weaponselect];
-			if (pNew && (pNew != pWeapon))
+			if ((pNew != nullptr) && (pNew != pWeapon))
 			{
 				// Put away old weapon
-				if (player.m_pActiveItem)
+				if (player.m_pActiveItem != nullptr)
 					player.m_pActiveItem->Holster();
 
 				player.m_pLastItem = player.m_pActiveItem;
 				player.m_pActiveItem = pNew;
 
 				// Deploy new weapon
-				if (player.m_pActiveItem)
+				if (player.m_pActiveItem != nullptr)
 				{
 					player.m_pActiveItem->Deploy();
 				}
@@ -801,7 +801,7 @@ void HUD_WeaponsPostThink(local_state_s* from, local_state_s* to, usercmd_t* cmd
 
 		pto = &to->weapondata[i];
 
-		if (!pCurrent)
+		if (pCurrent == nullptr)
 		{
 			memset(pto, 0, sizeof(weapon_data_t));
 			continue;
@@ -899,7 +899,7 @@ void HUD_WeaponsPostThink(local_state_s* from, local_state_s* to, usercmd_t* cmd
 	HUD_SetLastOrg();
 
 	// Wipe it so we can't use it after this frame
-	g_finalstate = NULL;
+	g_finalstate = nullptr;
 }
 
 /*
@@ -923,7 +923,7 @@ void DLLEXPORT HUD_PostRunCmd(struct local_state_s* from, struct local_state_s* 
 	HUD_InitClientWeapons();
 
 #if defined(CLIENT_WEAPONS)
-	if (cl_lw && 0 != cl_lw->value)
+	if ((cl_lw != nullptr) && 0 != cl_lw->value)
 	{
 		HUD_WeaponsPostThink(from, to, cmd, time, random_seed);
 	}
@@ -936,7 +936,7 @@ void DLLEXPORT HUD_PostRunCmd(struct local_state_s* from, struct local_state_s* 
 	if (g_irunninggausspred)
 	{
 		Vector forward;
-		gEngfuncs.pfnAngleVectors(v_angles, forward, NULL, NULL);
+		gEngfuncs.pfnAngleVectors(v_angles, forward, nullptr, nullptr);
 		to->client.velocity = to->client.velocity - forward * g_flApplyVel * 5;
 		g_irunninggausspred = false;
 	}

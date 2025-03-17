@@ -32,7 +32,7 @@ namespace FranUtils
 
 		inline static void InitGlobals()
 		{
-			isPaused = true;
+			isPaused = 1;
 			isPausedLastUpdate = 0.0f;
 			in3DMainMenu = false;
 			inMainMenu = true;

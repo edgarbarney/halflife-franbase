@@ -375,16 +375,16 @@ class CMultiplayBusters : public CHalfLifeMultiplay
 public:
 	CMultiplayBusters();
 
-	void Think();
-	int IPointsForKill(CBasePlayer* pAttacker, CBasePlayer* pKilled);
-	void PlayerKilled(CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pInflictor);
-	void DeathNotice(CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pInflictor);
-	int WeaponShouldRespawn(CBasePlayerItem* pWeapon);
-	bool CanHavePlayerItem(CBasePlayer* pPlayer, CBasePlayerItem* pWeapon);
-	bool CanHaveItem(CBasePlayer* pPlayer, CItem* pItem);
-	void PlayerGotWeapon(CBasePlayer* pPlayer, CBasePlayerItem* pWeapon);
-	void ClientUserInfoChanged(CBasePlayer* pPlayer, char* infobuffer);
-	void PlayerSpawn(CBasePlayer* pPlayer);
+	void Think() override;
+	int IPointsForKill(CBasePlayer* pAttacker, CBasePlayer* pKilled) override;
+	void PlayerKilled(CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pInflictor) override;
+	void DeathNotice(CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pInflictor) override;
+	int WeaponShouldRespawn(CBasePlayerItem* pWeapon) override;
+	bool CanHavePlayerItem(CBasePlayer* pPlayer, CBasePlayerItem* pWeapon) override;
+	bool CanHaveItem(CBasePlayer* pPlayer, CItem* pItem) override;
+	void PlayerGotWeapon(CBasePlayer* pPlayer, CBasePlayerItem* pWeapon) override;
+	void ClientUserInfoChanged(CBasePlayer* pPlayer, char* infobuffer) override;
+	void PlayerSpawn(CBasePlayer* pPlayer) override;
 
 	void SetPlayerModel(CBasePlayer* pPlayer);
 

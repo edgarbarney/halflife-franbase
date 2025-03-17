@@ -20,13 +20,13 @@ namespace FranUtils::StringUtils
 	{
 		const char* buffer1 = mainstr;
 		const char* buffer2 = substr;
-		const char* result = *buffer2 == 0 ? mainstr : 0;
+		const char* result = *buffer2 == 0 ? mainstr : nullptr;
 
 		while (*buffer1 != 0 && *buffer2 != 0)
 		{
 			if (tolower((unsigned char)*buffer1) == tolower((unsigned char)*buffer2))
 			{
-				if (result == 0)
+				if (result == nullptr)
 				{
 					result = buffer1;
 				}
@@ -36,7 +36,7 @@ namespace FranUtils::StringUtils
 			else
 			{
 				buffer2 = substr;
-				if (result != 0)
+				if (result != nullptr)
 				{
 					buffer1 = result + 1;
 				}
@@ -48,14 +48,14 @@ namespace FranUtils::StringUtils
 				}
 				else
 				{
-					result = 0;
+					result = nullptr;
 				}
 			}
 
 			buffer1++;
 		}
 
-		return *buffer2 == 0 ? (char*)result : 0;
+		return *buffer2 == 0 ? (char*)result : nullptr;
 	}
 
 	// Split quoted tokens into words

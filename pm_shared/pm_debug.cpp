@@ -158,7 +158,7 @@ void PM_DrawPhysEntBBox(int num, int pcolor, float life)
 
 	pe = &pmove->physents[num];
 
-	if (pe->model)
+	if (pe->model != nullptr)
 	{
 		VectorCopy(pe->origin, org);
 

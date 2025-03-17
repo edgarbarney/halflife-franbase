@@ -217,7 +217,7 @@ void CBarney::RunTask(Task_t* pTask)
 	switch (pTask->iTask)
 	{
 	case TASK_RANGE_ATTACK1:
-		if (m_hEnemy != NULL && (m_hEnemy->IsPlayer()))
+		if (m_hEnemy != nullptr && (m_hEnemy->IsPlayer()))
 		{
 			pev->framerate = 1.5;
 		}
@@ -253,7 +253,7 @@ int CBarney::ISoundMask()
 //=========================================================
 int CBarney::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_PLAYER_ALLY;
+	return (m_iClass != 0) ? m_iClass : CLASS_PLAYER_ALLY;
 }
 
 //=========================================================
@@ -261,11 +261,11 @@ int CBarney::Classify()
 //=========================================================
 void CBarney::AlertSound()
 {
-	if (m_hEnemy != NULL)
+	if (m_hEnemy != nullptr)
 	{
 		if (FOkToSpeak())
 		{
-			if (m_iszSpeakAs)
+			if (m_iszSpeakAs != 0)
 			{
 				char szBuf[32];
 				strcpy(szBuf, STRING(m_iszSpeakAs));
@@ -325,7 +325,7 @@ bool CBarney::CheckRangeAttack1(float flDot, float flDist)
 			Vector shootTarget = ((pEnemy->BodyTarget(shootOrigin) - pEnemy->pev->origin) + m_vecEnemyLKP);
 			UTIL_TraceLine(shootOrigin, shootTarget, dont_ignore_monsters, ENT(pev), &tr);
 			m_checkAttackTime = gpGlobals->time + 1;
-			if (tr.flFraction == 1.0 || (tr.pHit != NULL && CBaseEntity::Instance(tr.pHit) == pEnemy))
+			if (tr.flFraction == 1.0 || (tr.pHit != nullptr && CBaseEntity::Instance(tr.pHit) == pEnemy))
 				m_lastAttackCheck = true;
 			else
 				m_lastAttackCheck = false;
@@ -353,7 +353,7 @@ void CBarney::BarneyFirePistol()
 	SetBlending(0, angDir.x);
 	pev->effects = EF_MUZZLEFLASH;
 
-	if (pev->frags)
+	if (pev->frags != 0.0f)
 	{
 		FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_2DEGREES, 1024, BULLET_PLAYER_357);
 		if (RANDOM_LONG(0, 1))
@@ -435,7 +435,7 @@ void CBarney::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/barney.mdl");
@@ -465,7 +465,7 @@ void CBarney::Spawn()
 //=========================================================
 void CBarney::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/barney.mdl");
@@ -495,21 +495,21 @@ void CBarney::TalkInit()
 
 	// barney speech group names (group names are in sentences.txt)
 
-	if (!m_iszSpeakAs)
+	if (m_iszSpeakAs == 0)
 	{
 		m_szGrp[TLK_ANSWER] = "BA_ANSWER";
 		m_szGrp[TLK_QUESTION] = "BA_QUESTION";
 		m_szGrp[TLK_IDLE] = "BA_IDLE";
 		m_szGrp[TLK_STARE] = "BA_STARE";
-		if (pev->spawnflags & SF_MONSTER_PREDISASTER) //LRC
+		if ((pev->spawnflags & SF_MONSTER_PREDISASTER) != 0) //LRC
 			m_szGrp[TLK_USE] = "BA_PFOLLOW";
 		else
 			m_szGrp[TLK_USE] = "BA_OK";
-		if (pev->spawnflags & SF_MONSTER_PREDISASTER)
+		if ((pev->spawnflags & SF_MONSTER_PREDISASTER) != 0)
 			m_szGrp[TLK_UNUSE] = "BA_PWAIT";
 		else
 			m_szGrp[TLK_UNUSE] = "BA_WAIT";
-		if (pev->spawnflags & SF_MONSTER_PREDISASTER)
+		if ((pev->spawnflags & SF_MONSTER_PREDISASTER) != 0)
 			m_szGrp[TLK_DECLINE] = "BA_POK";
 		else
 			m_szGrp[TLK_DECLINE] = "BA_NOTOK";
@@ -522,8 +522,8 @@ void CBarney::TalkInit()
 		m_szGrp[TLK_PLHURT2] = "!BA_CUREB";
 		m_szGrp[TLK_PLHURT3] = "!BA_CUREC";
 
-		m_szGrp[TLK_PHELLO] = NULL;			  //"BA_PHELLO";		// UNDONE
-		m_szGrp[TLK_PIDLE] = NULL;			  //"BA_PIDLE";			// UNDONE
+		m_szGrp[TLK_PHELLO] = nullptr;			  //"BA_PHELLO";		// UNDONE
+		m_szGrp[TLK_PIDLE] = nullptr;			  //"BA_PIDLE";			// UNDONE
 		m_szGrp[TLK_PQUESTION] = "BA_PQUEST"; // UNDONE
 
 		m_szGrp[TLK_SMELL] = "BA_SMELL";
@@ -544,7 +544,7 @@ bool CBarney::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float 
 		return ret;
 
 	// LRC - if my reaction to the player has been overridden, don't do this stuff
-	if (m_iPlayerReact)
+	if (m_iPlayerReact != 0)
 		return ret;
 
 	if (m_MonsterState != MONSTERSTATE_PRONE && (pevAttacker->flags & FL_CLIENT) != 0)
@@ -553,13 +553,13 @@ bool CBarney::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float 
 
 		// This is a heurstic to determine if the player intended to harm me
 		// If I have an enemy, we can't establish intent (may just be crossfire)
-		if (m_hEnemy == NULL)
+		if (m_hEnemy == nullptr)
 		{
 			// If the player was facing directly at me, or I'm already suspicious, get mad
 			if ((m_afMemory & bits_MEMORY_SUSPICIOUS) != 0 || IsFacing(pevAttacker, pev->origin))
 			{
 				// Alright, now I'm pissed!
-				if (m_iszSpeakAs)
+				if (m_iszSpeakAs != 0)
 				{
 					char szBuf[32];
 					strcpy(szBuf, STRING(m_iszSpeakAs));
@@ -577,7 +577,7 @@ bool CBarney::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float 
 			else
 			{
 				// Hey, be careful with that
-				if (m_iszSpeakAs)
+				if (m_iszSpeakAs != 0)
 				{
 					char szBuf[32];
 					strcpy(szBuf, STRING(m_iszSpeakAs));
@@ -593,7 +593,7 @@ bool CBarney::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float 
 		}
 		else if (!(m_hEnemy->IsPlayer()) && pev->deadflag == DEAD_NO)
 		{
-			if (m_iszSpeakAs)
+			if (m_iszSpeakAs != 0)
 			{
 				char szBuf[32];
 				strcpy(szBuf, STRING(m_iszSpeakAs));
@@ -687,7 +687,7 @@ void CBarney::TraceAttack(entvars_t* pevAttacker, float flDamage, Vector vecDir,
 
 void CBarney::Killed(entvars_t* pevAttacker, int iGib)
 {
-	if (pev->body < m_iBaseBody + BARNEY_BODY_GUNGONE && !(pev->spawnflags & SF_MONSTER_NO_WPN_DROP))
+	if (pev->body < m_iBaseBody + BARNEY_BODY_GUNGONE && ((pev->spawnflags & SF_MONSTER_NO_WPN_DROP) == 0))
 	{ // drop the gun!
 		Vector vecGunPos;
 		Vector vecGunAngles;
@@ -697,13 +697,13 @@ void CBarney::Killed(entvars_t* pevAttacker, int iGib)
 		GetAttachment(0, vecGunPos, vecGunAngles);
 
 		CBaseEntity* pGun;
-		if (pev->frags)
+		if (pev->frags != 0.0f)
 			pGun = DropItem("weapon_357", vecGunPos, vecGunAngles);
 		else
 			pGun = DropItem("weapon_9mmhandgun", vecGunPos, vecGunAngles);
 	}
 
-	SetUse(NULL);
+	SetUse(nullptr);
 	CTalkMonster::Killed(pevAttacker, iGib);
 }
 
@@ -718,7 +718,7 @@ Schedule_t* CBarney::GetScheduleOfType(int Type)
 	switch (Type)
 	{
 	case SCHED_ARM_WEAPON:
-		if (m_hEnemy != NULL)
+		if (m_hEnemy != nullptr)
 		{
 			// face enemy, then draw.
 			return slBarneyEnemyDraw;
@@ -769,14 +769,14 @@ Schedule_t* CBarney::GetSchedule()
 		CSound* pSound;
 		pSound = PBestSound();
 
-		ASSERT(pSound != NULL);
-		if (pSound && (pSound->m_iType & bits_SOUND_DANGER) != 0)
+		ASSERT(pSound != nullptr);
+		if ((pSound != nullptr) && (pSound->m_iType & bits_SOUND_DANGER) != 0)
 			return GetScheduleOfType(SCHED_TAKE_COVER_FROM_BEST_SOUND);
 	}
 	if (HasConditions(bits_COND_ENEMY_DEAD) && FOkToSpeak())
 	{
 		// Hey, be careful with that
-		if (m_iszSpeakAs)
+		if (m_iszSpeakAs != 0)
 		{
 			char szBuf[32];
 			strcpy(szBuf, STRING(m_iszSpeakAs));
@@ -821,7 +821,7 @@ Schedule_t* CBarney::GetSchedule()
 			return GetScheduleOfType(SCHED_SMALL_FLINCH);
 		}
 
-		if (m_hEnemy == NULL && IsFollowing())
+		if (m_hEnemy == nullptr && IsFollowing())
 		{
 			if (!m_hTargetEnt->IsAlive())
 			{

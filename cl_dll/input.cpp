@@ -118,7 +118,7 @@ typedef struct kblist_s
 	char name[32];
 } kblist_t;
 
-kblist_t* g_kbkeys = NULL;
+kblist_t* g_kbkeys = nullptr;
 
 /*
 ============
@@ -138,10 +138,10 @@ bool KB_ConvertString(char* in, char** ppout)
 	char* pEnd;
 	const char* pBinding;
 
-	if (!ppout)
+	if (ppout == nullptr)
 		return false;
 
-	*ppout = NULL;
+	*ppout = nullptr;
 	p = in;
 	pOut = sz;
 	while ('\0' != *p)
@@ -156,14 +156,14 @@ bool KB_ConvertString(char* in, char** ppout)
 
 			*pEnd = '\0';
 
-			pBinding = NULL;
+			pBinding = nullptr;
 			if (strlen(binding + 1) > 0)
 			{
 				// See if there is a binding for binding?
 				pBinding = gEngfuncs.Key_LookupBinding(binding + 1);
 			}
 
-			if (pBinding)
+			if (pBinding != nullptr)
 			{
 				*pOut++ = '[';
 				pEnd = (char*)pBinding;
@@ -178,7 +178,7 @@ bool KB_ConvertString(char* in, char** ppout)
 				*pOut++ = *pEnd++;
 			}
 
-			if (pBinding)
+			if (pBinding != nullptr)
 			{
 				*pOut++ = ']';
 			}
@@ -211,14 +211,14 @@ struct kbutton_s DLLEXPORT* KB_Find(const char* name)
 
 	kblist_t* p;
 	p = g_kbkeys;
-	while (p)
+	while (p != nullptr)
 	{
 		if (!stricmp(name, p->name))
 			return p->pkey;
 
 		p = p->next;
 	}
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -235,7 +235,7 @@ void KB_Add(const char* name, kbutton_t* pkb)
 
 	kb = KB_Find(name);
 
-	if (kb)
+	if (kb != nullptr)
 		return;
 
 	p = (kblist_t*)malloc(sizeof(kblist_t));
@@ -257,7 +257,7 @@ Add kbutton_t definitions that the engine can query if needed
 */
 void KB_Init()
 {
-	g_kbkeys = NULL;
+	g_kbkeys = nullptr;
 
 	KB_Add("in_graph", &in_graph);
 	KB_Add("in_mlook", &in_mlook);
@@ -275,13 +275,13 @@ void KB_Shutdown()
 {
 	kblist_t *p, *n;
 	p = g_kbkeys;
-	while (p)
+	while (p != nullptr)
 	{
 		n = p->next;
 		free(p);
 		p = n;
 	}
-	g_kbkeys = NULL;
+	g_kbkeys = nullptr;
 }
 
 /*
@@ -369,7 +369,7 @@ int DLLEXPORT HUD_Key_Event(int down, int keynum, const char* pszCurrentBinding)
 {
 	//	RecClKeyEvent(down, keynum, pszCurrentBinding);
 
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		return static_cast<int>(gViewPort->KeyInput(0 != down, keynum, pszCurrentBinding));
 
 	return 1;
@@ -509,7 +509,7 @@ void IN_Impulse()
 void IN_ScoreDown()
 {
 	KeyDown(&in_score);
-	if (gViewPort)
+	if (gViewPort != nullptr)
 	{
 		gViewPort->ShowScoreBoard();
 	}
@@ -518,26 +518,26 @@ void IN_ScoreDown()
 void IN_ScoreUp()
 {
 	KeyUp(&in_score);
-	if (gViewPort)
+	if (gViewPort != nullptr)
 	{
 		gViewPort->HideScoreBoard();
 	}
 }
 
-void IN_HUDDown(void) //AJH
+void IN_HUDDown() //AJH
 {
 	KeyDown(&in_customhud);
-	if (gViewPort)
+	if (gViewPort != nullptr)
 	{
 		//gViewPort->ShowVGUIMenu(MENU_CUSTOM);
 		gViewPort->ShowCommandMenu(gViewPort->m_StandardMenu);
 	}
 }
 
-void IN_HUDUp(void) //AJH
+void IN_HUDUp() //AJH
 {
 	KeyUp(&in_customhud);
-	if (gViewPort)
+	if (gViewPort != nullptr)
 	{
 		//gViewPort->HideVGUIMenu();
 		gViewPort->HideCommandMenu();
@@ -547,7 +547,7 @@ void IN_HUDUp(void) //AJH
 void IN_BriefingDown() //AJH
 {
 	KeyDown(&in_briefing);
-	if (gViewPort)
+	if (gViewPort != nullptr)
 	{
 		gViewPort->ShowVGUIMenu(MENU_MAPBRIEFING);
 	}
@@ -556,7 +556,7 @@ void IN_BriefingDown() //AJH
 void IN_BriefingUp() //AJH
 {
 	KeyUp(&in_briefing);
-	if (gViewPort)
+	if (gViewPort != nullptr)
 	{
 		gViewPort->HideVGUIMenu();
 	}

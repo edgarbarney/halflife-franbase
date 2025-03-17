@@ -66,7 +66,7 @@ bool CHalfLifeRules::IsCoOp()
 //=========================================================
 bool CHalfLifeRules::FShouldSwitchWeapon(CBasePlayer* pPlayer, CBasePlayerItem* pWeapon)
 {
-	if (!pPlayer->m_pActiveItem)
+	if (pPlayer->m_pActiveItem == nullptr)
 	{
 		// player doesn't have an active item!
 		return true;
@@ -124,7 +124,7 @@ float CHalfLifeRules::FlPlayerFallDamage(CBasePlayer* pPlayer)
 //=========================================================
 void CHalfLifeRules::PlayerSpawn(CBasePlayer* pPlayer)
 {
-	CBaseEntity* pWeaponEntity = NULL;
+	CBaseEntity* pWeaponEntity = nullptr;
 
 	//LRC- support the new "start with HEV" flag...
 	if (g_startSuit)

@@ -112,7 +112,7 @@ const char* CZombie::pPainSounds[] =
 //=========================================================
 int CZombie::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_ALIEN_MONSTER;
+	return (m_iClass != 0) ? m_iClass : CLASS_ALIEN_MONSTER;
 }
 
 //=========================================================
@@ -197,7 +197,7 @@ void CZombie::HandleAnimEvent(MonsterEvent_t* pEvent)
 		// do stuff for this event.
 		//		ALERT( at_console, "Slash right!\n" );
 		CBaseEntity* pHurt = CheckTraceHullAttack(70, gSkillData.zombieDmgOneSlash, DMG_SLASH);
-		if (pHurt)
+		if (pHurt != nullptr)
 		{
 			if ((pHurt->pev->flags & (FL_MONSTER | FL_CLIENT)) != 0)
 			{
@@ -221,7 +221,7 @@ void CZombie::HandleAnimEvent(MonsterEvent_t* pEvent)
 		// do stuff for this event.
 		//		ALERT( at_console, "Slash left!\n" );
 		CBaseEntity* pHurt = CheckTraceHullAttack(70, gSkillData.zombieDmgOneSlash, DMG_SLASH);
-		if (pHurt)
+		if (pHurt != nullptr)
 		{
 			if ((pHurt->pev->flags & (FL_MONSTER | FL_CLIENT)) != 0)
 			{
@@ -243,7 +243,7 @@ void CZombie::HandleAnimEvent(MonsterEvent_t* pEvent)
 	{
 		// do stuff for this event.
 		CBaseEntity* pHurt = CheckTraceHullAttack(70, gSkillData.zombieDmgBothSlash, DMG_SLASH);
-		if (pHurt)
+		if (pHurt != nullptr)
 		{
 			if ((pHurt->pev->flags & (FL_MONSTER | FL_CLIENT)) != 0)
 			{
@@ -273,7 +273,7 @@ void CZombie::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/zombie.mdl");
@@ -297,7 +297,7 @@ void CZombie::Spawn()
 //=========================================================
 void CZombie::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/zombie.mdl");

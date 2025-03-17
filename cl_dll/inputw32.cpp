@@ -69,7 +69,7 @@ static bool IN_UseRawInput()
 {
 	// a1ba: m_rawinput 1 is SDL input on Windows
 	// Linux only has SDL input, so return true here
-	return m_rawinput ? m_rawinput->value != 0 : true;
+	return (m_rawinput != nullptr) ? m_rawinput->value != 0 : true;
 }
 
 static SDL_bool mouseRelative = SDL_TRUE;
@@ -145,7 +145,7 @@ std::uint32_t joy_oldbuttonstate, joy_oldpovstate;
 int joy_id;
 std::uint32_t joy_numbuttons;
 
-SDL_GameController* s_pJoystick = NULL;
+SDL_GameController* s_pJoystick = nullptr;
 
 // none of these cvars are saved over a session
 // this means that advanced controller configuration needs to be executed
@@ -383,7 +383,7 @@ IN_StartupMouse
 */
 void IN_StartupMouse()
 {
-	if (0 != gEngfuncs.CheckParm("-nomouse", NULL))
+	if (0 != gEngfuncs.CheckParm("-nomouse", nullptr))
 		return;
 
 	mouseinitialized = true;
@@ -392,16 +392,16 @@ void IN_StartupMouse()
 
 	if (mouseparmsvalid)
 	{
-		if (0 != gEngfuncs.CheckParm("-noforcemspd", NULL))
+		if (0 != gEngfuncs.CheckParm("-noforcemspd", nullptr))
 			newmouseparms[2] = originalmouseparms[2];
 
-		if (0 != gEngfuncs.CheckParm("-noforcemaccel", NULL))
+		if (0 != gEngfuncs.CheckParm("-noforcemaccel", nullptr))
 		{
 			newmouseparms[0] = originalmouseparms[0];
 			newmouseparms[1] = originalmouseparms[1];
 		}
 
-		if (0 != gEngfuncs.CheckParm("-noforcemparms", NULL))
+		if (0 != gEngfuncs.CheckParm("-noforcemparms", nullptr))
 		{
 			newmouseparms[0] = originalmouseparms[0];
 			newmouseparms[1] = originalmouseparms[1];
@@ -482,7 +482,7 @@ void IN_ResetMouse()
 {
 	// no work to do in SDL
 #ifdef WIN32
-	if (!IN_UseRawInput() && mouseactive && gEngfuncs.GetWindowCenterX && gEngfuncs.GetWindowCenterY)
+	if (!IN_UseRawInput() && mouseactive && (gEngfuncs.GetWindowCenterX != nullptr) && (gEngfuncs.GetWindowCenterY != nullptr))
 	{
 		SetCursorPos(gEngfuncs.GetWindowCenterX(), gEngfuncs.GetWindowCenterY());
 
@@ -497,7 +497,7 @@ void IN_ResetMouse()
 IN_ResetRelativeMouseState
 ===========
 */
-void IN_ResetRelativeMouseState(void)
+void IN_ResetRelativeMouseState()
 {
 	if (IN_UseRawInput())
 	{
@@ -654,7 +654,7 @@ void IN_MouseMove(float frametime, usercmd_t* cmd)
 		mx_accum = 0;
 		my_accum = 0;
 
-		if (m_filter && 0 != m_filter->value)
+		if ((m_filter != nullptr) && 0 != m_filter->value)
 		{
 			mouse_x = (pos.x + old_mouse_x) * 0.5;
 			mouse_y = (pos.y + old_mouse_y) * 0.5;
@@ -793,7 +793,7 @@ IN_StartupJoystick
 void IN_StartupJoystick()
 {
 	// abort startup if user requests no joystick
-	if (0 != gEngfuncs.CheckParm("-nojoy", NULL))
+	if (0 != gEngfuncs.CheckParm("-nojoy", nullptr))
 		return;
 
 	static float flLastCheck = 0.0f;
@@ -807,14 +807,14 @@ void IN_StartupJoystick()
 	int nJoysticks = SDL_NumJoysticks();
 	if (nJoysticks > 0)
 	{
-		if (s_pJoystick == NULL)
+		if (s_pJoystick == nullptr)
 		{
 			for (int i = 0; i < nJoysticks; i++)
 			{
 				if (SDL_FALSE != SDL_IsGameController(i))
 				{
 					s_pJoystick = SDL_GameControllerOpen(i);
-					if (s_pJoystick)
+					if (s_pJoystick != nullptr)
 					{
 						// save the joystick's number of buttons and POV status
 						joy_numbuttons = SDL_CONTROLLER_BUTTON_MAX;
@@ -836,13 +836,13 @@ void IN_StartupJoystick()
 	}
 	else
 	{
-		if (s_pJoystick)
+		if (s_pJoystick != nullptr)
 			SDL_GameControllerClose(s_pJoystick);
 
-		s_pJoystick = NULL;
+		s_pJoystick = nullptr;
 		if (joy_avail)
 		{
-			joy_avail = 0;
+			joy_avail = false;
 			gEngfuncs.Con_DPrintf("joystick not found -- driver not present\n\n");
 		}
 	}
@@ -1258,10 +1258,10 @@ void IN_Init()
 
 #ifdef WIN32
 	m_rawinput = gEngfuncs.pfnGetCvarPointer("m_rawinput");
-	m_bMouseThread = gEngfuncs.CheckParm("-mousethread", NULL) != NULL;
+	m_bMouseThread = gEngfuncs.CheckParm("-mousethread", nullptr) != NULL;
 	m_mousethread_sleep = gEngfuncs.pfnRegisterVariable("m_mousethread_sleep", "10", FCVAR_ARCHIVE);
 
-	if (!IN_UseRawInput() && m_bMouseThread && m_mousethread_sleep)
+	if (!IN_UseRawInput() && m_bMouseThread && (m_mousethread_sleep != nullptr))
 	{
 		s_mouseDelta = Point{};
 

@@ -135,7 +135,7 @@ IMPLEMENT_SAVERESTORE(CScientist, CTalkMonster);
 const char* CScientist::GetScientistModel() const
 {
 	char* pszOverride = (char*)CVAR_GET_STRING("_sv_override_scientist_mdl");
-	if (pszOverride && strlen(pszOverride) > 5) // at least requires ".mdl"
+	if ((pszOverride != nullptr) && strlen(pszOverride) > 5) // at least requires ".mdl"
 	{
 		return pszOverride;
 	}
@@ -441,7 +441,7 @@ void CScientist::Scream()
 
 Activity CScientist::GetStoppedActivity()
 {
-	if (m_hEnemy != NULL)
+	if (m_hEnemy != nullptr)
 		return ACT_EXCITED;
 	return CTalkMonster::GetStoppedActivity();
 }
@@ -474,7 +474,7 @@ void CScientist::StartTask(Task_t* pTask)
 	case TASK_SAY_FEAR:
 		// Marphy Fact FIles Fix - This speech check always fails during combat, so removing
 		//if ( FOkToSpeak() )
-		if (m_hEnemy)
+		if (m_hEnemy != nullptr)
 		{
 			Talk(2);
 			m_hTalkTarget = m_hEnemy;
@@ -533,7 +533,7 @@ void CScientist::RunTask(Task_t* pTask)
 		//if ( RANDOM_LONG(0,63)< 8 )
 		//Scream();
 
-		if (m_hEnemy == NULL)
+		if (m_hEnemy == nullptr)
 		{
 			TaskFail();
 		}
@@ -590,7 +590,7 @@ void CScientist::RunTask(Task_t* pTask)
 //=========================================================
 int CScientist::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_HUMAN_PASSIVE;
+	return (m_iClass != 0) ? m_iClass : CLASS_HUMAN_PASSIVE;
 }
 
 
@@ -665,7 +665,7 @@ void CScientist::Spawn()
 
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), GetScientistModel());
@@ -700,7 +700,7 @@ void CScientist::Spawn()
 //=========================================================
 void CScientist::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL(GetScientistModel());
@@ -731,21 +731,21 @@ void CScientist::TalkInit()
 
 	// scientists speach group names (group names are in sentences.txt)
 
-	if (!m_iszSpeakAs)
+	if (m_iszSpeakAs == 0)
 	{
 		m_szGrp[TLK_ANSWER] = "SC_ANSWER";
 		m_szGrp[TLK_QUESTION] = "SC_QUESTION";
 		m_szGrp[TLK_IDLE] = "SC_IDLE";
 		m_szGrp[TLK_STARE] = "SC_STARE";
-		if (pev->spawnflags & SF_MONSTER_PREDISASTER)
+		if ((pev->spawnflags & SF_MONSTER_PREDISASTER) != 0)
 			m_szGrp[TLK_USE] = "SC_PFOLLOW";
 		else
 			m_szGrp[TLK_USE] = "SC_OK";
-		if (pev->spawnflags & SF_MONSTER_PREDISASTER)
+		if ((pev->spawnflags & SF_MONSTER_PREDISASTER) != 0)
 			m_szGrp[TLK_UNUSE] = "SC_PWAIT";
 		else
 			m_szGrp[TLK_UNUSE] = "SC_WAIT";
-		if (pev->spawnflags & SF_MONSTER_PREDISASTER)
+		if ((pev->spawnflags & SF_MONSTER_PREDISASTER) != 0)
 			m_szGrp[TLK_DECLINE] = "SC_POK";
 		else
 			m_szGrp[TLK_DECLINE] = "SC_NOTOK";
@@ -788,7 +788,7 @@ void CScientist::TalkInit()
 bool CScientist::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 {
 
-	if (pevInflictor && (pevInflictor->flags & FL_CLIENT) != 0)
+	if ((pevInflictor != nullptr) && (pevInflictor->flags & FL_CLIENT) != 0)
 	{
 		Remember(bits_MEMORY_PROVOKED);
 		StopFollowing(true);
@@ -857,7 +857,7 @@ void CScientist::DeathSound()
 
 void CScientist::Killed(entvars_t* pevAttacker, int iGib)
 {
-	SetUse(NULL);
+	SetUse(nullptr);
 	CTalkMonster::Killed(pevAttacker, iGib);
 }
 
@@ -940,8 +940,8 @@ Schedule_t* CScientist::GetSchedule()
 		CSound* pSound;
 		pSound = PBestSound();
 
-		ASSERT(pSound != NULL);
-		if (pSound && (pSound->m_iType & bits_SOUND_DANGER) != 0)
+		ASSERT(pSound != nullptr);
+		if ((pSound != nullptr) && (pSound->m_iType & bits_SOUND_DANGER) != 0)
 			return GetScheduleOfType(SCHED_TAKE_COVER_FROM_BEST_SOUND);
 	}
 
@@ -949,14 +949,14 @@ Schedule_t* CScientist::GetSchedule()
 	{
 	case MONSTERSTATE_ALERT:
 	case MONSTERSTATE_IDLE:
-		if (pEnemy)
+		if (pEnemy != nullptr)
 		{
 			if (HasConditions(bits_COND_SEE_ENEMY))
 				m_fearTime = gpGlobals->time;
 			else if (DisregardEnemy(pEnemy)) // After 15 seconds of being hidden, return to alert
 			{
-				m_hEnemy = NULL;
-				pEnemy = NULL;
+				m_hEnemy = nullptr;
+				pEnemy = nullptr;
 
 				// Marphy Fact Files Fix - Fix scientists not disregarding enemy after hiding
 				m_fearTime = gpGlobals->time;
@@ -975,8 +975,8 @@ Schedule_t* CScientist::GetSchedule()
 			CSound* pSound;
 			pSound = PBestSound();
 
-			ASSERT(pSound != NULL);
-			if (pSound)
+			ASSERT(pSound != nullptr);
+			if (pSound != nullptr)
 			{
 				if ((pSound->m_iType & (bits_SOUND_DANGER | bits_SOUND_COMBAT)) != 0)
 				{
@@ -1002,7 +1002,7 @@ Schedule_t* CScientist::GetSchedule()
 			int relationship = R_NO;
 
 			// Nothing scary, just me and the player
-			if (pEnemy != NULL)
+			if (pEnemy != nullptr)
 				relationship = IRelationship(pEnemy);
 
 			// UNDONE: Model fear properly, fix R_FR and add multiple levels of fear
@@ -1047,14 +1047,14 @@ Schedule_t* CScientist::GetSchedule()
 			return slTakeCoverFromBestSound; // Cower and panic from the scary sound!
 
 		// Marphy Fact Files Fix - Fix scientists not disregarding enemy after hiding
-		if (pEnemy)
+		if (pEnemy != nullptr)
 		{
 			if (HasConditions(bits_COND_SEE_ENEMY))
 				m_fearTime = gpGlobals->time;
 			else if (DisregardEnemy(pEnemy)) // After 15 seconds of being hidden, return to alert
 			{
-				m_hEnemy = NULL;
-				pEnemy = NULL;
+				m_hEnemy = nullptr;
+				pEnemy = nullptr;
 
 				m_fearTime = gpGlobals->time;
 
@@ -1105,20 +1105,20 @@ MONSTERSTATE CScientist::GetIdealState()
 	case MONSTERSTATE_COMBAT:
 	{
 		CBaseEntity* pEnemy = m_hEnemy;
-		if (pEnemy != NULL)
+		if (pEnemy != nullptr)
 		{
 			if (DisregardEnemy(pEnemy)) // After 15 seconds of being hidden, return to alert
 			{
 				// Strip enemy when going to alert
 				m_IdealMonsterState = MONSTERSTATE_ALERT;
-				m_hEnemy = NULL;
+				m_hEnemy = nullptr;
 
 				// Marphy Fact Files Fix - Fix scientists not disregarding enemy after hiding
 				m_fearTime = gpGlobals->time;
 				return m_IdealMonsterState;
 			}
 			// Follow if only scared a little
-			if (m_hTargetEnt != NULL)
+			if (m_hTargetEnt != nullptr)
 			{
 				m_IdealMonsterState = MONSTERSTATE_ALERT;
 				return m_IdealMonsterState;
@@ -1141,7 +1141,7 @@ MONSTERSTATE CScientist::GetIdealState()
 
 bool CScientist::CanHeal()
 {
-	if ((m_healTime > gpGlobals->time) || (m_hTargetEnt == NULL) || (m_hTargetEnt->pev->health > (m_hTargetEnt->pev->max_health * 0.5)))
+	if ((m_healTime > gpGlobals->time) || (m_hTargetEnt == nullptr) || (m_hTargetEnt->pev->health > (m_hTargetEnt->pev->max_health * 0.5)))
 		return false;
 
 	return true;
@@ -1191,7 +1191,7 @@ const char* CDeadScientist::m_szPoses[] = {"lying_on_back", "lying_on_stomach", 
 const char* CDeadScientist::GetScientistModel() const
 {
 	char* pszOverride = (char*)CVAR_GET_STRING("_sv_override_scientist_mdl");
-	if (pszOverride && strlen(pszOverride) > 5) // at least requires ".mdl"
+	if ((pszOverride != nullptr) && strlen(pszOverride) > 5) // at least requires ".mdl"
 	{
 		return pszOverride;
 	}
@@ -1300,11 +1300,11 @@ typedef enum
 //
 void CSittingScientist::Spawn()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL(GetScientistModel());
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), GetScientistModel());
@@ -1355,7 +1355,7 @@ void CSittingScientist::Precache()
 //=========================================================
 int CSittingScientist::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_HUMAN_PASSIVE;
+	return (m_iClass != 0) ? m_iClass : CLASS_HUMAN_PASSIVE;
 }
 
 
@@ -1382,7 +1382,7 @@ void CSittingScientist::SittingThink()
 	if (FIdleHello())
 	{
 		pent = FindNearestFriend(true);
-		if (pent)
+		if (pent != nullptr)
 		{
 			float yaw = VecToYaw(pent->pev->origin - pev->origin) - pev->angles.y;
 
@@ -1424,7 +1424,7 @@ void CSittingScientist::SittingThink()
 			else
 				pent = FindNearestFriend(false);
 
-			if (!FIdleSpeak() || !pent)
+			if (!FIdleSpeak() || (pent == nullptr))
 			{
 				m_headTurn = RANDOM_LONG(0, 8) * 10 - 40;
 				pev->sequence = m_baseSequence + SITTING_ANIM_sitting3;
@@ -1503,7 +1503,7 @@ bool CSittingScientist::FIdleSpeak()
 	// try to talk to any standing or sitting scientists nearby
 	CBaseEntity* pentFriend = FindNearestFriend(false);
 
-	if (pentFriend && RANDOM_LONG(0, 1))
+	if ((pentFriend != nullptr) && RANDOM_LONG(0, 1))
 	{
 		CTalkMonster* pTalkMonster = GetClassPtr((CTalkMonster*)pentFriend->pev);
 		pTalkMonster->SetAnswerQuestion(this);

@@ -65,7 +65,7 @@ public:
 	bool Restore(CRestore& restore) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	bool HasCustomGibs() override { return m_iszGibModel; }
+	bool HasCustomGibs() override { return m_iszGibModel != 0; }
 
 	CBeam* m_pBeam;
 	int m_iszGibModel;
@@ -100,7 +100,7 @@ bool CGenericMonster::KeyValue(KeyValueData* pkvd)
 //=========================================================
 int CGenericMonster::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_PLAYER_ALLY;
+	return (m_iClass != 0) ? m_iClass : CLASS_PLAYER_ALLY;
 }
 
 //=========================================================
@@ -186,7 +186,7 @@ void CGenericMonster::Spawn()
 	//LRC - if the level designer forgets to set a model, don't crash!
 	if (FStringNull(pev->model))
 	{
-		if (pev->targetname)
+		if (pev->targetname != 0u)
 			ALERT(at_error, "No model specified for monster_generic \"%s\"\n", STRING(pev->targetname));
 		else
 			ALERT(at_error, "No model specified for monster_generic at %.2f %.2f %.2f\n", pev->origin.x, pev->origin.y, pev->origin.z);
@@ -209,7 +209,7 @@ void CGenericMonster::Spawn()
 		UTIL_SetSize(pev, vecMin, vecMax);
 	}
 	else if (
-		pev->spawnflags & SF_GENERICMONSTER_PLAYERMODEL ||
+		((pev->spawnflags & SF_GENERICMONSTER_PLAYERMODEL) != 0) ||
 		FStrEq(STRING(pev->model), "models/player.mdl") ||
 		FStrEq(STRING(pev->model), "models/holo.mdl"))
 		UTIL_SetSize(pev, VEC_HULL_MIN, VEC_HULL_MAX);
@@ -218,16 +218,16 @@ void CGenericMonster::Spawn()
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	if (!m_bloodColor)
+	if (m_bloodColor == 0)
 		m_bloodColor = BLOOD_COLOR_RED;
-	if (!pev->health)
+	if (pev->health == 0.0f)
 		pev->health = 8;
 	m_flFieldOfView = 0.5; // indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
 
 	MonsterInit();
 
-	if (pev->spawnflags & SF_HEAD_CONTROLLER)
+	if ((pev->spawnflags & SF_HEAD_CONTROLLER) != 0)
 	{
 		m_afCapability = bits_CAP_TURN_HEAD;
 	}
@@ -237,7 +237,7 @@ void CGenericMonster::Spawn()
 		pev->solid = SOLID_NOT;
 		pev->takedamage = DAMAGE_NO;
 	}
-	else if (pev->spawnflags & SF_GENERICMONSTER_INVULNERABLE)
+	else if ((pev->spawnflags & SF_GENERICMONSTER_INVULNERABLE) != 0)
 	{
 		pev->takedamage = DAMAGE_NO;
 	}
@@ -251,7 +251,7 @@ void CGenericMonster::Precache()
 	CTalkMonster::Precache();
 	TalkInit();
 	PRECACHE_MODEL((char*)STRING(pev->model));
-	if (m_iszGibModel)
+	if (m_iszGibModel != 0)
 		PRECACHE_MODEL((char*)STRING(m_iszGibModel)); //LRC
 }
 
@@ -271,7 +271,7 @@ enum
 // =========================================================
 // TORCH SUPPORT
 // =========================================================
-void CGenericMonster ::Torch(void)
+void CGenericMonster ::Torch()
 {
 	Vector vecGunPos;
 	Vector vecGunAngles;
@@ -284,9 +284,9 @@ void CGenericMonster ::Torch(void)
 	SetBlending(0, angDir.x);
 }
 
-void CGenericMonster::UpdateGas(void) {}
+void CGenericMonster::UpdateGas() {}
 
-void CGenericMonster::MakeGas(void)
+void CGenericMonster::MakeGas()
 {
 	Vector posGun, angleGun;
 	TraceResult tr;
@@ -294,7 +294,7 @@ void CGenericMonster::MakeGas(void)
 	{
 		KillGas();
 		m_pBeam = CBeam::BeamCreate("sprites/laserbeam.spr", 7);
-		if (m_pBeam)
+		if (m_pBeam != nullptr)
 		{
 			GetAttachment(4, posGun, angleGun);
 			GetAttachment(3, posGun, angleGun);
@@ -325,12 +325,12 @@ void CGenericMonster::MakeGas(void)
 	}
 }
 
-void CGenericMonster ::KillGas(void)
+void CGenericMonster ::KillGas()
 {
-	if (m_pBeam)
+	if (m_pBeam != nullptr)
 	{
 		UTIL_Remove(m_pBeam);
-		m_pBeam = NULL;
+		m_pBeam = nullptr;
 	}
 }
 
@@ -349,7 +349,7 @@ public:
 	bool Restore(CRestore& restore) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
-	bool HasCustomGibs() override { return m_iszGibModel; }
+	bool HasCustomGibs() override { return m_iszGibModel != 0; }
 
 	int m_iszGibModel;
 };
@@ -390,7 +390,7 @@ void CDeadGenericMonster::Spawn()
 	pev->yaw_speed = 8; //LRC -- what?
 	pev->sequence = 0;
 
-	if (pev->netname)
+	if (pev->netname != 0u)
 	{
 		pev->sequence = LookupSequence(STRING(pev->netname));
 
@@ -421,6 +421,6 @@ void CDeadGenericMonster::Spawn()
 void CDeadGenericMonster::Precache()
 {
 	PRECACHE_MODEL((char*)STRING(pev->model));
-	if (m_iszGibModel)
+	if (m_iszGibModel != 0)
 		PRECACHE_MODEL((char*)STRING(m_iszGibModel)); //LRC
 }

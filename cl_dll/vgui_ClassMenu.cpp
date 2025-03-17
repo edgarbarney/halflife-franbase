@@ -139,7 +139,7 @@ bool CClassMenuPanel::SlotInput(int iSlot)
 {
 	if ((iSlot < 0) || (iSlot > 9))
 		return false;
-	if (!m_pButtons[iSlot])
+	if (m_pButtons[iSlot] == nullptr)
 		return false;
 
 	// Is the button pushable? (0 is special case)

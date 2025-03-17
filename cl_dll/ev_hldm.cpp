@@ -78,8 +78,8 @@ static inline bool EV_HLDM_IsBSPModel(physent_t* pe)
 // RENDERERS START
 char* EV_HLDM_HDDecal(pmtrace_t* ptr, physent_t* pe, float* vecSrc, float* vecEnd)
 {
-	if (gEngfuncs.PM_PointContents(ptr->endpos, NULL) == CONTENT_SKY)
-		return 0;
+	if (gEngfuncs.PM_PointContents(ptr->endpos, nullptr) == CONTENT_SKY)
+		return nullptr;
 
 	// hit the world, try to play sound based on texture material type
 	char chTextureType = 0;
@@ -92,10 +92,10 @@ char* EV_HLDM_HDDecal(pmtrace_t* ptr, physent_t* pe, float* vecSrc, float* vecEn
 
 	entity = gEngfuncs.pEventAPI->EV_IndexFromTrace(ptr);
 
-	if (pe && pe->solid == SOLID_BSP)
+	if ((pe != nullptr) && pe->solid == SOLID_BSP)
 	{
 		// Nothing
-		if (vecSrc == 0 && vecEnd == 0)
+		if (vecSrc == nullptr && vecEnd == nullptr)
 		{
 			// hit body
 			chTextureType = 0;
@@ -107,7 +107,7 @@ char* EV_HLDM_HDDecal(pmtrace_t* ptr, physent_t* pe, float* vecSrc, float* vecEn
 			pTextureName = (char*)gEngfuncs.pEventAPI->EV_TraceTexture(ptr->ent, vecSrc, vecEnd);
 			pStart = pTextureName;
 
-			if (pTextureName && strcmp("black", pTextureName))
+			if ((pTextureName != nullptr) && (strcmp("black", pTextureName) != 0))
 			{
 				strcpy(texname, pTextureName);
 				pTextureName = texname;
@@ -138,7 +138,7 @@ char* EV_HLDM_HDDecal(pmtrace_t* ptr, physent_t* pe, float* vecSrc, float* vecEn
 	}
 
 	if (pStart[0] == '{')
-		return 0;
+		return nullptr;
 
 	cl_entity_t* pHit = gEngfuncs.GetEntityByIndex(gEngfuncs.pEventAPI->EV_IndexFromTrace(ptr));
 
@@ -195,12 +195,12 @@ char* EV_HLDM_HDDecal(pmtrace_t* ptr, physent_t* pe, float* vecSrc, float* vecEn
 		return FALSE;
 	}
 
-	if (pe->classnumber == 1 && pHit->curstate.renderamt)
+	if (pe->classnumber == 1 && (pHit->curstate.renderamt != 0))
 	{
 		sprintf(decalname, "shot_glass");
 		gParticleEngine.CreateCluster("glass_impact_cluster.txt", ptr->endpos, ptr->plane.normal, 0);
 	}
-	else if (pe->rendermode != kRenderNormal && pHit->curstate.renderamt)
+	else if (pe->rendermode != kRenderNormal && (pHit->curstate.renderamt != 0))
 	{
 		sprintf(decalname, "shot_glass");
 		gParticleEngine.CreateCluster("glass_impact_cluster.txt", ptr->endpos, ptr->plane.normal, 0);
@@ -265,7 +265,7 @@ float EV_HLDM_PlayTextureSound(int idx, pmtrace_t* ptr, float* vecSrc, float* ve
 {
 	// hit the world, try to play sound based on texture material type
 	char chTextureType = CHAR_TEX_CONCRETE;
-	cl_entity_t* cl_entity = NULL;
+	cl_entity_t* cl_entity = nullptr;
 	float fvol;
 	float fvolbar;
 	const char* rgsz[4];
@@ -289,7 +289,7 @@ float EV_HLDM_PlayTextureSound(int idx, pmtrace_t* ptr, float* vecSrc, float* ve
 		// get texture from entity or world (world is ent(0))
 		pTextureName = (char*)gEngfuncs.pEventAPI->EV_TraceTexture(ptr->ent, vecSrc, vecEnd);
 
-		if (pTextureName)
+		if (pTextureName != nullptr)
 		{
 			strcpy(texname, pTextureName);
 			pTextureName = texname;
@@ -324,7 +324,7 @@ float EV_HLDM_PlayTextureSound(int idx, pmtrace_t* ptr, float* vecSrc, float* ve
 		// Now the server will replicate that state via an eflag.
 		cl_entity = gEngfuncs.GetEntityByIndex(entity);
 
-		if (cl_entity && !!(cl_entity->curstate.eflags & EFLAG_FLESH_SOUND))
+		if ((cl_entity != nullptr) && !((cl_entity->curstate.eflags & EFLAG_FLESH_SOUND) == 0))
 			chTextureType = CHAR_TEX_FLESH;
 	}
 
@@ -482,9 +482,9 @@ void EV_HLDM_GunshotDecalTrace(pmtrace_t* pTrace, char* decalName)
 	pe = gEngfuncs.pEventAPI->EV_GetPhysent(pTrace->ent);
  
 	//  Only decal brush models such as the world etc.
-	if (decalName && decalName[0] && pe && (pe->solid == SOLID_BSP || pe->movetype == MOVETYPE_PUSHSTEP))
+	if ((decalName != nullptr) && (decalName[0] != 0) && (pe != nullptr) && (pe->solid == SOLID_BSP || pe->movetype == MOVETYPE_PUSHSTEP))
 	{
-		if (pTrace->allsolid || pTrace->fraction == 1.0)
+		if ((pTrace->allsolid != 0) || pTrace->fraction == 1.0)
 			return;
 
 		gBSPRenderer.CreateDecal(pTrace->endpos, pTrace->plane.normal, decalName, FALSE);
@@ -1187,14 +1187,14 @@ void EV_FireGauss(event_args_t* args)
 		}
 
 		pEntity = gEngfuncs.pEventAPI->EV_GetPhysent(tr.ent);
-		if (pEntity == NULL)
+		if (pEntity == nullptr)
 			break;
 
 		if (EV_HLDM_IsBSPModel(pEntity))
 		{
 			float n;
 
-			pentIgnore = NULL;
+			pentIgnore = nullptr;
 
 			n = -DotProduct(tr.plane.normal, forward);
 
@@ -1459,7 +1459,7 @@ void EV_FireCrossbow2(event_args_t* args)
 			gEngfuncs.pEventAPI->EV_PlaySound(0, tr.endpos, CHAN_BODY, "weapons/xbow_hit1.wav", gEngfuncs.pfnRandomFloat(0.95, 1.0), ATTN_NORM, 0, PITCH_NORM);
 
 			//Not underwater, do some sparks...
-			if (gEngfuncs.PM_PointContents(tr.endpos, NULL) != CONTENTS_WATER)
+			if (gEngfuncs.PM_PointContents(tr.endpos, nullptr) != CONTENTS_WATER)
 				gEngfuncs.pEfxAPI->R_SparkShower(tr.endpos);
 
 			Vector vBoltAngles;
@@ -1469,7 +1469,7 @@ void EV_FireCrossbow2(event_args_t* args)
 
 			TEMPENTITY* bolt = gEngfuncs.pEfxAPI->R_TempModel(tr.endpos - forward * 10, Vector(0, 0, 0), vBoltAngles, 5, iModelIndex, TE_BOUNCE_NULL);
 
-			if (bolt)
+			if (bolt != nullptr)
 			{
 				bolt->flags |= (FTENT_CLIENTCUSTOM);					 //So it calls the callback function.
 				bolt->entity.baseline.vuser1 = tr.endpos - forward * 10; // Pull out a little bit
@@ -1580,14 +1580,14 @@ void EV_EgonFire(event_args_t* args)
 	if (EV_IsLocal(idx))
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(g_fireAnims1[gEngfuncs.pfnRandomLong(0, 3)], 0);
 
-	if (iStartup && EV_IsLocal(idx) && !pBeam && !pBeam2 && 0 != cl_lw->value) //Adrian: Added the cl_lw check for those lital people that hate weapon prediction.
+	if (iStartup && EV_IsLocal(idx) && (pBeam == nullptr) && (pBeam2 == nullptr) && 0 != cl_lw->value) //Adrian: Added the cl_lw check for those lital people that hate weapon prediction.
 	{
 		Vector vecSrc, vecEnd, angles, forward, right, up;
 		pmtrace_t tr;
 
 		cl_entity_t* pl = gEngfuncs.GetEntityByIndex(idx);
 
-		if (pl)
+		if (pl != nullptr)
 		{
 			VectorCopy(gHUD.m_vecAngles, angles);
 
@@ -1626,7 +1626,7 @@ void EV_EgonFire(event_args_t* args)
 
 			pBeam = gEngfuncs.pEfxAPI->R_BeamEntPoint(idx | 0x1000, tr.endpos, iBeamModelIndex, 99999, 3.5, 0.2, 0.7, 55, 0, 0, r, g, b);
 
-			if (pBeam)
+			if (pBeam != nullptr)
 				pBeam->flags |= (FBEAM_SINENOISE);
 
 			pBeam2 = gEngfuncs.pEfxAPI->R_BeamEntPoint(idx | 0x1000, tr.endpos, iBeamModelIndex, 99999, 5.0, 0.08, 0.7, 25, 0, 0, r, g, b);
@@ -1652,17 +1652,17 @@ void EV_EgonStop(event_args_t* args)
 
 	if (EV_IsLocal(idx))
 	{
-		if (pBeam)
+		if (pBeam != nullptr)
 		{
 			pBeam->die = 0.0;
-			pBeam = NULL;
+			pBeam = nullptr;
 		}
 
 
-		if (pBeam2)
+		if (pBeam2 != nullptr)
 		{
 			pBeam2->die = 0.0;
-			pBeam2 = NULL;
+			pBeam2 = nullptr;
 		}
 
 		// HACK: only reset animation if the Egon is still equipped.
@@ -1727,7 +1727,7 @@ void EV_TripmineFire(event_args_t* args)
 	VectorCopy(args->origin, vecSrc);
 	VectorCopy(args->angles, angles);
 
-	AngleVectors(angles, forward, NULL, NULL);
+	AngleVectors(angles, forward, nullptr, nullptr);
 
 	if (!EV_IsLocal(idx))
 		return;
@@ -1768,7 +1768,7 @@ void EV_SnarkFire(event_args_t* args)
 	VectorCopy(args->origin, vecSrc);
 	VectorCopy(args->angles, angles);
 
-	AngleVectors(angles, forward, NULL, NULL);
+	AngleVectors(angles, forward, nullptr, nullptr);
 
 	if (!EV_IsLocal(idx))
 		return;

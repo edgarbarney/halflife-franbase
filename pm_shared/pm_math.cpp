@@ -50,19 +50,19 @@ void AngleVectors(const Vector& angles, Vector* forward, Vector* right, Vector* 
 	sr = sin(angle);
 	cr = cos(angle);
 
-	if (forward)
+	if (forward != nullptr)
 	{
 		forward->x = cp * cy;
 		forward->y = cp * sy;
 		forward->z = -sp;
 	}
-	if (right)
+	if (right != nullptr)
 	{
 		right->x = (-1 * sr * sp * cy + -1 * cr * -sy);
 		right->y = (-1 * sr * sp * sy + -1 * cr * cy);
 		right->z = -1 * sr * cp;
 	}
-	if (up)
+	if (up != nullptr)
 	{
 		up->x = (cr * sp * cy + -sr * -sy);
 		up->y = (cr * sp * sy + -sr * cy);
@@ -85,19 +85,19 @@ void AngleVectorsTranspose(const Vector& angles, Vector* forward, Vector* right,
 	sr = sin(angle);
 	cr = cos(angle);
 
-	if (forward)
+	if (forward != nullptr)
 	{
 		forward->x = cp * cy;
 		forward->y = (sr * sp * cy + cr * -sy);
 		forward->z = (cr * sp * cy + -sr * -sy);
 	}
-	if (right)
+	if (right != nullptr)
 	{
 		right->x = cp * sy;
 		right->y = (sr * sp * sy + cr * cy);
 		right->z = (cr * sp * sy + -sr * cy);
 	}
-	if (up)
+	if (up != nullptr)
 	{
 		up->x = -sp;
 		up->y = sr * cp;

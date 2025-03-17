@@ -57,7 +57,7 @@ LINK_ENTITY_TO_CLASS(monster_bloater, CBloater);
 //=========================================================
 int CBloater::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_ALIEN_MONSTER;
+	return (m_iClass != 0) ? m_iClass : CLASS_ALIEN_MONSTER;
 }
 
 //=========================================================
@@ -190,7 +190,7 @@ void CBloater::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/floater.mdl");
@@ -213,7 +213,7 @@ void CBloater::Spawn()
 //=========================================================
 void CBloater::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/floater.mdl");

@@ -91,7 +91,7 @@ bool CEgon::GetItemInfo(ItemInfo* p)
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "uranium";
 	p->iMaxAmmo1 = URANIUM_MAX_CARRY;
-	p->pszAmmo2 = NULL;
+	p->pszAmmo2 = nullptr;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 3;
@@ -143,7 +143,7 @@ void CEgon::Attack()
 	if (m_pPlayer->pev->waterlevel == 3)
 	{
 
-		if (m_fireState != FIRE_OFF || m_pBeam)
+		if (m_fireState != FIRE_OFF || (m_pBeam != nullptr))
 		{
 			EndAttack();
 		}
@@ -237,16 +237,16 @@ void CEgon::Fire(const Vector& vecOrigSrc, const Vector& vecDir)
 #ifndef CLIENT_DLL
 	CBaseEntity* pEntity = CBaseEntity::Instance(tr.pHit);
 
-	if (pEntity == NULL)
+	if (pEntity == nullptr)
 		return;
 
 	if (g_pGameRules->IsMultiplayer())
 	{
-		if (m_pSprite && 0 != pEntity->pev->takedamage)
+		if ((m_pSprite != nullptr) && 0 != pEntity->pev->takedamage)
 		{
 			m_pSprite->pev->effects &= ~EF_NODRAW;
 		}
-		else if (m_pSprite)
+		else if (m_pSprite != nullptr)
 		{
 			m_pSprite->pev->effects |= EF_NODRAW;
 		}
@@ -362,7 +362,7 @@ void CEgon::Fire(const Vector& vecOrigSrc, const Vector& vecDir)
 void CEgon::UpdateEffect(const Vector& startPoint, const Vector& endPoint, float timeBlend)
 {
 #ifndef CLIENT_DLL
-	if (!m_pBeam)
+	if (m_pBeam == nullptr)
 	{
 		CreateEffect();
 	}
@@ -441,23 +441,23 @@ void CEgon::DestroyEffect()
 {
 
 #ifndef CLIENT_DLL
-	if (m_pBeam)
+	if (m_pBeam != nullptr)
 	{
 		UTIL_Remove(m_pBeam);
-		m_pBeam = NULL;
+		m_pBeam = nullptr;
 	}
-	if (m_pNoise)
+	if (m_pNoise != nullptr)
 	{
 		UTIL_Remove(m_pNoise);
-		m_pNoise = NULL;
+		m_pNoise = nullptr;
 	}
-	if (m_pSprite)
+	if (m_pSprite != nullptr)
 	{
 		if (m_fireMode == FIRE_WIDE)
 			m_pSprite->Expand(10, 500);
 		else
 			UTIL_Remove(m_pSprite);
-		m_pSprite = NULL;
+		m_pSprite = nullptr;
 	}
 #endif
 }

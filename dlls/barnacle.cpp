@@ -75,7 +75,7 @@ IMPLEMENT_SAVERESTORE(CBarnacle, CBaseMonster);
 //=========================================================
 int CBarnacle::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_ALIEN_MONSTER;
+	return (m_iClass != 0) ? m_iClass : CLASS_ALIEN_MONSTER;
 }
 
 //=========================================================
@@ -104,7 +104,7 @@ void CBarnacle::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/barnacle.mdl");
@@ -153,7 +153,7 @@ void CBarnacle::BarnacleThink()
 
 	SetNextThink(0.1);
 
-	if (m_hEnemy != NULL)
+	if (m_hEnemy != nullptr)
 	{
 		// barnacle has prey.
 
@@ -161,16 +161,16 @@ void CBarnacle::BarnacleThink()
 		{
 			// someone (maybe even the barnacle) killed the prey. Reset barnacle.
 			m_fLiftingPrey = false; // indicate that we're not lifting prey.
-			m_hEnemy = NULL;
+			m_hEnemy = nullptr;
 			return;
 		}
 
 		if (m_fLiftingPrey)
 		{
-			if (m_hEnemy != NULL && m_hEnemy->pev->deadflag != DEAD_NO)
+			if (m_hEnemy != nullptr && m_hEnemy->pev->deadflag != DEAD_NO)
 			{
 				// crap, someone killed the prey on the way up.
-				m_hEnemy = NULL;
+				m_hEnemy = nullptr;
 				m_fLiftingPrey = false;
 				return;
 			}
@@ -199,7 +199,7 @@ void CBarnacle::BarnacleThink()
 
 				m_flKillVictimTime = gpGlobals->time + 10; // now that the victim is in place, the killing bite will be administered in 10 seconds.
 
-				if (pVictim)
+				if (pVictim != nullptr)
 				{
 					pVictim->BarnacleVictimBitten(pev);
 					SetActivity(ACT_EAT);
@@ -217,7 +217,7 @@ void CBarnacle::BarnacleThink()
 			if (m_flKillVictimTime != -1 && gpGlobals->time > m_flKillVictimTime)
 			{
 				// kill!
-				if (pVictim)
+				if (pVictim != nullptr)
 				{
 					pVictim->TakeDamage(pev, pev, pVictim->pev->health, DMG_SLASH | DMG_ALWAYSGIB);
 					m_cGibs = 3;
@@ -227,7 +227,7 @@ void CBarnacle::BarnacleThink()
 			}
 
 			// bite prey every once in a while
-			if (pVictim && (RANDOM_LONG(0, 49) == 0))
+			if ((pVictim != nullptr) && (RANDOM_LONG(0, 49) == 0))
 			{
 				switch (RANDOM_LONG(0, 2))
 				{
@@ -282,7 +282,7 @@ void CBarnacle::BarnacleThink()
 
 		pTouchEnt = TongueTouchEnt(&flLength);
 
-		if (pTouchEnt != NULL && m_fTongueExtended)
+		if (pTouchEnt != nullptr && m_fTongueExtended)
 		{
 			// tongue is fully extended, and is touching someone.
 			if (pTouchEnt->FBecomeProne())
@@ -338,11 +338,11 @@ void CBarnacle::Killed(entvars_t* pevAttacker, int iGib)
 	pev->solid = SOLID_NOT;
 	pev->takedamage = DAMAGE_NO;
 
-	if (m_hEnemy != NULL)
+	if (m_hEnemy != nullptr)
 	{
 		pVictim = m_hEnemy->MyMonsterPointer();
 
-		if (pVictim)
+		if (pVictim != nullptr)
 		{
 			pVictim->BarnacleVictimReleased();
 		}
@@ -382,7 +382,7 @@ void CBarnacle::WaitTillDead()
 	{
 		// death anim finished.
 		StopAnimation();
-		SetThink(NULL);
+		SetThink(nullptr);
 	}
 }
 
@@ -391,7 +391,7 @@ void CBarnacle::WaitTillDead()
 //=========================================================
 void CBarnacle::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/barnacle.mdl");
@@ -419,7 +419,7 @@ CBaseEntity* CBarnacle::TongueTouchEnt(float* pflLength)
 	// trace once to hit architecture and see if the tongue needs to change position.
 	UTIL_TraceLine(pev->origin, pev->origin - Vector(0, 0, 2048), ignore_monsters, ENT(pev), &tr);
 	length = fabs(pev->origin.z - tr.vecEndPos.z);
-	if (pflLength)
+	if (pflLength != nullptr)
 	{
 		*pflLength = length;
 	}
@@ -444,5 +444,5 @@ CBaseEntity* CBarnacle::TongueTouchEnt(float* pflLength)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }

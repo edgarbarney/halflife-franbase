@@ -32,7 +32,7 @@
 //=========================================================
 bool CBaseMonster::FHaveSchedule()
 {
-	if (m_pSchedule == NULL)
+	if (m_pSchedule == nullptr)
 	{
 		return false;
 	}
@@ -47,7 +47,7 @@ bool CBaseMonster::FHaveSchedule()
 void CBaseMonster::ClearSchedule()
 {
 	m_iTaskStatus = TASKSTATUS_NEW;
-	m_pSchedule = NULL;
+	m_pSchedule = nullptr;
 	m_iScheduleIndex = 0;
 }
 
@@ -57,7 +57,7 @@ void CBaseMonster::ClearSchedule()
 //=========================================================
 bool CBaseMonster::FScheduleDone()
 {
-	ASSERT(m_pSchedule != NULL);
+	ASSERT(m_pSchedule != nullptr);
 
 	if (m_iScheduleIndex == m_pSchedule->cTasks)
 	{
@@ -74,7 +74,7 @@ bool CBaseMonster::FScheduleDone()
 //=========================================================
 void CBaseMonster::ChangeSchedule(Schedule_t* pNewSchedule)
 {
-	ASSERT(pNewSchedule != NULL);
+	ASSERT(pNewSchedule != nullptr);
 
 	m_pSchedule = pNewSchedule;
 	m_iScheduleIndex = 0;
@@ -92,7 +92,7 @@ void CBaseMonster::ChangeSchedule(Schedule_t* pNewSchedule)
 	}
 
 #if _DEBUG
-	if (!ScheduleFromName(pNewSchedule->pName))
+	if (ScheduleFromName(pNewSchedule->pName) == nullptr)
 	{
 		ALERT(at_debug, "Schedule %s not in table!!!\n", pNewSchedule->pName);
 	}
@@ -134,7 +134,7 @@ void CBaseMonster::ChangeSchedule(Schedule_t* pNewSchedule)
 //=========================================================
 void CBaseMonster::NextScheduledTask()
 {
-	ASSERT(m_pSchedule != NULL);
+	ASSERT(m_pSchedule != nullptr);
 
 	m_iTaskStatus = TASKSTATUS_NEW;
 	m_iScheduleIndex++;
@@ -154,7 +154,7 @@ void CBaseMonster::NextScheduledTask()
 //=========================================================
 int CBaseMonster::IScheduleFlags()
 {
-	if (!m_pSchedule)
+	if (m_pSchedule == nullptr)
 	{
 		return 0;
 	}
@@ -170,7 +170,7 @@ int CBaseMonster::IScheduleFlags()
 //=========================================================
 bool CBaseMonster::FScheduleValid()
 {
-	if (m_pSchedule == NULL)
+	if (m_pSchedule == nullptr)
 	{
 		// schedule is empty, and therefore not valid.
 		return false;
@@ -209,7 +209,7 @@ void CBaseMonster::MaintainSchedule()
 	// UNDONE: Tune/fix this 10... This is just here so infinite loops are impossible
 	for (i = 0; i < 10; i++)
 	{
-		if (m_pSchedule != NULL && TaskIsComplete())
+		if (m_pSchedule != nullptr && TaskIsComplete())
 		{
 			NextScheduledTask();
 		}
@@ -236,8 +236,8 @@ void CBaseMonster::MaintainSchedule()
 				// if we're here, then either we're being told to do something (besides dying or playing a script)
 				// or our current schedule (besides dying) is invalid. -- LRC
 				if ((0 != m_afConditions && !HasConditions(bits_COND_SCHEDULE_DONE)) ||
-					(m_pSchedule && (m_pSchedule->iInterruptMask & bits_COND_SCHEDULE_DONE) != 0) ||
-					((m_MonsterState == MONSTERSTATE_COMBAT) && (m_hEnemy == NULL)))
+					((m_pSchedule != nullptr) && (m_pSchedule->iInterruptMask & bits_COND_SCHEDULE_DONE) != 0) ||
+					((m_MonsterState == MONSTERSTATE_COMBAT) && (m_hEnemy == nullptr)))
 				{
 					GetIdealState();
 				}
@@ -266,7 +266,7 @@ void CBaseMonster::MaintainSchedule()
 		if (m_iTaskStatus == TASKSTATUS_NEW)
 		{
 			Task_t* pTask = GetTask();
-			ASSERT(pTask != NULL);
+			ASSERT(pTask != nullptr);
 			TaskBegin();
 			StartTask(pTask);
 		}
@@ -284,7 +284,7 @@ void CBaseMonster::MaintainSchedule()
 	if (TaskIsRunning())
 	{
 		Task_t* pTask = GetTask();
-		ASSERT(pTask != NULL);
+		ASSERT(pTask != nullptr);
 		RunTask(pTask);
 	}
 
@@ -325,7 +325,7 @@ void CBaseMonster::RunTask(Task_t* pTask)
 			pTarget = m_hTargetEnt;
 		else
 			pTarget = m_hEnemy;
-		if (pTarget)
+		if (pTarget != nullptr)
 		{
 			pev->ideal_yaw = UTIL_VecToYaw(pTarget->pev->origin - pev->origin);
 			ChangeYaw(pev->yaw_speed);
@@ -409,7 +409,7 @@ void CBaseMonster::RunTask(Task_t* pTask)
 	{
 		float distance;
 
-		if (m_hTargetEnt == NULL)
+		if (m_hTargetEnt == nullptr)
 			TaskFail();
 		else
 		{
@@ -452,7 +452,7 @@ void CBaseMonster::RunTask(Task_t* pTask)
 		{
 			pev->deadflag = DEAD_DEAD;
 
-			SetThink(NULL);
+			SetThink(nullptr);
 			StopAnimation();
 
 			if (!BBoxFlat())
@@ -670,7 +670,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 
 		pNewSchedule = GetScheduleOfType((int)pTask->flData);
 
-		if (pNewSchedule)
+		if (pNewSchedule != nullptr)
 		{
 			ChangeSchedule(pNewSchedule);
 		}
@@ -683,7 +683,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	}
 	case TASK_FIND_NEAR_NODE_COVER_FROM_ENEMY:
 	{
-		if (m_hEnemy == NULL)
+		if (m_hEnemy == nullptr)
 		{
 			TaskFail();
 			return;
@@ -703,7 +703,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	}
 	case TASK_FIND_FAR_NODE_COVER_FROM_ENEMY:
 	{
-		if (m_hEnemy == NULL)
+		if (m_hEnemy == nullptr)
 		{
 			TaskFail();
 			return;
@@ -723,7 +723,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	}
 	case TASK_FIND_NODE_COVER_FROM_ENEMY:
 	{
-		if (m_hEnemy == NULL)
+		if (m_hEnemy == nullptr)
 		{
 			TaskFail();
 			return;
@@ -745,7 +745,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	{
 		entvars_t* pevCover;
 
-		if (m_hEnemy == NULL)
+		if (m_hEnemy == nullptr)
 		{
 			// Find cover from self if no enemy available
 			pevCover = pev;
@@ -795,7 +795,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 
 		pBestSound = PBestSound();
 
-		ASSERT(pBestSound != NULL);
+		ASSERT(pBestSound != nullptr);
 		/*
 			if ( pBestSound && FindLateralCover( pBestSound->m_vecOrigin, g_vecZero ) )
 			{
@@ -805,7 +805,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 			}
 			*/
 
-		if (pBestSound && FindCover(pBestSound->m_vecOrigin, g_vecZero, pBestSound->m_iVolume, CoverRadius()))
+		if ((pBestSound != nullptr) && FindCover(pBestSound->m_vecOrigin, g_vecZero, pBestSound->m_iVolume, CoverRadius()))
 		{
 			// then try for plain ole cover
 			m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
@@ -831,7 +831,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 		break;
 
 	case TASK_FACE_TARGET:
-		if (m_hTargetEnt != NULL)
+		if (m_hTargetEnt != nullptr)
 		{
 			MakeIdealYaw(m_hTargetEnt->pev->origin);
 			SetTurnActivity();
@@ -898,7 +898,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	{
 		Activity newActivity;
 
-		if (!m_pGoalEnt || (m_pGoalEnt->pev->origin - pev->origin).Length() < 1)
+		if ((m_pGoalEnt == nullptr) || (m_pGoalEnt->pev->origin - pev->origin).Length() < 1)
 			TaskComplete();
 		else
 		{
@@ -911,7 +911,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 				TaskComplete();
 			else
 			{
-				if (m_pGoalEnt != NULL)
+				if (m_pGoalEnt != nullptr)
 				{
 					Vector vecDest;
 					vecDest = m_pGoalEnt->pev->origin;
@@ -988,7 +988,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	}
 	case TASK_GET_PATH_TO_ENEMY_LKP:
 	{
-		if (BuildRoute(m_vecEnemyLKP, bits_MF_TO_LOCATION, NULL))
+		if (BuildRoute(m_vecEnemyLKP, bits_MF_TO_LOCATION, nullptr))
 		{
 			TaskComplete();
 		}
@@ -1008,7 +1008,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	{
 		CBaseEntity* pEnemy = m_hEnemy;
 
-		if (pEnemy == NULL)
+		if (pEnemy == nullptr)
 		{
 			TaskFail();
 			return;
@@ -1033,7 +1033,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	case TASK_GET_PATH_TO_ENEMY_CORPSE:
 	{
 		UTIL_MakeVectors(pev->angles);
-		if (BuildRoute(m_vecEnemyLKP - gpGlobals->v_forward * 64, bits_MF_TO_LOCATION, NULL))
+		if (BuildRoute(m_vecEnemyLKP - gpGlobals->v_forward * 64, bits_MF_TO_LOCATION, nullptr))
 		{
 			TaskComplete();
 		}
@@ -1046,7 +1046,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	break;
 	case TASK_GET_PATH_TO_SPOT:
 	{
-		CBaseEntity* pPlayer = UTIL_FindEntityByClassname(NULL, "player");
+		CBaseEntity* pPlayer = UTIL_FindEntityByClassname(nullptr, "player");
 		if (BuildRoute(m_vecMoveGoal, bits_MF_TO_LOCATION, pPlayer))
 		{
 			TaskComplete();
@@ -1063,7 +1063,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	case TASK_GET_PATH_TO_TARGET:
 	{
 		RouteClear();
-		if (m_hTargetEnt != NULL && MoveToTarget(m_movementActivity, 1))
+		if (m_hTargetEnt != nullptr && MoveToTarget(m_movementActivity, 1))
 		{
 			TaskComplete();
 		}
@@ -1078,7 +1078,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	case TASK_GET_PATH_TO_SCRIPT:
 	{
 		RouteClear();
-		if (m_pCine != NULL && MoveToLocation(m_movementActivity, 1, m_pCine->pev->origin))
+		if (m_pCine != nullptr && MoveToLocation(m_movementActivity, 1, m_pCine->pev->origin))
 		{
 			TaskComplete();
 		}
@@ -1126,7 +1126,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 
 		pSound = PBestSound();
 
-		if (pSound && MoveToLocation(m_movementActivity, 2, pSound->m_vecOrigin))
+		if ((pSound != nullptr) && MoveToLocation(m_movementActivity, 2, pSound->m_vecOrigin))
 		{
 			TaskComplete();
 		}
@@ -1144,7 +1144,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 
 		pScent = PBestScent();
 
-		if (pScent && MoveToLocation(m_movementActivity, 2, pScent->m_vecOrigin))
+		if ((pScent != nullptr) && MoveToLocation(m_movementActivity, 2, pScent->m_vecOrigin))
 		{
 			TaskComplete();
 		}
@@ -1361,7 +1361,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	}
 	case TASK_PLANT_ON_SCRIPT:
 	{
-		if (m_pCine != NULL)
+		if (m_pCine != nullptr)
 		{
 			// Plant on script
 			// LRC - if it's a teleport script, do the turn too
@@ -1386,7 +1386,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 	}
 	case TASK_FACE_SCRIPT:
 	{
-		if (m_pCine != NULL && m_pCine->m_fMoveTo != 0) // movetype "no move" makes us ignore turntype
+		if (m_pCine != nullptr && m_pCine->m_fMoveTo != 0) // movetype "no move" makes us ignore turntype
 		{
 			switch (m_pCine->m_fTurnType)
 			{
@@ -1395,7 +1395,7 @@ void CBaseMonster::StartTask(Task_t* pTask)
 				break;
 			case 1:
 				// yes, this is inconsistent- turn to face uses the "target" and turn to angle uses the "cine".
-				if (m_hTargetEnt)
+				if (m_hTargetEnt != nullptr)
 					MakeIdealYaw(m_hTargetEnt->pev->origin);
 				else
 					MakeIdealYaw(m_pCine->pev->origin);
@@ -1444,7 +1444,7 @@ Task_t* CBaseMonster::GetTask()
 	if (m_iScheduleIndex < 0 || m_iScheduleIndex >= m_pSchedule->cTasks)
 	{
 		// m_iScheduleIndex is not within valid range for the monster's current schedule.
-		return NULL;
+		return nullptr;
 	}
 	else
 	{
@@ -1524,7 +1524,7 @@ Schedule_t* CBaseMonster::GetSchedule()
 		if (HasConditions(bits_COND_ENEMY_DEAD))
 		{
 			// clear the current (dead) enemy and try to find another.
-			m_hEnemy = NULL;
+			m_hEnemy = nullptr;
 
 			if (GetEnemy())
 			{
@@ -1604,8 +1604,8 @@ Schedule_t* CBaseMonster::GetSchedule()
 	}
 	case MONSTERSTATE_SCRIPT:
 	{
-		ASSERT(m_pCine != NULL);
-		if (!m_pCine)
+		ASSERT(m_pCine != nullptr);
+		if (m_pCine == nullptr)
 		{
 			ALERT(at_aiconsole, "Script failed for %s\n", STRING(pev->classname));
 			//				ALERT( at_console, "Script failed for %s\n", STRING(pev->classname) );

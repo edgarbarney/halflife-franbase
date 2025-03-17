@@ -127,7 +127,7 @@ IMPLEMENT_SAVERESTORE(CHoundeye, CSquadMonster);
 //=========================================================
 int CHoundeye::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_ALIEN_MONSTER;
+	return (m_iClass != 0) ? m_iClass : CLASS_ALIEN_MONSTER;
 }
 
 //=========================================================
@@ -171,7 +171,7 @@ bool CHoundeye::FCanActiveIdle()
 		{
 			CSquadMonster* pMember = pSquadLeader->MySquadMember(i);
 
-			if (pMember != NULL && pMember != this && pMember->m_iHintNode != NO_NODE)
+			if (pMember != nullptr && pMember != this && pMember->m_iHintNode != NO_NODE)
 			{
 				// someone else in the group is active idling right now!
 				return false;
@@ -329,7 +329,7 @@ void CHoundeye::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/houndeye.mdl");
@@ -356,7 +356,7 @@ void CHoundeye::Spawn()
 //=========================================================
 void CHoundeye::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/houndeye.mdl");
@@ -624,9 +624,9 @@ void CHoundeye::SonicAttack()
 	MESSAGE_END();
 
 
-	CBaseEntity* pEntity = NULL;
+	CBaseEntity* pEntity = nullptr;
 	// iterate on all entities in the vicinity.
-	while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, HOUNDEYE_MAX_ATTACK_RADIUS)) != NULL)
+	while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, HOUNDEYE_MAX_ATTACK_RADIUS)) != nullptr)
 	{
 		if (pEntity->pev->takedamage != DAMAGE_NO)
 		{
@@ -888,7 +888,7 @@ void CHoundeye::PrescheduleThink()
 		{
 			pSquadMember = MySquadMember(i);
 
-			if (pSquadMember)
+			if (pSquadMember != nullptr)
 			{
 				iSquadCount++;
 				m_vecPackCenter = m_vecPackCenter + pSquadMember->pev->origin;
@@ -1149,8 +1149,8 @@ Schedule_t* CHoundeye::GetScheduleOfType(int Type)
 			CSound* pWakeSound;
 
 			pWakeSound = PBestSound();
-			ASSERT(pWakeSound != NULL);
-			if (pWakeSound)
+			ASSERT(pWakeSound != nullptr);
+			if (pWakeSound != nullptr)
 			{
 				MakeIdealYaw(pWakeSound->m_vecOrigin);
 

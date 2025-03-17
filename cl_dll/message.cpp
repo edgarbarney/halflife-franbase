@@ -60,7 +60,7 @@ void CHudMessage::Reset()
 
 	m_bEndAfterMessage = false;
 	m_gameTitleTime = 0;
-	m_pGameTitle = NULL;
+	m_pGameTitle = nullptr;
 }
 
 
@@ -359,7 +359,7 @@ bool CHudMessage::Draw(float fTime)
 	for (i = 0; i < maxHUDMessages; i++)
 	{
 		// Assume m_parms.time contains last time
-		if (m_pMessages[i])
+		if (m_pMessages[i] != nullptr)
 		{
 			pMessage = m_pMessages[i];
 			if (m_startTime[i] > gHUD.m_flTime)
@@ -369,7 +369,7 @@ bool CHudMessage::Draw(float fTime)
 
 	for (i = 0; i < maxHUDMessages; i++)
 	{
-		if (m_pMessages[i])
+		if (m_pMessages[i] != nullptr)
 		{
 			pMessage = m_pMessages[i];
 
@@ -403,7 +403,7 @@ bool CHudMessage::Draw(float fTime)
 			else
 			{
 				// The message is over
-				m_pMessages[i] = NULL;
+				m_pMessages[i] = nullptr;
 
 				if (m_bEndAfterMessage)
 				{
@@ -431,7 +431,7 @@ void CHudMessage::MessageAdd(const char* pName, float time)
 
 	for (i = 0; i < maxHUDMessages; i++)
 	{
-		if (!m_pMessages[i])
+		if (m_pMessages[i] == nullptr)
 		{
 			// Trim off a leading # if it's there
 			if (pName[0] == '#')
@@ -439,7 +439,7 @@ void CHudMessage::MessageAdd(const char* pName, float time)
 			else
 				tempMessage = TextMessageGet(pName);
 			// If we couldnt find it in the titles.txt, just create it
-			if (!tempMessage)
+			if (tempMessage == nullptr)
 			{
 				g_pCustomMessage.effect = 2;
 				g_pCustomMessage.r1 = g_pCustomMessage.g1 = g_pCustomMessage.b1 = g_pCustomMessage.a1 = 100;
@@ -462,7 +462,7 @@ void CHudMessage::MessageAdd(const char* pName, float time)
 
 			for (j = 0; j < maxHUDMessages; j++)
 			{
-				if (m_pMessages[j])
+				if (m_pMessages[j] != nullptr)
 				{
 					// is this message already in the list
 					if (0 == strcmp(tempMessage->pMessage, m_pMessages[j]->pMessage))
@@ -475,7 +475,7 @@ void CHudMessage::MessageAdd(const char* pName, float time)
 					{
 						if (fabs(tempMessage->x - m_pMessages[j]->x) < 0.0001)
 						{
-							m_pMessages[j] = NULL;
+							m_pMessages[j] = nullptr;
 						}
 					}
 				}
@@ -518,7 +518,7 @@ bool CHudMessage::MsgFunc_HudText(const char* pszName, int iSize, void* pbuf)
 bool CHudMessage::MsgFunc_GameTitle(const char* pszName, int iSize, void* pbuf)
 {
 	m_pGameTitle = TextMessageGet("GAMETITLE");
-	if (m_pGameTitle != NULL)
+	if (m_pGameTitle != nullptr)
 	{
 		m_gameTitleTime = gHUD.m_flTime;
 
@@ -540,7 +540,7 @@ void CHudMessage::MessageAdd(client_textmessage_t* newMessage)
 
 	for (int i = 0; i < maxHUDMessages; i++)
 	{
-		if (!m_pMessages[i])
+		if (m_pMessages[i] == nullptr)
 		{
 			m_pMessages[i] = newMessage;
 			m_startTime[i] = gHUD.m_flTime;

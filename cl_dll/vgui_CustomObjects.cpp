@@ -102,9 +102,9 @@ CommandButton::CommandButton(const char* text, int x, int y, int wide, int tall,
 
 void CommandButton::Init()
 {
-	m_pSubMenu = NULL;
-	m_pSubLabel = NULL;
-	m_pParentMenu = NULL;
+	m_pSubMenu = nullptr;
+	m_pSubLabel = nullptr;
+	m_pParentMenu = nullptr;
 
 	// Set text color to orange
 	setFgColor(Scheme::sc_primary1);
@@ -179,14 +179,14 @@ void CommandButton::AddSubMenu(CCommandMenu* pNewMenu)
 
 void CommandButton::UpdateSubMenus(int iAdjustment)
 {
-	if (m_pSubMenu)
+	if (m_pSubMenu != nullptr)
 		m_pSubMenu->RecalculatePositions(iAdjustment);
 }
 
 void CommandButton::paint()
 {
 	// Make the sub label paint the same as the button
-	if (m_pSubLabel)
+	if (m_pSubLabel != nullptr)
 	{
 		if (isSelected())
 			m_pSubLabel->PushDown();
@@ -240,13 +240,13 @@ void CommandButton::cursorEntered()
 {
 	// unarm all the other buttons in this menu
 	CCommandMenu* containingMenu = getParentMenu();
-	if (containingMenu)
+	if (containingMenu != nullptr)
 	{
 		containingMenu->ClearButtonsOfArmedState();
 
 		// make all our higher buttons armed
 		CCommandMenu* pCParent = containingMenu->GetParentMenu();
-		if (pCParent)
+		if (pCParent != nullptr)
 		{
 			CommandButton* pParentButton = pCParent->FindButtonWithSubmenu(containingMenu);
 
@@ -266,7 +266,7 @@ void CommandButton::cursorExited()
 	// only clear ourselves if we have do not have a containing menu
 	// only stay armed if we have a sub menu
 	// the buttons only unarm themselves when another button is armed instead
-	if (!getParentMenu() || !GetSubMenu())
+	if ((getParentMenu() == nullptr) || (GetSubMenu() == nullptr))
 	{
 		setArmed(false);
 	}
@@ -338,7 +338,7 @@ CImageLabel::CImageLabel(const char* pImageName, int x, int y, int wide, int tal
 // Image size
 int CImageLabel::getImageWide()
 {
-	if (m_pTGA)
+	if (m_pTGA != nullptr)
 	{
 		int iXSize, iYSize;
 		m_pTGA->getSize(iXSize, iYSize);
@@ -352,7 +352,7 @@ int CImageLabel::getImageWide()
 
 int CImageLabel::getImageTall()
 {
-	if (m_pTGA)
+	if (m_pTGA != nullptr)
 	{
 		int iXSize, iYSize;
 		m_pTGA->getSize(iXSize, iYSize);
@@ -371,7 +371,7 @@ void CImageLabel::LoadImage(const char* pImageName)
 	// Load the Image
 	m_pTGA = LoadTGAForRes(pImageName);
 
-	if (m_pTGA == NULL)
+	if (m_pTGA == nullptr)
 	{
 		// we didn't find a matching image file for this resolution
 		// try to load file resolution independent
@@ -383,7 +383,7 @@ void CImageLabel::LoadImage(const char* pImageName)
 		fis.close();
 	}
 
-	if (m_pTGA == NULL)
+	if (m_pTGA == nullptr)
 		return; // unable to load image
 
 	int w, t;
@@ -427,7 +427,7 @@ CTFScrollButton::CTFScrollButton(int iArrow, const char* text, int x, int y, int
 
 void CTFScrollButton::paint()
 {
-	if (!m_pTGA)
+	if (m_pTGA == nullptr)
 		return;
 
 	// draw armed button text in white
@@ -516,7 +516,7 @@ CTFScrollPanel::CTFScrollPanel(int x, int y, int wide, int tall) : ScrollPanel(x
 //=================================================================================
 void CHandler_MenuButtonOver::cursorEntered(Panel* panel)
 {
-	if (gViewPort && m_pMenuPanel)
+	if ((gViewPort != nullptr) && (m_pMenuPanel != nullptr))
 	{
 		m_pMenuPanel->SetActiveInfo(m_iButton);
 	}

@@ -240,7 +240,7 @@ typedef enum
 //=========================================================
 int CTentacle::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_ALIEN_MONSTER;
+	return (m_iClass != 0) ? m_iClass : CLASS_ALIEN_MONSTER;
 }
 
 //
@@ -487,9 +487,9 @@ void CTentacle::Cycle()
 	if (HasConditions(bits_COND_HEAR_SOUND))
 		pSound = PBestSound();
 	else
-		pSound = NULL;
+		pSound = nullptr;
 
-	if (pSound)
+	if (pSound != nullptr)
 	{
 		Vector vecDir;
 		if (gpGlobals->time - m_flPrevSoundTime < 0.5)
@@ -727,7 +727,7 @@ void CTentacle::CommandUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TY
 		m_iGoalAnim = TENTACLE_ANIM_Engine_Death1;
 		break;
 	case USE_ON:
-		if (pActivator)
+		if (pActivator != nullptr)
 		{
 			// ALERT( at_console, "insert sound\n");
 			CSoundEnt::InsertSound(bits_SOUND_WORLD, pActivator->pev->origin, 1024, 1.0);
@@ -980,7 +980,7 @@ void CTentacle::HitTouch(CBaseEntity* pOther)
 		return;
 
 	// only look at the ones where the player hit me
-	if (tr.pHit == NULL || tr.pHit->v.modelindex != pev->modelindex)
+	if (tr.pHit == nullptr || tr.pHit->v.modelindex != pev->modelindex)
 		return;
 
 	if (tr.iHitgroup >= 3)

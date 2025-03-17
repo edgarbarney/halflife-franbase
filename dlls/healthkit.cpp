@@ -72,7 +72,7 @@ bool CHealthKit::MyTouch(CBasePlayer* pPlayer)
 
 	if (pPlayer->TakeHealth(gSkillData.healthkitCapacity, DMG_GENERIC))
 	{
-		MESSAGE_BEGIN(MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev);
+		MESSAGE_BEGIN(MSG_ONE, gmsgItemPickup, nullptr, pPlayer->pev);
 		WRITE_STRING(STRING(pev->classname));
 		MESSAGE_END();
 
@@ -185,7 +185,7 @@ void CWallHealth::Precache()
 void CWallHealth::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
 	// Make sure that we have a caller
-	if (!pActivator)
+	if (pActivator == nullptr)
 		return;
 	// if it's not a player, ignore
 	if (!pActivator->IsPlayer())
@@ -282,7 +282,7 @@ STATE CWallHealth::GetState()
 {
 	if (m_iOn == 2)
 		return STATE_IN_USE;
-	else if (m_iJuice)
+	else if (m_iJuice != 0)
 		return STATE_ON;
 	else
 		return STATE_OFF;

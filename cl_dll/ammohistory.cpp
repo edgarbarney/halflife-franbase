@@ -131,7 +131,7 @@ bool HistoryResource::DrawAmmoHistory(float flTime)
 				// Draw the pic
 				int ypos = ScreenHeight - (AMMO_PICKUP_PICK_HEIGHT + (AMMO_PICKUP_GAP * i));
 				int xpos = ScreenWidth - (rcPic.right - rcPic.left) - 4;
-				if (spr && 0 != *spr) // weapon isn't loaded yet so just don't draw the pic
+				if ((spr != nullptr) && 0 != *spr) // weapon isn't loaded yet so just don't draw the pic
 				{					  // the dll has to make sure it has sent info the weapons you need
 					SPR_Set(*spr, r, g, b);
 					SPR_DrawAdditive(0, xpos, ypos, &rcPic);
@@ -144,7 +144,7 @@ bool HistoryResource::DrawAmmoHistory(float flTime)
 			{
 				WEAPON* weap = gWR.GetWeapon(rgAmmoHistory[i].iId);
 
-				if (!weap)
+				if (weap == nullptr)
 					return true; // we don't know about the weapon yet, so don't draw anything
 
 				int r, g, b;

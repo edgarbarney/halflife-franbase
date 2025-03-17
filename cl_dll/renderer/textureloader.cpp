@@ -28,7 +28,7 @@ Init
 
 ====================
 */
-void CTextureLoader::Init(void)
+void CTextureLoader::Init()
 {
 	glCompressedTexImage2DARB = (PFNGLCOMPRESSEDTEXIMAGE2DARBPROC)wglGetProcAddress("glCompressedTexImage2DARB");
 }
@@ -39,9 +39,9 @@ VidInit
 
 ====================
 */
-void CTextureLoader::VidInit(void)
+void CTextureLoader::VidInit()
 {
-	if (!m_iNumTextures)
+	if (m_iNumTextures == 0)
 		return;
 
 	for (int i = 0; i < m_iNumTextures; i++)
@@ -57,7 +57,7 @@ Shutdown
 
 ====================
 */
-void CTextureLoader::Shutdown(void)
+void CTextureLoader::Shutdown()
 {
 	VidInit();
 }
@@ -98,47 +98,47 @@ cl_texture_t* CTextureLoader::LoadTexture(const char* szFile, int iAltIndex, boo
 {
 	int iType = 0;
 	char szAlt[64];
-	byte* pFile = NULL;
+	byte* pFile = nullptr;
 
 	if (strlen(szFile) >= 64)
 	{
 		gEngfuncs.Con_Printf("Token too large on %s.\n", szFile);
-		return NULL;
+		return nullptr;
 	}
 
 	// Try and find a match
-	cl_texture_t* pTexture = NULL;
+	cl_texture_t* pTexture = nullptr;
 
-	if (!iAltIndex)
+	if (iAltIndex == 0)
 		pTexture = HasTexture(szFile);
 
-	if (pTexture)
+	if (pTexture != nullptr)
 	{
 		// Just return regular ones if already loaded
 		return pTexture;
 	}
 
 	// Some files need to be .tga
-	if (!strcmp(&szFile[strlen(szFile) - 3], "dds"))
-		pFile = (byte*)gEngfuncs.COM_LoadFile(szFile, 5, NULL);
+	if (strcmp(&szFile[strlen(szFile) - 3], "dds") == 0)
+		pFile = (byte*)gEngfuncs.COM_LoadFile(szFile, 5, nullptr);
 
-	if (!pFile)
+	if (pFile == nullptr)
 	{
 		// Check for .tga then
 		strcpy(szAlt, szFile);
 		strcpy(&szAlt[strlen(szAlt) - 3], "tga");
 
-		pFile = (byte*)gEngfuncs.COM_LoadFile(szAlt, 5, NULL);
+		pFile = (byte*)gEngfuncs.COM_LoadFile(szAlt, 5, nullptr);
 		iType = 1;
 	}
 
-	if (!pFile)
+	if (pFile == nullptr)
 	{
 		if (bPrompt)
 			gEngfuncs.Con_Printf("Failed to load image: %s\n", szFile);
 		else
 			gEngfuncs.Con_DPrintf("Failed to load image: %s\n", szFile);
-		return NULL;
+		return nullptr;
 	}
 
 	//
@@ -147,7 +147,7 @@ cl_texture_t* CTextureLoader::LoadTexture(const char* szFile, int iAltIndex, boo
 	pTexture = &m_pTextures[m_iNumTextures];
 	m_iNumTextures++;
 
-	if (!iAltIndex)
+	if (iAltIndex == 0)
 	{
 		pTexture->iIndex = current_ext_texture_id;
 		current_ext_texture_id++;
@@ -170,7 +170,7 @@ cl_texture_t* CTextureLoader::LoadTexture(const char* szFile, int iAltIndex, boo
 
 			memset(pTexture, 0, sizeof(cl_texture_t));
 			m_iNumTextures--;
-			return NULL;
+			return nullptr;
 		}
 	}
 	else if (iType == 1)
@@ -182,7 +182,7 @@ cl_texture_t* CTextureLoader::LoadTexture(const char* szFile, int iAltIndex, boo
 
 			memset(pTexture, 0, sizeof(cl_texture_t));
 			m_iNumTextures--;
-			return NULL;
+			return nullptr;
 		}
 	}
 
@@ -256,7 +256,7 @@ bool CTextureLoader::LoadTGAFile(byte* pFile, cl_texture_t* pTexture, bool bNoMi
 		{
 			while (i < iImageSize)
 			{
-				if (*pCurrent & 0x80)
+				if ((*pCurrent & 0x80) != 0)
 				{
 					byte bLength = *pCurrent - 127;
 					pCurrent++;
@@ -288,7 +288,7 @@ bool CTextureLoader::LoadTGAFile(byte* pFile, cl_texture_t* pTexture, bool bNoMi
 		{
 			while (i < iImageSize)
 			{
-				if (*pCurrent & 0x80)
+				if ((*pCurrent & 0x80) != 0)
 				{
 					byte bLength = *pCurrent - 127;
 					pCurrent++;
@@ -411,13 +411,13 @@ bool CTextureLoader::LoadDDSFile(byte* pFile, cl_texture_t* pTexture, bool bNoMi
 	if (iSize != 124)
 		return false; // Not correct size
 
-	if (!(iFlags & DDSD_PIXELFORMAT))
+	if ((iFlags & DDSD_PIXELFORMAT) == 0u)
 		return false; // Not correct format
 
-	if (!(iFlags & DDSD_CAPS))
+	if ((iFlags & DDSD_CAPS) == 0u)
 		return false; // Not correct format
 
-	if (!(iPFFlags & DDPF_FOURCC))
+	if ((iPFFlags & DDPF_FOURCC) == 0u)
 		return false; // Not correct type
 
 	if (iFourCC != D3DFMT_DXT1 && iFourCC != D3DFMT_DXT5)
@@ -464,10 +464,10 @@ cl_texture_t* CTextureLoader::HasTexture(const char* szFile)
 {
 	for (int i = 0; i < m_iNumTextures; i++)
 	{
-		if (!strcmp(m_pTextures[i].szName, szFile))
+		if (strcmp(m_pTextures[i].szName, szFile) == 0)
 			return &m_pTextures[i];
 	}
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -476,25 +476,25 @@ LoadWADFiles
 
 ====================
 */
-void CTextureLoader::LoadWADFiles(void)
+void CTextureLoader::LoadWADFiles()
 {
 	char szWAD[64];
 	char szFile[32];
 
 	char* pWAD = gPropManager.ValueForKey(&gPropManager.m_pBSPEntities[0], "wad");
-	if (!pWAD)
+	if (pWAD == nullptr)
 		return;
 
 	int iLength = strlen(pWAD);
 	int iCur = 0;
 	;
-	while (1)
+	while (true)
 	{
 		if (iCur >= iLength)
 			return;
 
 		int iLen = 0;
-		while (1)
+		while (true)
 		{
 			if (pWAD[iCur] == ';' || iCur >= iLength)
 			{
@@ -514,11 +514,11 @@ void CTextureLoader::LoadWADFiles(void)
 
 		int iSize = 0;
 		byte* pFile = gEngfuncs.COM_LoadFile(szFile, 5, &iSize);
-		if (!pFile)
+		if (pFile == nullptr)
 			continue;
 
 		wadinfo_t* pInfo = (wadinfo_t*)pFile;
-		if (strncmp("WAD3", pInfo->identification, 4))
+		if (strncmp("WAD3", pInfo->identification, 4) != 0)
 		{
 			gEngfuncs.COM_FreeFile(pFile);
 			continue;
@@ -542,9 +542,9 @@ FreeWADFiles
 
 ====================
 */
-void CTextureLoader::FreeWADFiles(void)
+void CTextureLoader::FreeWADFiles()
 {
-	if (!m_iNumWADFiles)
+	if (m_iNumWADFiles == 0)
 		return;
 
 	for (int i = 0; i < m_iNumWADFiles; i++)
@@ -566,7 +566,7 @@ LoadWADTexture
 cl_texture_t* CTextureLoader::LoadWADTexture(const char* szTexture, int iAltIndex)
 {
 	char szName[32];
-	cl_texture_t* pTexture = NULL;
+	cl_texture_t* pTexture = nullptr;
 
 	for (int i = 0; i < m_iNumWADFiles; i++)
 	{
@@ -575,13 +575,13 @@ cl_texture_t* CTextureLoader::LoadWADTexture(const char* szTexture, int iAltInde
 		for (int j = 0; j < pInfo->numlumps; j++)
 		{
 			lumpinfo_t* pLump = &m_pWADFiles[i].lumps[j];
-			if (pLump->type != 0 && !(pLump->type & 0x43))
+			if (pLump->type != 0 && ((pLump->type & 0x43) == 0))
 				continue;
 
 			strcpy(szName, pLump->name);
 			strLower(szName);
 
-			if (!strcmp(szName, szTexture))
+			if (strcmp(szName, szTexture) == 0)
 			{
 				pTexture = &m_pTextures[m_iNumTextures];
 				m_iNumTextures++;
@@ -597,12 +597,12 @@ cl_texture_t* CTextureLoader::LoadWADTexture(const char* szTexture, int iAltInde
 				int iMip3Offset = ByteToUInt(pFile + pLump->filepos + 36);
 
 				byte* pPalette;
-				if (pLump->type & 0x43)
+				if ((pLump->type & 0x43) != 0)
 					pPalette = pFile + pLump->filepos + iMip3Offset + ((pTexture->iWidth / 8) * (pTexture->iHeight / 8)) + 2;
 				else
 					pPalette = pFile + pLump->filepos + iIndexOffset + (pTexture->iWidth * pTexture->iHeight) + 2;
 
-				if (iAltIndex)
+				if (iAltIndex != 0)
 					pTexture->iIndex = iAltIndex;
 				byte* pPixels = pFile + pLump->filepos + iIndexOffset;
 				LoadPallettedTexture(pPixels, pPalette, pTexture);
@@ -611,7 +611,7 @@ cl_texture_t* CTextureLoader::LoadWADTexture(const char* szTexture, int iAltInde
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -709,7 +709,7 @@ void CTextureLoader::LoadPallettedTexture(byte* data, byte* pal, cl_texture_t* p
 		}
 	}
 
-	if (!pTexture->iIndex)
+	if (pTexture->iIndex == 0u)
 	{
 		pTexture->iIndex = current_ext_texture_id;
 		current_ext_texture_id++;
@@ -732,7 +732,7 @@ LoadTextureScript
 
 ====================
 */
-void CTextureLoader::LoadTextureScript(void)
+void CTextureLoader::LoadTextureScript()
 {
 	int iFlags = 0;
 	char szFlag[32];
@@ -740,7 +740,7 @@ void CTextureLoader::LoadTextureScript(void)
 	char szTexture[32];
 
 	// Clear previous list
-	if (m_iNumTextureEntries)
+	if (m_iNumTextureEntries != 0)
 	{
 		memset(m_pTextureEntries, 0, sizeof(m_pTextureEntries));
 		m_iNumTextureEntries = NULL;
@@ -749,14 +749,14 @@ void CTextureLoader::LoadTextureScript(void)
 	int iSize = NULL;
 	char* pFile = (char*)gEngfuncs.COM_LoadFile("gfx/textures/texture_flags.txt", 5, &iSize);
 
-	if (!pFile)
+	if (pFile == nullptr)
 	{
 		gEngfuncs.Con_Printf("Could not load gfx/textures/texture_flags.txt!\n");
 		return;
 	}
 
 	int i = NULL;
-	while (1)
+	while (true)
 	{
 		// Reset
 		iFlags = 0;
@@ -766,7 +766,7 @@ void CTextureLoader::LoadTextureScript(void)
 			break;
 
 		// Skip to next token
-		while (1)
+		while (true)
 		{
 			if (i >= iSize)
 				break;
@@ -782,7 +782,7 @@ void CTextureLoader::LoadTextureScript(void)
 
 		// Read token in
 		int j = NULL;
-		while (1)
+		while (true)
 		{
 			if (i >= iSize)
 				break;
@@ -802,7 +802,7 @@ void CTextureLoader::LoadTextureScript(void)
 			break;
 
 		// Skip to next token
-		while (1)
+		while (true)
 		{
 			if (i >= iSize)
 				break;
@@ -818,7 +818,7 @@ void CTextureLoader::LoadTextureScript(void)
 
 		// Read token in
 		j = NULL;
-		while (1)
+		while (true)
 		{
 			if (i >= iSize)
 				break;
@@ -837,10 +837,10 @@ void CTextureLoader::LoadTextureScript(void)
 		if (i >= iSize)
 			break;
 
-		while (1)
+		while (true)
 		{
 			// Skip to next token
-			while (1)
+			while (true)
 			{
 				if (i >= iSize)
 					break;
@@ -856,7 +856,7 @@ void CTextureLoader::LoadTextureScript(void)
 
 			// Read token in
 			j = NULL;
-			while (1)
+			while (true)
 			{
 				if (i >= iSize)
 					break;
@@ -874,19 +874,19 @@ void CTextureLoader::LoadTextureScript(void)
 			strLower(szFlag);
 
 			// Only this flag for now
-			if (!strcmp(szFlag, "alternate"))
+			if (strcmp(szFlag, "alternate") == 0)
 				iFlags |= TEXFLAG_ALTERNATE;
-			else if (!strcmp(szFlag, "fullbright"))
+			else if (strcmp(szFlag, "fullbright") == 0)
 				iFlags |= TEXFLAG_FULLBRIGHT;
-			else if (!strcmp(szFlag, "none"))
+			else if (strcmp(szFlag, "none") == 0)
 				iFlags |= TEXFLAG_NONE;
-			else if (!strcmp(szFlag, "nomipmap"))
+			else if (strcmp(szFlag, "nomipmap") == 0)
 				iFlags |= TEXFLAG_NOMIPMAP;
-			else if (!strcmp(szFlag, "eraseflags"))
+			else if (strcmp(szFlag, "eraseflags") == 0)
 				iFlags |= TEXFLAG_ERASE;
 
 			// See if there's anything else ahead
-			while (1)
+			while (true)
 			{
 				if (i >= iSize)
 					break;
@@ -899,7 +899,7 @@ void CTextureLoader::LoadTextureScript(void)
 				break; // End of entry
 		}
 
-		if (iFlags)
+		if (iFlags != 0)
 		{
 			texentry_t* pEntry = &m_pTextureEntries[m_iNumTextureEntries];
 			m_iNumTextureEntries++;
@@ -923,12 +923,12 @@ TextureHasFlag
 */
 bool CTextureLoader::TextureHasFlag(const char* szModel, const char* szTexture, int iFlag)
 {
-	if (!m_iNumTextureEntries)
+	if (m_iNumTextureEntries == 0)
 		return false;
 
 	for (int i = 0; i < m_iNumTextureEntries; i++)
 	{
-		if (!strcmp(m_pTextureEntries[i].szModel, szModel) && !strcmp(m_pTextureEntries[i].szTexture, szTexture) && m_pTextureEntries[i].iFlags & iFlag)
+		if ((strcmp(m_pTextureEntries[i].szModel, szModel) == 0) && (strcmp(m_pTextureEntries[i].szTexture, szTexture) == 0) && ((m_pTextureEntries[i].iFlags & iFlag) != 0))
 			return true;
 	}
 
@@ -986,7 +986,7 @@ void CTextureLoader::WriteTGA(byte* pixels, int bpp, int width, int height, char
 	sprintf(szPath, "%s/imagedump/%s.tga", gEngfuncs.pfnGetGameDirectory(), szpath);
 
 	FILE* pFile = fopen(szPath, "wb");
-	if (!pFile)
+	if (pFile == nullptr)
 	{
 		delete[] pBuf;
 		return;

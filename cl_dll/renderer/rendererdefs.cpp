@@ -80,11 +80,11 @@ char* stristr(const char* string, const char* string2)
 	c = tolower(*string2);
 	len = strlen(string2);
 
-	while (string)
+	while (string != nullptr)
 	{
-		for (; *string && tolower(*string) != c; string++)
+		for (; (*string != 0) && tolower(*string) != c; string++)
 			;
-		if (*string)
+		if (*string != 0)
 		{
 			if (strnicmp(string, string2, len) == 0)
 			{
@@ -94,7 +94,7 @@ char* stristr(const char* string, const char* string2)
 		}
 		else
 		{
-			return NULL;
+			return nullptr;
 		}
 	}
 	return (char*)string;
@@ -108,7 +108,7 @@ char* strLower(char* str)
 {
 	char* temp;
 
-	for (temp = str; *temp; temp++)
+	for (temp = str; *temp != 0; temp++)
 		*temp = tolower(*temp);
 
 	return str;
@@ -532,10 +532,10 @@ void R_RotateForEntity(cl_entity_t* e)
 //==========================
 int IsEntityMoved(cl_entity_t* e)
 {
-	if (e->angles[0] || e->angles[1] || e->angles[2] ||
-		e->origin[0] || e->origin[1] || e->origin[2] ||
+	if ((e->angles[0] != 0.0f) || (e->angles[1] != 0.0f) || (e->angles[2] != 0.0f) ||
+		(e->origin[0] != 0.0f) || (e->origin[1] != 0.0f) || (e->origin[2] != 0.0f) ||
 		e->curstate.renderfx == 70 ||
-		e->curstate.effects & FL_CONVEYOR ||
+		((e->curstate.effects & FL_CONVEYOR) != 0) ||
 		e->curstate.frame > 0) // skybox models reques separate pass
 		return TRUE;
 	else
@@ -548,7 +548,7 @@ int IsEntityMoved(cl_entity_t* e)
 //==========================
 int IsEntityTransparent(cl_entity_t* e)
 {
-	if (!e)
+	if (e == nullptr)
 		return FALSE;
 
 	if (e->curstate.rendermode == kRenderNormal ||
@@ -575,7 +575,7 @@ int IsPitchReversed(float pitch)
 //	BlackFog
 //
 //==========================
-void BlackFog(void)
+void BlackFog()
 {
 	if (gHUD.m_pFogSettings.active)
 		glFogfv(GL_FOG_COLOR, g_vecZero);
@@ -587,7 +587,7 @@ void BlackFog(void)
 //	RenderFog
 //
 //==========================
-void RenderFog(void)
+void RenderFog()
 {
 	if (gHUD.m_pFogSettings.active)
 	{
@@ -616,7 +616,7 @@ void RenderFog(void)
 //
 //	Thanks to Laurie
 //==========================
-void ClearToFogColor(void)
+void ClearToFogColor()
 {
 	if (!gHUD.m_pFogSettings.active)
 		return;
@@ -629,7 +629,7 @@ void ClearToFogColor(void)
 //	DisableFog
 //
 //==========================
-void DisableFog(void)
+void DisableFog()
 {
 	glDisable(GL_FOG);
 }
@@ -649,7 +649,7 @@ void MyLookAt(GLdouble eyex, GLdouble eyey, GLdouble eyez,
 	z[1] = eyey - centery;
 	z[2] = eyez - centerz;
 	mag = sqrt(z[0] * z[0] + z[1] * z[1] + z[2] * z[2]);
-	if (mag)
+	if (mag != 0.0)
 	{ /* mpichler, 19950515 */
 		z[0] /= mag;
 		z[1] /= mag;
@@ -677,7 +677,7 @@ void MyLookAt(GLdouble eyex, GLdouble eyey, GLdouble eyez,
 	 */
 
 	mag = sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
-	if (mag)
+	if (mag != 0.0)
 	{
 		x[0] /= mag;
 		x[1] /= mag;
@@ -685,7 +685,7 @@ void MyLookAt(GLdouble eyex, GLdouble eyey, GLdouble eyez,
 	}
 
 	mag = sqrt(y[0] * y[0] + y[1] * y[1] + y[2] * y[2]);
-	if (mag)
+	if (mag != 0.0)
 	{
 		y[0] /= mag;
 		y[1] /= mag;
@@ -725,7 +725,7 @@ mleaf_t* Mod_PointInLeaf(Vector p, model_t* model)
 	mplane_t* plane;
 
 	node = model->nodes;
-	while (1)
+	while (true)
 	{
 		if (node->contents < 0)
 			return (mleaf_t*)node;
@@ -738,7 +738,7 @@ mleaf_t* Mod_PointInLeaf(Vector p, model_t* model)
 			node = node->children[1];
 	}
 
-	return NULL; // never reached
+	return nullptr; // never reached
 }
 int TrinityBoxOnPlaneSide(Vector emins, Vector emaxs, mplane_t* p)
 {
@@ -830,10 +830,10 @@ void SV_FindTouchedLeafs(entextradata_t* ent, mnode_t* node)
 	sides = TrinityBoxOnPlaneSide(ent->absmin, ent->absmax, splitplane);
 
 	// recurse down the contacted sides
-	if (sides & 1)
+	if ((sides & 1) != 0)
 		SV_FindTouchedLeafs(ent, node->children[0]);
 
-	if (sides & 2)
+	if ((sides & 2) != 0)
 		SV_FindTouchedLeafs(ent, node->children[1]);
 }
 
@@ -853,9 +853,9 @@ byte* Mod_DecompressVis(byte* in, model_t* model)
 	row = (model->numleafs + 7) >> 3;
 	out = decompressed;
 
-	if (!in)
+	if (in == nullptr)
 	{ // no vis info, so make all visible
-		while (row)
+		while (row != 0)
 		{
 			*out++ = 0xff;
 			row--;
@@ -865,7 +865,7 @@ byte* Mod_DecompressVis(byte* in, model_t* model)
 
 	do
 	{
-		if (*in)
+		if (*in != 0u)
 		{
 			*out++ = *in++;
 			continue;
@@ -873,7 +873,7 @@ byte* Mod_DecompressVis(byte* in, model_t* model)
 
 		c = in[1];
 		in += 2;
-		while (c)
+		while (c != 0)
 		{
 			*out++ = 0;
 			c--;
@@ -886,7 +886,7 @@ byte* Mod_DecompressVis(byte* in, model_t* model)
 byte* Mod_LeafPVS(mleaf_t* leaf, model_t* model)
 {
 	if (leaf == model->leafs)
-		return Mod_DecompressVis(NULL, model);
+		return Mod_DecompressVis(nullptr, model);
 
 	return Mod_DecompressVis(leaf->compressed_vis, model);
 }
@@ -903,7 +903,7 @@ void R_MarkLeaves(mleaf_t* pLeaf)
 
 	for (int i = 0; i < pWorld->numleafs; i++)
 	{
-		if (vis[i >> 3] & (1 << (i & 7)))
+		if ((vis[i >> 3] & (1 << (i & 7))) != 0)
 		{
 			mnode_t* node = (mnode_t*)&pWorld->leafs[i + 1];
 			do
@@ -913,7 +913,7 @@ void R_MarkLeaves(mleaf_t* pLeaf)
 
 				node->visframe = gBSPRenderer.m_pViewLeaf->visframe;
 				node = node->parent;
-			} while (node);
+			} while (node != nullptr);
 		}
 	}
 }
@@ -923,7 +923,7 @@ byte* ResizeArray(byte* pOriginal, int iSize, int iCount)
 	byte* pArray = new byte[iSize * (iCount + 1)];
 	memset(pArray, 0, sizeof(byte) * iSize * (iCount + 1));
 
-	if (pOriginal && iCount)
+	if ((pOriginal != nullptr) && (iCount != 0))
 	{
 		memmove(pArray, pOriginal, iSize * iCount);
 		delete[] pOriginal;
@@ -938,7 +938,7 @@ HUD_PrintSpeeds
 
 =================
 */
-void HUD_PrintSpeeds(void)
+void HUD_PrintSpeeds()
 {
 	if (gBSPRenderer.m_pCvarSpeeds->value <= 0)
 		return;
@@ -994,7 +994,7 @@ R_DrawNormalTriangles
 
 =================
 */
-void R_DrawNormalTriangles(void)
+void R_DrawNormalTriangles()
 {
 	// Set this at start
 	RenderFog();
@@ -1036,7 +1036,7 @@ R_DrawTransparentTriangles
 
 =================
 */
-void R_DrawTransparentTriangles(void)
+void R_DrawTransparentTriangles()
 {
 	// Set basic fog, and then turn it black for sprites
 	RenderFog();
@@ -1058,7 +1058,7 @@ void R_DrawTransparentTriangles(void)
 	gBSPRenderer.glClientActiveTextureARB(GL_TEXTURE0_ARB);
 }
 
-void RenderersDumpInfo(void)
+void RenderersDumpInfo()
 {
 	gEngfuncs.Con_Printf("Engine Data Dump:\n");
 	gEngfuncs.Con_Printf("Number of models in client cache: %i of 4096 max.\n", g_StudioRenderer.m_iNumStudioModels);
@@ -1081,7 +1081,7 @@ void RenderersDumpInfo(void)
 		gEngfuncs.Con_Printf("Radial fog not supported.\n");
 }
 
-void GenDetail(void)
+void GenDetail()
 {
 	char szLevelName[64];
 	char szPathOut[128];
@@ -1105,14 +1105,14 @@ void GenDetail(void)
 
 	int iSize = 0;
 	char* pFile = (char*)gEngfuncs.COM_LoadFile("maps/detailtextures.txt", 5, &iSize);
-	if (!pFile)
+	if (pFile == nullptr)
 	{
 		gEngfuncs.Con_Printf("Failed to load temp detail texture file for %s\n", szLevelName);
 		return;
 	}
 
 	int i = NULL;
-	while (1)
+	while (true)
 	{
 		// Reached EOF
 		if (i >= iSize)
@@ -1120,7 +1120,7 @@ void GenDetail(void)
 
 		char szTexture[32];
 		// Skip to next token
-		while (1)
+		while (true)
 		{
 			if (i >= iSize)
 				break;
@@ -1136,7 +1136,7 @@ void GenDetail(void)
 
 		// Read token in
 		int j = NULL;
-		while (1)
+		while (true)
 		{
 			if (i >= iSize)
 				break;
@@ -1157,7 +1157,7 @@ void GenDetail(void)
 
 		// Skip to next token
 		char szDetail[32];
-		while (1)
+		while (true)
 		{
 			if (i >= iSize)
 				break;
@@ -1173,7 +1173,7 @@ void GenDetail(void)
 
 		// Read token in
 		j = NULL;
-		while (1)
+		while (true)
 		{
 			if (i >= iSize)
 				break;
@@ -1194,13 +1194,13 @@ void GenDetail(void)
 
 		cl_texture_t* pDetail = gBSPRenderer.LoadDetailTexture(szDetail);
 
-		if (!pDetail)
+		if (pDetail == nullptr)
 		{
 			gEngfuncs.Con_Printf("Could not load detail texture: %s\n", szDetail);
 			continue;
 		}
 
-		texture_t* pTexture = NULL;
+		texture_t* pTexture = nullptr;
 
 		char maptexture[16];
 		strLower(szTexture);
@@ -1209,20 +1209,20 @@ void GenDetail(void)
 		int i = 0;
 		for (; i < pWorld->numtextures; i++)
 		{
-			if (!pWorld->textures[i] || pWorld->textures[i]->name[0] == 0)
+			if ((pWorld->textures[i] == nullptr) || pWorld->textures[i]->name[0] == 0)
 				continue;
 
 			strcpy(maptexture, pWorld->textures[i]->name);
 			strLower(maptexture);
 
-			if (!strcmp(maptexture, szTexture))
+			if (strcmp(maptexture, szTexture) == 0)
 			{
 				pTexture = pWorld->textures[i];
 				break;
 			}
 		}
 
-		if (!pTexture)
+		if (pTexture == nullptr)
 			continue;
 
 		bFound[i] = true;
@@ -1234,10 +1234,10 @@ void GenDetail(void)
 	gEngfuncs.COM_FreeFile(pFile);
 	fclose(fout);
 
-	char* pPrevious = NULL;
-	char* pPrevFile = (char*)gEngfuncs.COM_LoadFile("detail_failures.txt", 5, NULL);
+	char* pPrevious = nullptr;
+	char* pPrevFile = (char*)gEngfuncs.COM_LoadFile("detail_failures.txt", 5, nullptr);
 
-	if (pPrevFile)
+	if (pPrevFile != nullptr)
 	{
 		pPrevious = new char[strlen(pPrevFile)];
 		memcpy(pPrevious, pPrevFile, sizeof(char) * strlen(pPrevFile));
@@ -1248,7 +1248,7 @@ void GenDetail(void)
 	strcat(szPathOut, "/detail_failures.txt");
 	FILE* fList = fopen(szPathOut, "w");
 
-	if (pPrevious)
+	if (pPrevious != nullptr)
 	{
 		fprintf(fList, "%s", pPrevious);
 		delete[] pPrevious;
@@ -1338,7 +1338,7 @@ void SetupFlashlight(Vector origin, Vector angles, float time, float frametime)
 
 		// Shitpickle
 		FixVectorForSpotlight(angles);
-		AngleVectors(angles, pLight->forward, NULL, NULL);
+		AngleVectors(angles, pLight->forward, nullptr, nullptr);
 	}
 	else
 	{
@@ -1376,15 +1376,15 @@ float VectorNormalizeFast(float* v)
 }
 
 // not finished
-void ExportWorld(void)
+void ExportWorld()
 {
 	model_t* pWorld = IEngineStudio.GetModelByIndex(1);
 
-	if (!pWorld)
+	if (pWorld == nullptr)
 		return;
 
 	FILE* pFile = fopen("export.smd", "w");
-	if (!pFile)
+	if (pFile == nullptr)
 		return;
 
 	fprintf(pFile, "version 1\nnodes\n");
@@ -1396,7 +1396,7 @@ void ExportWorld(void)
 	msurface_t* psurf = pWorld->surfaces + pWorld->nummodelsurfaces;
 	for (int i = pWorld->nummodelsurfaces; i < pWorld->numsurfaces; i++, psurf++)
 	{
-		if (psurf->flags & (SURF_DRAWTURB | SURF_DRAWSKY))
+		if ((psurf->flags & (SURF_DRAWTURB | SURF_DRAWSKY)) != 0)
 			continue;
 
 		brushface_t* pFace = &gBSPRenderer.m_pFacesExtraData[psurf->polys->flags];
@@ -1493,7 +1493,7 @@ void FixVectorForSpotlight(Vector& vec)
 		vec[ROLL] = -269;
 }
 
-void R_DisableSteamMSAA(void)
+void R_DisableSteamMSAA()
 {
 	// make sure we start with FBO / AA disabled
 	gEngfuncs.pfnClientCmd("_set_vid_level 1");
@@ -1510,7 +1510,7 @@ GLint g_shaderProgramBinding = 0;
 
 bool g_glStateSaved = false;
 
-void R_SaveGLStates(void)
+void R_SaveGLStates()
 {
 	// Isn't the whole point of this function to save the state?
 	// assert(g_glStateSaved == false);
@@ -1529,14 +1529,14 @@ void R_SaveGLStates(void)
 	glGetIntegerv(GL_ACTIVE_TEXTURE_ARB, &g_savedGLState.active_texunit);
 	glGetIntegerv(GL_CLIENT_ACTIVE_TEXTURE_ARB, &g_savedGLState.active_clienttexunit);
 
-	g_savedGLState.blending_enabled = glIsEnabled(GL_BLEND) ? true : false;
+	g_savedGLState.blending_enabled = (glIsEnabled(GL_BLEND) != 0u) ? true : false;
 
 	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 
-	g_savedGLState.alphatest_enabled = glIsEnabled(GL_ALPHA_TEST) ? true : false;
+	g_savedGLState.alphatest_enabled = (glIsEnabled(GL_ALPHA_TEST) != 0u) ? true : false;
 	glGetIntegerv(GL_ALPHA_TEST_FUNC, &g_savedGLState.alphatest_func);
 	glGetFloatv(GL_ALPHA_TEST_REF, &g_savedGLState.alphatest_value);
 
@@ -1555,7 +1555,7 @@ void R_SaveGLStates(void)
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
-void R_RestoreGLStates(void)
+void R_RestoreGLStates()
 {
 	if (!g_glStateSaved)
 		return;
@@ -1601,7 +1601,7 @@ R_Init
 
 =================
 */
-void R_Init(void)
+void R_Init()
 {
 	glPushAttrib(GL_TEXTURE_BIT);
 
@@ -1621,7 +1621,7 @@ R_VidInit
 
 =================
 */
-void R_VidInit(void)
+void R_VidInit()
 {
 	glPushAttrib(GL_TEXTURE_BIT);
 
@@ -1642,7 +1642,7 @@ R_Shutdown
 
 =================
 */
-void R_Shutdown(void)
+void R_Shutdown()
 {
 	glPushAttrib(GL_TEXTURE_BIT);
 

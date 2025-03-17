@@ -57,7 +57,7 @@ public:
 	void Spawn() override;
 	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
 
-	STATE GetState() override { return pev->frame ? STATE_ON : STATE_OFF; };
+	STATE GetState() override { return (pev->frame != 0.0f) ? STATE_ON : STATE_OFF; };
 
 	// Bmodels don't go across transitions
 	int ObjectCaps() override { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
@@ -70,7 +70,7 @@ LINK_ENTITY_TO_CLASS(func_wall, CFuncWall);
 void CFuncWall::Spawn()
 {
 	// If it can't move/go away, it's really part of the world
-	if (!m_pMoveWith) //LRC
+	if (m_pMoveWith == nullptr) //LRC
 		pev->flags |= FL_WORLDBRUSH;
 
 	//AJH This allows rotating of func_walls on spawn.
@@ -101,14 +101,14 @@ void CFuncWall::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useT
 		pev->frame = 1 - pev->frame;
 		if (m_iStyle >= 32)
 		{
-			if (pev->frame)
+			if (pev->frame != 0.0f)
 				LIGHT_STYLE(m_iStyle, "z");
 			else
 				LIGHT_STYLE(m_iStyle, "a");
 		}
 		else if (m_iStyle <= -32)
 		{
-			if (pev->frame)
+			if (pev->frame != 0.0f)
 				LIGHT_STYLE(-m_iStyle, "a");
 			else
 				LIGHT_STYLE(-m_iStyle, "z");
@@ -243,13 +243,13 @@ void CFuncConveyor::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE 
 class CFuncMirror : public CFuncWall
 {
 public:
-	void Spawn(void);
+	void Spawn() override;
 };
 
 LINK_ENTITY_TO_CLASS(func_mirror, CFuncMirror);
 LINK_ENTITY_TO_CLASS(func_detail_ext, CFuncWall);
 
-void CFuncMirror ::Spawn(void)
+void CFuncMirror ::Spawn()
 {
 	CFuncWall::Spawn();
 	pev->effects |= FL_MIRROR;
@@ -628,7 +628,7 @@ void CFuncRotating::HurtTouch(CBaseEntity* pOther)
 	pev->dmg = m_fCurSpeed / 10; //LRC
 								 //	pev->dmg = pev->avelocity.Length() / 10;
 
-	if (m_hActivator)
+	if (m_hActivator != nullptr)
 		pOther->TakeDamage(pev, m_hActivator->pev, pev->dmg, DMG_CRUSH); //AJH Attribute damage to he who switched me.
 	else
 		pOther->TakeDamage(pev, pev, pev->dmg, DMG_CRUSH);
@@ -808,7 +808,7 @@ void CFuncRotating::RotatingUse(CBaseEntity* pActivator, CBaseEntity* pCaller, U
 void CFuncRotating::Blocked(CBaseEntity* pOther)
 
 {
-	if (m_hActivator)
+	if (m_hActivator != nullptr)
 		pOther->TakeDamage(pev, m_hActivator->pev, pev->dmg, DMG_CRUSH); //AJH Attribute damage to he who switched me.
 	else
 		pOther->TakeDamage(pev, pev, pev->dmg, DMG_CRUSH);
@@ -836,7 +836,7 @@ public:
 	bool Save(CSave& save) override;
 	bool Restore(CRestore& restore) override;
 	void Blocked(CBaseEntity* pOther) override;
-	STATE GetState() override { return (pev->speed) ? STATE_ON : STATE_OFF; }
+	STATE GetState() override { return ((pev->speed) != 0.0f) ? STATE_ON : STATE_OFF; }
 
 	static TYPEDESCRIPTION m_SaveData[];
 
@@ -1055,7 +1055,7 @@ void CPendulum::Touch(CBaseEntity* pOther)
 	if (damage < 0)
 		damage = -damage;
 
-	if (m_hActivator)
+	if (m_hActivator != nullptr)
 		pOther->TakeDamage(pev, m_hActivator->pev, damage, DMG_CRUSH);
 	else
 		pOther->TakeDamage(pev, pev, damage, DMG_CRUSH);

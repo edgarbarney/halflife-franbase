@@ -45,7 +45,7 @@ CBasePlayerItem* CGameRules::FindNextBestWeapon(CBasePlayer* pPlayer, CBasePlaye
 
 	for (int i = 0; i < MAX_ITEM_TYPES; i++)
 	{
-		for (auto pCheck = pPlayer->m_rgpPlayerItems[i]; pCheck; pCheck = pCheck->m_pNext)
+		for (auto pCheck = pPlayer->m_rgpPlayerItems[i]; pCheck != nullptr; pCheck = pCheck->m_pNext)
 		{
 			// don't reselect the weapon we're trying to get rid of
 			if (pCheck == pCurrentWeapon)
@@ -111,7 +111,7 @@ bool CGameRules::CanHaveAmmo(CBasePlayer* pPlayer, const char* pszAmmoName, int 
 {
 	int iAmmoIndex;
 
-	if (pszAmmoName)
+	if (pszAmmoName != nullptr)
 	{
 		iAmmoIndex = pPlayer->GetAmmoIndex(pszAmmoName);
 
@@ -142,7 +142,7 @@ edict_t* CGameRules::GetPlayerSpawnSpot(CBasePlayer* pPlayer)
 	pPlayer->pev->fixangle = 1;
 
 	//LRC
-	if (pentSpawnSpot->v.spawnflags & 1) // the START WITH SUIT flag
+	if ((pentSpawnSpot->v.spawnflags & 1) != 0) // the START WITH SUIT flag
 	{
 		g_startSuit = true;
 	}
@@ -158,7 +158,7 @@ bool CGameRules::CanHavePlayerItem(CBasePlayer* pPlayer, CBasePlayerItem* pWeapo
 	if (pPlayer->pev->deadflag != DEAD_NO)
 		return false;
 
-	if (pWeapon->pszAmmo1())
+	if (pWeapon->pszAmmo1() != nullptr)
 	{
 		if (!CanHaveAmmo(pPlayer, pWeapon->pszAmmo1(), pWeapon->iMaxAmmo1()))
 		{

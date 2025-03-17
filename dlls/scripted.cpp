@@ -209,12 +209,12 @@ void CCineMonster::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE u
 {
 	// do I already know who I should use
 	CBaseEntity* pEntity = m_hTargetEnt;
-	CBaseMonster* pTarget = NULL;
+	CBaseMonster* pTarget = nullptr;
 
-	if (pEntity)
+	if (pEntity != nullptr)
 		pTarget = pEntity->MyMonsterPointer();
 
-	if (pTarget)
+	if (pTarget != nullptr)
 	{
 		//		ALERT(at_console, "Sequence \"%s\" triggered, already has a target.\n", STRING(pev->targetname));
 		// am I already playing the script?
@@ -302,37 +302,37 @@ CBaseMonster* CCineMonster::FindEntity(const char* sName, CBaseEntity* pActivato
 {
 	CBaseEntity* pEntity;
 
-	pEntity = UTIL_FindEntityByTargetname(NULL, sName, pActivator);
+	pEntity = UTIL_FindEntityByTargetname(nullptr, sName, pActivator);
 	//m_hTargetEnt = NULL;
-	CBaseMonster* pMonster = NULL;
+	CBaseMonster* pMonster = nullptr;
 
-	while (pEntity)
+	while (pEntity != nullptr)
 	{
 		if (FBitSet(pEntity->pev->flags, FL_MONSTER))
 		{
 			pMonster = pEntity->MyMonsterPointer();
-			if (pMonster && pMonster->CanPlaySequence(m_iPriority | SS_INTERRUPT_ALERT))
+			if ((pMonster != nullptr) && pMonster->CanPlaySequence(m_iPriority | SS_INTERRUPT_ALERT))
 			{
 				return pMonster;
 			}
 			ALERT(at_debug, "Found %s, but can't play!\n", sName);
 		}
 		pEntity = UTIL_FindEntityByTargetname(pEntity, sName, pActivator);
-		pMonster = NULL;
+		pMonster = nullptr;
 	}
 
 	// couldn't find something with the given targetname; assume it's a classname instead.
-	if (!pMonster)
+	if (pMonster == nullptr)
 	{
-		pEntity = NULL;
-		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, m_flRadius)) != NULL)
+		pEntity = nullptr;
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, m_flRadius)) != nullptr)
 		{
 			if (FClassnameIs(pEntity->pev, sName))
 			{
 				if (FBitSet(pEntity->pev->flags, FL_MONSTER))
 				{
 					pMonster = pEntity->MyMonsterPointer();
-					if (pMonster && pMonster->CanPlaySequence(m_iPriority))
+					if ((pMonster != nullptr) && pMonster->CanPlaySequence(m_iPriority))
 					{
 						return pMonster;
 					}
@@ -340,40 +340,40 @@ CBaseMonster* CCineMonster::FindEntity(const char* sName, CBaseEntity* pActivato
 			}
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 // make the entity enter a scripted sequence
 void CCineMonster::PossessEntity()
 {
 	CBaseEntity* pEntity = m_hTargetEnt;
-	CBaseMonster* pTarget = NULL;
-	if (pEntity)
+	CBaseMonster* pTarget = nullptr;
+	if (pEntity != nullptr)
 		pTarget = pEntity->MyMonsterPointer();
 
 	//	ALERT( at_console, "Possess: pEntity %s, pTarget %s\n", STRING(pEntity->pev->targetname), STRING(pTarget->pev->targetname));
 
-	if (pTarget)
+	if (pTarget != nullptr)
 	{
-		if (pTarget->m_pCine)
+		if (pTarget->m_pCine != nullptr)
 		{
 			pTarget->m_pCine->CancelScript();
 		}
 
 		pTarget->m_pCine = this;
-		if (m_iszAttack)
+		if (m_iszAttack != 0)
 		{
 			// anything with that name?
-			pTarget->m_hTargetEnt = UTIL_FindEntityByTargetname(NULL, STRING(m_iszAttack), m_hActivator);
-			if (pTarget->m_hTargetEnt == NULL)
+			pTarget->m_hTargetEnt = UTIL_FindEntityByTargetname(nullptr, STRING(m_iszAttack), m_hActivator);
+			if (pTarget->m_hTargetEnt == nullptr)
 			{ // nothing. Anything with that classname?
-				while ((pTarget->m_hTargetEnt = UTIL_FindEntityInSphere(pTarget->m_hTargetEnt, pev->origin, m_flRadius)) != NULL)
+				while ((pTarget->m_hTargetEnt = UTIL_FindEntityInSphere(pTarget->m_hTargetEnt, pev->origin, m_flRadius)) != nullptr)
 				{
 					if (FClassnameIs(pTarget->m_hTargetEnt->pev, STRING(m_iszAttack)))
 						break;
 				}
 			}
-			if (pTarget->m_hTargetEnt == NULL)
+			if (pTarget->m_hTargetEnt == nullptr)
 			{ // nothing. Oh well.
 				ALERT(at_debug, "%s %s has a missing \"turn target\": %s\n", STRING(pev->classname), STRING(pev->targetname), STRING(m_iszAttack));
 				pTarget->m_hTargetEnt = this;
@@ -384,11 +384,11 @@ void CCineMonster::PossessEntity()
 			pTarget->m_hTargetEnt = this;
 		}
 
-		if (m_iszMoveTarget)
+		if (m_iszMoveTarget != 0)
 		{
 			// anything with that name?
-			pTarget->m_pGoalEnt = UTIL_FindEntityByTargetname(NULL, STRING(m_iszMoveTarget), m_hActivator);
-			if (pTarget->m_pGoalEnt == NULL)
+			pTarget->m_pGoalEnt = UTIL_FindEntityByTargetname(nullptr, STRING(m_iszMoveTarget), m_hActivator);
+			if (pTarget->m_pGoalEnt == nullptr)
 			{ // nothing. Oh well.
 				ALERT(at_debug, "%s %s has a missing \"move target\": %s\n", STRING(pev->classname), STRING(pev->targetname), STRING(m_iszMoveTarget));
 				pTarget->m_pGoalEnt = this;
@@ -413,7 +413,7 @@ void CCineMonster::PossessEntity()
 		{
 		case 1:
 		case 2:
-			DelayStart(1);
+			DelayStart(true);
 			m_iState = STATE_TURN_ON;
 			// fall through...
 		case 0:
@@ -463,7 +463,7 @@ void CCineMonster::PossessEntity()
 // at the beginning of the level, set up the idle animation. --LRC
 void CCineMonster::InitIdleThink()
 {
-	if ((m_hTargetEnt = FindEntity(STRING(m_iszEntity), NULL)) != NULL)
+	if ((m_hTargetEnt = FindEntity(STRING(m_iszEntity), nullptr)) != nullptr)
 	{
 		PossessEntity();
 		m_startTime = gpGlobals->time + 1E6;
@@ -480,7 +480,7 @@ void CCineMonster::InitIdleThink()
 void CCineMonster::CineThink()
 {
 	//	ALERT(at_console, "Sequence think, activator %s\n", STRING(m_hActivator->pev->targetname));
-	if ((m_hTargetEnt = FindEntity(STRING(m_iszEntity), m_hActivator)) != NULL)
+	if ((m_hTargetEnt = FindEntity(STRING(m_iszEntity), m_hActivator)) != nullptr)
 	{
 		//		ALERT(at_console, "Sequence found %s \"%s\"\n", STRING(m_hTargetEnt->pev->classname), STRING(m_hTargetEnt->pev->targetname));
 		PossessEntity();
@@ -557,7 +557,7 @@ void CCineMonster::SequenceDone(CBaseMonster* pMonster)
 
 	// This may cause a sequence to attempt to grab this guy NOW, so we have to clear him out
 	// of the existing sequence
-	SUB_UseTargets(NULL, USE_TOGGLE, 0);
+	SUB_UseTargets(nullptr, USE_TOGGLE, 0);
 }
 
 //=========================================================
@@ -601,7 +601,7 @@ bool CBaseMonster::ExitScriptedSequence()
 		return false;
 	}
 
-	if (m_pCine)
+	if (m_pCine != nullptr)
 	{
 		m_pCine->CancelScript();
 	}
@@ -625,7 +625,7 @@ bool CCineMonster::CanInterrupt()
 
 	CBaseEntity* pTarget = m_hTargetEnt;
 
-	if (pTarget != NULL && pTarget->pev->deadflag == DEAD_NO)
+	if (pTarget != nullptr && pTarget->pev->deadflag == DEAD_NO)
 		return true;
 
 	return false;
@@ -649,17 +649,17 @@ void ScriptEntityCancel(edict_t* pentCine)
 	if (FClassnameIs(pentCine, "scripted_sequence") || FClassnameIs(pentCine, "scripted_action"))
 	{
 		CCineMonster* pCineTarget = GetClassPtr((CCineMonster*)VARS(pentCine));
-		if (!pCineTarget->pev)
+		if (pCineTarget->pev == nullptr)
 			return;
 		pCineTarget->m_iState = STATE_OFF;
 
 		// make sure they have a monster in mind for the script
 		CBaseEntity* pEntity = pCineTarget->m_hTargetEnt;
-		CBaseMonster* pTarget = NULL;
-		if (pEntity)
+		CBaseMonster* pTarget = nullptr;
+		if (pEntity != nullptr)
 			pTarget = pEntity->MyMonsterPointer();
 
-		if (pTarget)
+		if (pTarget != nullptr)
 		{
 			// make sure their monster is actually playing a script
 			if (pTarget->m_MonsterState == MONSTERSTATE_SCRIPT)
@@ -687,9 +687,9 @@ void CCineMonster::CancelScript()
 		return;
 	}
 
-	CBaseEntity* pCineTarget = UTIL_FindEntityByTargetname(NULL, STRING(pev->targetname));
+	CBaseEntity* pCineTarget = UTIL_FindEntityByTargetname(nullptr, STRING(pev->targetname));
 
-	while (pCineTarget)
+	while (pCineTarget != nullptr)
 	{
 		ScriptEntityCancel(ENT(pCineTarget->pev));
 		pCineTarget = UTIL_FindEntityByTargetname(pCineTarget, STRING(pev->targetname));
@@ -700,9 +700,9 @@ void CCineMonster::CancelScript()
 // find all the cinematic entities with my targetname and tell them whether to wait before starting
 void CCineMonster::DelayStart(bool state)
 {
-	CBaseEntity* pCine = UTIL_FindEntityByTargetname(NULL, STRING(pev->targetname));
+	CBaseEntity* pCine = UTIL_FindEntityByTargetname(nullptr, STRING(pev->targetname));
 
-	while (pCine)
+	while (pCine != nullptr)
 	{
 		if (FClassnameIs(pCine->pev, "scripted_sequence") || FClassnameIs(pCine->pev, "scripted_action"))
 		{
@@ -738,10 +738,10 @@ void CCineMonster::Activate()
 
 	// The entity name could be a target name or a classname
 	// Check the targetname
-	pEntity = UTIL_FindEntityByTargetname(NULL, STRING(m_iszEntity));
-	pTarget = NULL;
+	pEntity = UTIL_FindEntityByTargetname(nullptr, STRING(m_iszEntity));
+	pTarget = nullptr;
 
-	while (!pTarget && pEntity)
+	while ((pTarget == nullptr) && (pEntity != nullptr))
 	{
 		if (FBitSet(pEntity->pev->flags, FL_MONSTER))
 		{
@@ -751,21 +751,21 @@ void CCineMonster::Activate()
 	}
 
 	// If no entity with that targetname, check the classname
-	if (!pTarget)
+	if (pTarget == nullptr)
 	{
-		pEntity = UTIL_FindEntityByClassname(NULL, STRING(m_iszEntity));
-		while (!pTarget && pEntity)
+		pEntity = UTIL_FindEntityByClassname(nullptr, STRING(m_iszEntity));
+		while ((pTarget == nullptr) && (pEntity != nullptr))
 		{
 			pTarget = pEntity->MyMonsterPointer();
 			pEntity = UTIL_FindEntityByClassname(pEntity, STRING(m_iszEntity));
 		}
 	}
 	// Found a compatible entity
-	if (pTarget)
+	if (pTarget != nullptr)
 	{
 		void* pmodel;
 		pmodel = GET_MODEL_PTR(pTarget->edict());
-		if (pmodel)
+		if (pmodel != nullptr)
 		{
 			// Look through the event list for stuff to precache
 			SequencePrecache(pmodel, STRING(m_iszIdle));
@@ -782,15 +782,15 @@ bool CBaseMonster::CineCleanup()
 	CCineMonster* pOldCine = m_pCine;
 
 	// am I linked to a cinematic?
-	if (m_pCine)
+	if (m_pCine != nullptr)
 	{
 		// okay, reset me to what it thought I was before
-		m_pCine->m_hTargetEnt = NULL;
+		m_pCine->m_hTargetEnt = nullptr;
 		pev->movetype = m_pCine->m_saved_movetype;
 		pev->solid = m_pCine->m_saved_solid;
 		pev->effects = m_pCine->m_saved_effects;
 
-		if (m_pCine->pev->spawnflags & SF_SCRIPT_STAYDEAD)
+		if ((m_pCine->pev->spawnflags & SF_SCRIPT_STAYDEAD) != 0)
 			pev->deadflag = DEAD_DYING;
 	}
 	else
@@ -799,9 +799,9 @@ bool CBaseMonster::CineCleanup()
 		pev->movetype = MOVETYPE_STEP; // this is evil
 		pev->solid = SOLID_SLIDEBOX;
 	}
-	m_pCine = NULL;
-	m_hTargetEnt = NULL;
-	m_pGoalEnt = NULL;
+	m_pCine = nullptr;
+	m_hTargetEnt = nullptr;
+	m_pGoalEnt = nullptr;
 	if (pev->deadflag == DEAD_DYING)
 	{
 		// last frame of death animation?
@@ -812,11 +812,11 @@ bool CBaseMonster::CineCleanup()
 		pev->deadflag = DEAD_DEAD;
 		UTIL_SetSize(pev, pev->mins, Vector(pev->maxs.x, pev->maxs.y, pev->mins.z + 2));
 
-		if (pOldCine && FBitSet(pOldCine->pev->spawnflags, SF_SCRIPT_LEAVECORPSE))
+		if ((pOldCine != nullptr) && FBitSet(pOldCine->pev->spawnflags, SF_SCRIPT_LEAVECORPSE))
 		{
-			SetUse(NULL);	// BUGBUG -- This doesn't call Killed()
-			SetThink(NULL); // This will probably break some stuff
-			SetTouch(NULL);
+			SetUse(nullptr);	// BUGBUG -- This doesn't call Killed()
+			SetThink(nullptr); // This will probably break some stuff
+			SetTouch(nullptr);
 		}
 		else
 			SUB_StartFadeOut(); // SetThink( SUB_DoNothing );
@@ -828,7 +828,7 @@ bool CBaseMonster::CineCleanup()
 	}
 
 	// If we actually played a sequence
-	if (pOldCine && !FStringNull(pOldCine->m_iszPlay))
+	if ((pOldCine != nullptr) && !FStringNull(pOldCine->m_iszPlay))
 	{
 		if ((pOldCine->pev->spawnflags & SF_SCRIPT_NOSCRIPTMOVEMENT) == 0)
 		{
@@ -882,7 +882,7 @@ bool CBaseMonster::CineCleanup()
 		m_Activity = ACT_RESET;
 	}
 	// set them back into a normal state
-	pev->enemy = NULL;
+	pev->enemy = nullptr;
 	if (pev->health > 0)
 		m_IdealMonsterState = MONSTERSTATE_IDLE; // m_previousState;
 	else
@@ -1066,17 +1066,17 @@ void CScriptedSentence::Spawn()
 
 void CScriptedSentence::FindThink()
 {
-	if (!m_iszEntity) //LRC- no target monster given: speak through HEV
+	if (m_iszEntity == 0) //LRC- no target monster given: speak through HEV
 	{
-		CBasePlayer* pPlayer = (CBasePlayer*)UTIL_FindEntityByClassname(NULL, "player");
-		if (pPlayer)
+		CBasePlayer* pPlayer = (CBasePlayer*)UTIL_FindEntityByClassname(nullptr, "player");
+		if (pPlayer != nullptr)
 		{
 			m_playing = true;
 			if ((STRING(m_iszSentence))[0] == '!')
 				pPlayer->SetSuitUpdate((char*)STRING(m_iszSentence), false, 0);
 			else
 				pPlayer->SetSuitUpdate((char*)STRING(m_iszSentence), true, 0);
-			if (pev->spawnflags & SF_SENTENCE_ONCE)
+			if ((pev->spawnflags & SF_SENTENCE_ONCE) != 0)
 				UTIL_Remove(this);
 			SetThink(&CScriptedSentence::DurationThink);
 			SetNextThink(m_flDuration);
@@ -1088,7 +1088,7 @@ void CScriptedSentence::FindThink()
 	}
 
 	CBaseToggle* pEnt = FindEntity(m_hActivator);
-	if (pEnt)
+	if (pEnt != nullptr)
 	{
 		m_playing = true;
 		StartSentence(pEnt);
@@ -1126,18 +1126,18 @@ void CScriptedSentence::DelayThink()
 bool CScriptedSentence::AcceptableSpeaker(CBaseToggle* pTarget)
 {
 	CBaseMonster* pMonster;
-	pMonster = NULL;
+	pMonster = nullptr;
 
-	if (pTarget)
+	if (pTarget != nullptr)
 	{
 		pMonster = pTarget->MyMonsterPointer();
 	}
 
-	if (pMonster)
+	if (pMonster != nullptr)
 	{
 		if ((pev->spawnflags & SF_SENTENCE_FOLLOWERS) != 0)
 		{
-			if (pMonster->m_hTargetEnt == NULL || !FClassnameIs(pMonster->m_hTargetEnt->pev, "player"))
+			if (pMonster->m_hTargetEnt == nullptr || !FClassnameIs(pMonster->m_hTargetEnt->pev, "player"))
 				return false;
 		}
 		bool override;
@@ -1151,7 +1151,7 @@ bool CScriptedSentence::AcceptableSpeaker(CBaseToggle* pTarget)
 	else
 	{
 		// targeting something other than a monster, sure it can speak
-		if (pTarget && pTarget->IsAllowedToSpeak())
+		if ((pTarget != nullptr) && pTarget->IsAllowedToSpeak())
 			return true;
 	}
 
@@ -1164,15 +1164,15 @@ CBaseToggle* CScriptedSentence::FindEntity(CBaseEntity* pActivator)
 	CBaseEntity* pTarget;
 	CBaseToggle* pSpeakingEnt;
 
-	pTarget = UTIL_FindEntityByTargetname(NULL, STRING(m_iszEntity), pActivator);
-	pSpeakingEnt = NULL;
+	pTarget = UTIL_FindEntityByTargetname(nullptr, STRING(m_iszEntity), pActivator);
+	pSpeakingEnt = nullptr;
 
-	while (pTarget)
+	while (pTarget != nullptr)
 	{
 		CBaseEntity* pEnt = pTarget;
-		pSpeakingEnt = pEnt ? pEnt->MyTogglePointer() : NULL;
+		pSpeakingEnt = (pEnt != nullptr) ? pEnt->MyTogglePointer() : nullptr;
 
-		if (pSpeakingEnt != NULL)
+		if (pSpeakingEnt != nullptr)
 		{
 			if (AcceptableSpeaker(pSpeakingEnt))
 			{
@@ -1184,8 +1184,8 @@ CBaseToggle* CScriptedSentence::FindEntity(CBaseEntity* pActivator)
 		pTarget = UTIL_FindEntityByTargetname(pTarget, STRING(m_iszEntity), pActivator);
 	}
 
-	pTarget = NULL;
-	while ((pTarget = UTIL_FindEntityInSphere(pTarget, pev->origin, m_flRadius)) != NULL)
+	pTarget = nullptr;
+	while ((pTarget = UTIL_FindEntityInSphere(pTarget, pev->origin, m_flRadius)) != nullptr)
 	{
 		if (FClassnameIs(pTarget->pev, STRING(m_iszEntity)))
 		{
@@ -1198,13 +1198,13 @@ CBaseToggle* CScriptedSentence::FindEntity(CBaseEntity* pActivator)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 
 bool CScriptedSentence::StartSentence(CBaseToggle* pTarget)
 {
-	if (!pTarget)
+	if (pTarget == nullptr)
 	{
 		ALERT(at_aiconsole, "Not Playing sentence %s\n", STRING(m_iszSentence));
 		return false;
@@ -1212,10 +1212,10 @@ bool CScriptedSentence::StartSentence(CBaseToggle* pTarget)
 
 	bool bConcurrent = false;
 	//LRC: Er... if the "concurrent" flag is NOT set, we make bConcurrent true!?
-	if (!(pev->spawnflags & SF_SENTENCE_CONCURRENT))
+	if ((pev->spawnflags & SF_SENTENCE_CONCURRENT) == 0)
 		bConcurrent = true;
 
-	CBaseEntity* pListener = NULL;
+	CBaseEntity* pListener = nullptr;
 	if (!FStringNull(m_iszListener))
 	{
 		float radius = m_flRadius;
@@ -1228,7 +1228,7 @@ bool CScriptedSentence::StartSentence(CBaseToggle* pTarget)
 
 	pTarget->PlayScriptedSentence(STRING(m_iszSentence), m_flDuration, m_flVolume, m_flAttenuation, bConcurrent, pListener);
 	ALERT(at_aiconsole, "Playing sentence %s (%.1f)\n", STRING(m_iszSentence), m_flDuration);
-	SUB_UseTargets(NULL, USE_TOGGLE, 0);
+	SUB_UseTargets(nullptr, USE_TOGGLE, 0);
 	return true;
 }
 
@@ -1297,5 +1297,5 @@ void CFurniture::Spawn()
 //=========================================================
 int CFurniture::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_NONE;
+	return (m_iClass != 0) ? m_iClass : CLASS_NONE;
 }

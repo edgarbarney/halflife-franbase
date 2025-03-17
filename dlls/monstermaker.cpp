@@ -151,7 +151,7 @@ void CMonsterMaker::Spawn()
 		SetThink(&CMonsterMaker::MakerThink);
 	}
 
-	if (m_cNumMonsters == 1 || (m_cNumMonsters != -1 && pev->spawnflags & SF_MONSTERMAKER_LEAVECORPSE))
+	if (m_cNumMonsters == 1 || (m_cNumMonsters != -1 && ((pev->spawnflags & SF_MONSTERMAKER_LEAVECORPSE) != 0)))
 	{
 		m_fFadeChildren = false;
 	}
@@ -181,10 +181,10 @@ void CMonsterMaker::TryMakeMonster()
 	}
 
 	CBaseEntity* pTemp;
-	if (pev->noise)
+	if (pev->noise != 0u)
 	{ // AJH	dynamic origin for monstermakers
-		pTemp = UTIL_FindEntityByTargetname(NULL, STRING(pev->noise), this);
-		if (pTemp)
+		pTemp = UTIL_FindEntityByTargetname(nullptr, STRING(pev->noise), this);
+		if (pTemp != nullptr)
 		{
 			pev->vuser1 = pTemp->pev->origin;
 			//	ALERT(at_debug,"DEBUG: Monstermaker setting dynamic position %f %f %f \n", pWhere->pev->origin.x,pWhere->pev->origin.y,pWhere->pev->origin.z);
@@ -195,18 +195,18 @@ void CMonsterMaker::TryMakeMonster()
 		pev->vuser1 = pev->origin;
 	}
 
-	if (pev->noise1)
+	if (pev->noise1 != 0u)
 	{ //AJH dynamic offset for monstermaker
-		Vector vTemp = CalcLocus_Position(this, NULL, STRING(pev->noise1));
+		Vector vTemp = CalcLocus_Position(this, nullptr, STRING(pev->noise1));
 		pev->vuser1 = pev->vuser1 + vTemp;
 		//	ALERT(at_debug,"DEBUG: Monstermaker dynamic offset is %f %f %f\n",vTemp.x,vTemp.y,vTemp.z);
 		//	ALERT(at_debug,"DEBUG: Monstermaker position now %f %f %f \n", pWhere->pev->origin.x,pWhere->pev->origin.y,pWhere->pev->origin.z);
 	}
 
-	if (pev->noise2)
+	if (pev->noise2 != 0u)
 	{ // AJH	dynamic angles for monstermakers
-		pTemp = UTIL_FindEntityByTargetname(NULL, STRING(pev->noise2), this);
-		if (pTemp)
+		pTemp = UTIL_FindEntityByTargetname(nullptr, STRING(pev->noise2), this);
+		if (pTemp != nullptr)
 			pev->vuser2 = pTemp->pev->angles;
 		//	ALERT(at_debug,"DEBUG: Monstermaker setting angles to %f %f %f\n",pWhere->pev->angles.x,pWhere->pev->angles.y,pWhere->pev->angles.z);
 	}
@@ -215,10 +215,10 @@ void CMonsterMaker::TryMakeMonster()
 		pev->vuser2 = pev->angles;
 	}
 
-	if (pev->noise3)
+	if (pev->noise3 != 0u)
 	{ // AJH	dynamic velocity for monstermakers
-		pTemp = UTIL_FindEntityByTargetname(NULL, STRING(pev->noise3), this);
-		if (pTemp)
+		pTemp = UTIL_FindEntityByTargetname(nullptr, STRING(pev->noise3), this);
+		if (pTemp != nullptr)
 			pev->vuser3 = pTemp->pev->velocity;
 		//	ALERT(at_debug,"DEBUG: Monstermaker setting velocity to %f %f %f\n",pWhere->pev->velocity.x,pWhere->pev->velocity.y,pWhere->pev->velocity.z);
 	}
@@ -246,13 +246,13 @@ void CMonsterMaker::TryMakeMonster()
 
 	CBaseEntity* pList[2];
 	int count = UTIL_EntitiesInBox(pList, 2, mins, maxs, FL_CLIENT | FL_MONSTER);
-	if (!SF_MONSTERMAKER_FORCESPAWN && count)
+	if (!SF_MONSTERMAKER_FORCESPAWN && (count != 0))
 	{
 		// don't build a stack of monsters!
 		return;
 	}
 
-	if (m_fSpawnDelay)
+	if (m_fSpawnDelay != 0.0f)
 	{
 		// If I have a target, fire. (no locus)
 		if (!FStringNull(pev->target))
@@ -282,7 +282,7 @@ void CMonsterMaker::TryMakeMonster()
 //=========================================================
 // MakeMonsterThink- a really trivial think function
 //=========================================================
-void CMonsterMaker::MakeMonsterThink(void)
+void CMonsterMaker::MakeMonsterThink()
 {
 	MakeMonster();
 }
@@ -313,7 +313,7 @@ CBaseMonster* CMonsterMaker::MakeMonster()
 
 	SetBits(pevCreate->spawnflags, SF_MONSTER_FALL_TO_GROUND);
 
-	if (pev->spawnflags & SF_MONSTERMAKER_NO_WPN_DROP)
+	if ((pev->spawnflags & SF_MONSTERMAKER_NO_WPN_DROP) != 0)
 		SetBits(pevCreate->spawnflags, SF_MONSTER_NO_WPN_DROP);
 
 	// Children hit monsterclip brushes
@@ -326,7 +326,7 @@ CBaseMonster* CMonsterMaker::MakeMonster()
 	//LRC - custom monster behaviour
 	CBaseEntity* pEntity = CBaseEntity::Instance(pevCreate);
 	CBaseMonster* pMonst = nullptr;
-	if (pEntity && (pMonst = pEntity->MyMonsterPointer()) != NULL)
+	if ((pEntity != nullptr) && (pMonst = pEntity->MyMonsterPointer()) != nullptr)
 	{
 		pMonst->m_iClass = this->m_iClass;
 		pMonst->m_iPlayerReact = this->m_iPlayerReact;
@@ -346,8 +346,8 @@ CBaseMonster* CMonsterMaker::MakeMonster()
 	if (m_cNumMonsters == 0)
 	{
 		// Disable this forever.  Don't kill it because it still gets death notices
-		SetThink(NULL);
-		SetUse(NULL);
+		SetThink(nullptr);
+		SetUse(nullptr);
 	}
 	else if (m_fActive)
 	{
@@ -364,7 +364,7 @@ CBaseMonster* CMonsterMaker::MakeMonster()
 //=========================================================
 void CMonsterMaker::CyclicUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
-	if (pActivator)
+	if (pActivator != nullptr)
 	{
 		pev->vuser1 = pActivator->pev->origin; //AJH for *locus position etc
 		pev->vuser2 = pActivator->pev->angles;
@@ -380,7 +380,7 @@ void CMonsterMaker::CyclicUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE
 void CMonsterMaker::ToggleUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value)
 {
 
-	if (pActivator)
+	if (pActivator != nullptr)
 	{
 		pev->vuser1 = pActivator->pev->origin; //AJH for *locus position etc
 		pev->vuser2 = pActivator->pev->angles;
@@ -393,7 +393,7 @@ void CMonsterMaker::ToggleUse(CBaseEntity* pActivator, CBaseEntity* pCaller, USE
 	if (m_fActive)
 	{
 		m_fActive = false;
-		SetThink(NULL);
+		SetThink(nullptr);
 	}
 	else
 	{
@@ -424,6 +424,6 @@ void CMonsterMaker::DeathNotice(entvars_t* pevChild)
 
 	if (!m_fFadeChildren)
 	{
-		pevChild->owner = NULL;
+		pevChild->owner = nullptr;
 	}
 }

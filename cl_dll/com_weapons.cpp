@@ -32,7 +32,7 @@ bool g_runfuncs = false;
 // During our weapon prediction processing, we'll need to reference some data that is part of
 //  the final state passed into the postthink functionality.  We'll set this pointer and then
 //  reset it to NULL as appropriate
-struct local_state_s* g_finalstate = NULL;
+struct local_state_s* g_finalstate = nullptr;
 
 int g_CurrentWeaponId = WEAPON_NONE;
 
@@ -50,7 +50,7 @@ void COM_Log(const char* pszFile, const char* fmt, ...)
 	FILE* fp;
 	const char* pfilename;
 
-	if (!pszFile)
+	if (pszFile == nullptr)
 	{
 		pfilename = "c:\\hllog.txt";
 	}
@@ -64,7 +64,7 @@ void COM_Log(const char* pszFile, const char* fmt, ...)
 	va_end(argptr);
 
 	fp = fopen(pfilename, "a+t");
-	if (fp)
+	if (fp != nullptr)
 	{
 		fprintf(fp, "%s", string);
 		fclose(fp);
@@ -115,7 +115,7 @@ Play a sound, if we are seeing this command for the first time
 */
 void HUD_PlaySound(const char* sound, float volume)
 {
-	if (!g_runfuncs || !g_finalstate)
+	if (!g_runfuncs || (g_finalstate == nullptr))
 		return;
 
 	gEngfuncs.pfnPlaySoundByNameAtLocation(sound, volume, (float*)&g_finalstate->playerstate.origin);
@@ -134,7 +134,7 @@ void HUD_PlaybackEvent(int flags, const edict_t* pInvoker, unsigned short eventi
 	Vector org;
 	Vector ang;
 
-	if (!g_runfuncs || !g_finalstate)
+	if (!g_runfuncs || (g_finalstate == nullptr))
 		return;
 
 	// Weapon prediction events are assumed to occur at the player's origin

@@ -373,8 +373,8 @@ public:
 	
 	// RENDERERS START
 	bool m_bUpdateEffects;
-	void ClearEffects(void);
-	void SendInitMessages(void);
+	void ClearEffects();
+	void SendInitMessages();
 	// RENDERERS END
 };
 

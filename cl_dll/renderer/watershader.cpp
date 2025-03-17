@@ -327,7 +327,7 @@ Init
 
 ====================
 */
-void CWaterShader::Init(void)
+void CWaterShader::Init()
 {
 	// Set up cvar
 	m_pCvarWaterShader = gEngfuncs.pfnRegisterVariable("te_water", "1", FCVAR_ARCHIVE);
@@ -346,7 +346,7 @@ void CWaterShader::Init(void)
 	gBSPRenderer.glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &iIsNative);
 	glDisable(GL_VERTEX_PROGRAM_ARB);
 
-	if (iErrorPos != -1 || !iIsNative)
+	if (iErrorPos != -1 || (iIsNative == 0))
 	{
 		gBSPRenderer.m_bShaderSupport = false;
 		gBSPRenderer.m_bDontPromptShadersError = false;
@@ -362,7 +362,7 @@ void CWaterShader::Init(void)
 	gBSPRenderer.glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &iIsNative);
 	glDisable(GL_VERTEX_PROGRAM_ARB);
 
-	if (iErrorPos != -1 || !iIsNative)
+	if (iErrorPos != -1 || (iIsNative == 0))
 	{
 		gBSPRenderer.m_bShaderSupport = false;
 		gBSPRenderer.m_bDontPromptShadersError = false;
@@ -378,7 +378,7 @@ void CWaterShader::Init(void)
 	gBSPRenderer.glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &iIsNative);
 	glDisable(GL_FRAGMENT_PROGRAM_ARB);
 
-	if (iErrorPos != -1 || !iIsNative)
+	if (iErrorPos != -1 || (iIsNative == 0))
 	{
 		gBSPRenderer.m_bShaderSupport = false;
 		gBSPRenderer.m_bDontPromptShadersError = false;
@@ -394,7 +394,7 @@ void CWaterShader::Init(void)
 	gBSPRenderer.glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &iIsNative);
 	glDisable(GL_FRAGMENT_PROGRAM_ARB);
 
-	if (iErrorPos != -1 || !iIsNative)
+	if (iErrorPos != -1 || (iIsNative == 0))
 	{
 		gBSPRenderer.m_bShaderSupport = false;
 		gBSPRenderer.m_bDontPromptShadersError = false;
@@ -410,7 +410,7 @@ void CWaterShader::Init(void)
 	gBSPRenderer.glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &iIsNative);
 	glDisable(GL_FRAGMENT_PROGRAM_ARB);
 
-	if (iErrorPos != -1 || !iIsNative)
+	if (iErrorPos != -1 || (iIsNative == 0))
 	{
 		gBSPRenderer.m_bShaderSupport = false;
 		gBSPRenderer.m_bDontPromptShadersError = false;
@@ -426,7 +426,7 @@ void CWaterShader::Init(void)
 	gBSPRenderer.glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB, &iIsNative);
 	glDisable(GL_FRAGMENT_PROGRAM_ARB);
 
-	if (iErrorPos != -1 || !iIsNative)
+	if (iErrorPos != -1 || (iIsNative == 0))
 	{
 		gBSPRenderer.m_bShaderSupport = false;
 		gBSPRenderer.m_bDontPromptShadersError = false;
@@ -440,9 +440,9 @@ ClearEntities
 
 ====================
 */
-void CWaterShader::ClearEntities(void)
+void CWaterShader::ClearEntities()
 {
-	if (!m_iNumWaterEntities)
+	if (m_iNumWaterEntities == 0)
 		return;
 
 	for (int i = 0; i < m_iNumWaterEntities; i++)
@@ -462,7 +462,7 @@ Shutdown
 
 ====================
 */
-void CWaterShader::Shutdown(void)
+void CWaterShader::Shutdown()
 {
 	ClearEntities();
 }
@@ -473,7 +473,7 @@ VidInit
 
 ====================
 */
-void CWaterShader::VidInit(void)
+void CWaterShader::VidInit()
 {
 	int iCurrentBinding;
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &iCurrentBinding);
@@ -482,10 +482,10 @@ void CWaterShader::VidInit(void)
 	m_pNormalTexture = gTextureLoader.LoadTexture("gfx/textures/watershader.tga");
 	glBindTexture(GL_TEXTURE_2D, iCurrentBinding);
 
-	if (!m_pNormalTexture)
+	if (m_pNormalTexture == nullptr)
 	{
 		gEngfuncs.pfnClientCmd("escape\n");
-		MessageBox(NULL, "VIDEO ERROR: Could not load 'gfx/textures/watershader.tga'!\n", "ERROR", MB_OK);
+		MessageBox(nullptr, "VIDEO ERROR: Could not load 'gfx/textures/watershader.tga'!\n", "ERROR", MB_OK);
 		gEngfuncs.pfnClientCmd("quit\n");
 	}
 
@@ -498,7 +498,7 @@ Restore
 
 ====================
 */
-void CWaterShader::Restore(void)
+void CWaterShader::Restore()
 {
 	if (m_pCvarWaterShader->value < 1)
 		return;
@@ -506,7 +506,7 @@ void CWaterShader::Restore(void)
 	if (!gBSPRenderer.m_bShaderSupport)
 		return;
 
-	if (!m_iNumWaterEntities)
+	if (m_iNumWaterEntities == 0)
 		return;
 
 	if (!m_bViewInWater)
@@ -522,7 +522,7 @@ LoadScript
 
 ====================
 */
-void CWaterShader::LoadScript(void)
+void CWaterShader::LoadScript()
 {
 	const std::string& mapScriptName = std::string(std::string("scripts/water_") + FilenameFromPath(gEngfuncs.pfnGetLevelName()) + ".txt");
 	FranUtils::FileSystem::StringMap outputData;
@@ -627,7 +627,7 @@ void CWaterShader::AddEntity(cl_entity_t* entity)
 		if (j != psurfaces[i].polys->numverts)
 			continue;
 
-		if (psurfaces[i].flags & SURF_PLANEBACK)
+		if ((psurfaces[i].flags & SURF_PLANEBACK) != 0)
 			continue;
 
 		if (psurfaces[i].plane->normal[2] != 1)
@@ -651,7 +651,7 @@ void CWaterShader::AddEntity(cl_entity_t* entity)
 		if (j != psurfaces[i].polys->numverts)
 			continue;
 
-		if (psurfaces[i].flags & SURF_PLANEBACK)
+		if ((psurfaces[i].flags & SURF_PLANEBACK) != 0)
 			continue;
 
 		if (psurfaces[i].plane->normal[2] != 1)
@@ -661,7 +661,7 @@ void CWaterShader::AddEntity(cl_entity_t* entity)
 		pWater->numsurfaces++;
 	}
 
-	if (!pWater->numsurfaces)
+	if (pWater->numsurfaces == 0)
 	{
 		memset(&m_pWaterEntities[m_iNumWaterEntities], 0, sizeof(cl_water_t));
 		m_iNumWaterEntities--;
@@ -673,7 +673,7 @@ void CWaterShader::AddEntity(cl_entity_t* entity)
 
 	for (int i = 0; i < pWater->numsurfaces; i++)
 	{
-		for (glpoly_t* bp = pWater->surfaces[i]->polys; bp; bp = bp->next)
+		for (glpoly_t* bp = pWater->surfaces[i]->polys; bp != nullptr; bp = bp->next)
 		{
 			for (int j = 0; j < bp->numverts; j++)
 			{
@@ -799,7 +799,7 @@ ViewInWater
 
 ====================
 */
-bool CWaterShader::ViewInWater(void)
+bool CWaterShader::ViewInWater()
 {
 	Vector mins, maxs;
 	for (int i = 0; i < 3; i++)
@@ -828,7 +828,7 @@ void CWaterShader::DrawWaterPasses(ref_params_t* pparams)
 	if (!gBSPRenderer.m_bShaderSupport)
 		return;
 
-	if (!m_iNumWaterEntities)
+	if (m_iNumWaterEntities == 0)
 		return;
 
 	// Completely clear everything
@@ -883,7 +883,7 @@ void CWaterShader::DrawWaterPasses(ref_params_t* pparams)
 		}
 	}
 
-	if (m_pCvarWaterDebug->value)
+	if (m_pCvarWaterDebug->value != 0.0f)
 		gEngfuncs.Con_Printf("A total of %d passes drawn for water shader.\n", m_iNumPasses);
 
 	gBSPRenderer.m_bMirroring = false;
@@ -913,7 +913,7 @@ void CWaterShader::DrawScene(ref_params_t* pparams, bool isrefracting)
 			if (gBSPRenderer.m_pRenderEntities[i]->model->type != mod_studio || gBSPRenderer.m_pRenderEntities[i]->index == 0)
 				continue;
 
-			if (!gBSPRenderer.m_pRenderEntities[i]->player)
+			if (gBSPRenderer.m_pRenderEntities[i]->player == 0)
 			{
 				g_StudioRenderer.m_pCurrentEntity = gBSPRenderer.m_pRenderEntities[i];
 				g_StudioRenderer.StudioDrawModel(STUDIO_RENDER);
@@ -948,7 +948,7 @@ void CWaterShader::DrawScene(ref_params_t* pparams, bool isrefracting)
 	if ((m_pCvarWaterShader->value > 1) || isrefracting)
 		gParticleEngine.DrawParticles();
 
-	if (m_pCvarWaterDebug->value)
+	if (m_pCvarWaterDebug->value != 0.0f)
 	{
 		if (isrefracting)
 		{
@@ -974,7 +974,7 @@ SetupRefract
 
 ====================
 */
-void CWaterShader::SetupRefract(void)
+void CWaterShader::SetupRefract()
 {
 	glCullFace(GL_FRONT);
 	glColor4f(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
@@ -1018,7 +1018,7 @@ FinishRefract
 
 ====================
 */
-void CWaterShader::FinishRefract(void)
+void CWaterShader::FinishRefract()
 {
 	// Save mirrored image
 	glBindTexture(GL_TEXTURE_2D, m_pCurWater->refract);
@@ -1047,11 +1047,11 @@ SetupReflect
 
 ====================
 */
-void CWaterShader::SetupReflect(void)
+void CWaterShader::SetupReflect()
 {
 	Vector vForward;
 	Vector vMins, vMaxs;
-	AngleVectors(m_pViewParams->viewangles, vForward, NULL, NULL);
+	AngleVectors(m_pViewParams->viewangles, vForward, nullptr, nullptr);
 
 	float flDist = abs(GetWaterOrigin().z - m_vViewOrigin[2]);
 	VectorMASSE(m_vViewOrigin, -2 * flDist, m_pCurWater->wplane.normal, m_pWaterParams.vieworg);
@@ -1097,7 +1097,7 @@ FinishReflect
 
 ====================
 */
-void CWaterShader::FinishReflect(void)
+void CWaterShader::FinishReflect()
 {
 	// Save mirrored image
 	glBindTexture(GL_TEXTURE_2D, m_pCurWater->reflect);
@@ -1124,7 +1124,7 @@ DrawWater
 
 ====================
 */
-void CWaterShader::DrawWater(void)
+void CWaterShader::DrawWater()
 {
 	if (m_pCvarWaterShader->value < 1)
 		return;
@@ -1132,7 +1132,7 @@ void CWaterShader::DrawWater(void)
 	if (!gBSPRenderer.m_bShaderSupport)
 		return;
 
-	if (!m_iNumWaterEntities)
+	if (m_iNumWaterEntities == 0)
 		return;
 
 	float flMatrix[16];
@@ -1242,7 +1242,7 @@ GetWaterOrigin
 */
 Vector CWaterShader::GetWaterOrigin(cl_water_t* pwater)
 {
-	if (pwater)
+	if (pwater != nullptr)
 		return pwater->origin + pwater->entity->curstate.origin;
 	else
 		return m_pCurWater->origin + m_pCurWater->entity->curstate.origin;

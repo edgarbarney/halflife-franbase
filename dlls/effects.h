@@ -44,7 +44,7 @@ public:
 	int ObjectCaps() override
 	{
 		int flags = 0;
-		if (pev->spawnflags & SF_SPRITE_TEMPORARY)
+		if ((pev->spawnflags & SF_SPRITE_TEMPORARY) != 0)
 			flags = FCAP_DONT_SAVE;
 		return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | flags;
 	}
@@ -55,11 +55,11 @@ public:
 	void Expand(float scaleSpeed, float fadeSpeed);
 	void SpriteInit(const char* pSpriteName, const Vector& origin);
 
-	STATE GetState() override { return (pev->effects & EF_NODRAW) ? STATE_OFF : STATE_ON; };
+	STATE GetState() override { return ((pev->effects & EF_NODRAW) != 0) ? STATE_OFF : STATE_ON; };
 
 	inline void SetAttachment(edict_t* pEntity, int attachment)
 	{
-		if (pEntity)
+		if (pEntity != nullptr)
 		{
 			pev->skin = ENTINDEX(pEntity);
 			pev->body = attachment;
@@ -117,7 +117,7 @@ public:
 	int ObjectCaps() override
 	{
 		int flags = 0;
-		if (pev->spawnflags & SF_BEAM_TEMPORARY)
+		if ((pev->spawnflags & SF_BEAM_TEMPORARY) != 0)
 			flags = FCAP_DONT_SAVE;
 		return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | flags;
 	}
@@ -213,7 +213,7 @@ public:
 
 	void TurnOn();
 	void TurnOff();
-	STATE GetState() override { return (pev->effects & EF_NODRAW) ? STATE_OFF : STATE_ON; };
+	STATE GetState() override { return ((pev->effects & EF_NODRAW) != 0) ? STATE_OFF : STATE_ON; };
 
 	void FireAtPoint(Vector startpos, TraceResult& point);
 
@@ -243,23 +243,23 @@ public:
 class CClientFog : public CBaseEntity
 {
 public:
-	void Spawn(void);
-	bool KeyValue(KeyValueData* pkvd);
-	void SendInitMessage(CBasePlayer* player);
+	void Spawn() override;
+	bool KeyValue(KeyValueData* pkvd) override;
+	void SendInitMessage(CBasePlayer* player) override;
 
-	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value);
+	void Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE useType, float value) override;
 	float m_iStartDist;
 	float m_iEndDist;
 
 	bool m_fActive;
 	bool m_bDontAffectSky;
 
-	virtual bool Save(CSave& save);
-	virtual bool Restore(CRestore& restore);
+	bool Save(CSave& save) override;
+	bool Restore(CRestore& restore) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 public:
-	static CClientFog* FogCreate(void);
+	static CClientFog* FogCreate();
 };
 
 //=======================
@@ -268,14 +268,14 @@ public:
 class CItemProp : public CBaseAnimating
 {
 public:
-	void Spawn(void);
-	void Precache(void);
-	bool KeyValue(KeyValueData* pkvd);
+	void Spawn() override;
+	void Precache() override;
+	bool KeyValue(KeyValueData* pkvd) override;
 
-	virtual int ObjectCaps(void) { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
+	int ObjectCaps() override { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
-	virtual bool Save(CSave& save);
-	virtual bool Restore(CRestore& restore);
+	bool Save(CSave& save) override;
+	bool Restore(CRestore& restore) override;
 	static TYPEDESCRIPTION m_SaveData[];
 
 	bool m_fDisableShadows;

@@ -144,7 +144,7 @@ void CSquadMonster::Killed(entvars_t* pevAttacker, int iGib)
 //=========================================================
 void CSquadMonster::SquadRemove(CSquadMonster* pRemove)
 {
-	ASSERT(pRemove != NULL);
+	ASSERT(pRemove != nullptr);
 	ASSERT(this->IsLeader());
 	ASSERT(pRemove->m_hSquadLeader == this);
 
@@ -154,30 +154,30 @@ void CSquadMonster::SquadRemove(CSquadMonster* pRemove)
 		for (int i = 0; i < MAX_SQUAD_MEMBERS - 1; i++)
 		{
 			CSquadMonster* pMember = MySquadMember(i);
-			if (pMember)
+			if (pMember != nullptr)
 			{
-				pMember->m_hSquadLeader = NULL;
-				m_hSquadMember[i] = NULL;
+				pMember->m_hSquadLeader = nullptr;
+				m_hSquadMember[i] = nullptr;
 			}
 		}
 	}
 	else
 	{
 		CSquadMonster* pSquadLeader = MySquadLeader();
-		if (pSquadLeader)
+		if (pSquadLeader != nullptr)
 		{
 			for (int i = 0; i < MAX_SQUAD_MEMBERS - 1; i++)
 			{
 				if (pSquadLeader->m_hSquadMember[i] == this)
 				{
-					pSquadLeader->m_hSquadMember[i] = NULL;
+					pSquadLeader->m_hSquadMember[i] = nullptr;
 					break;
 				}
 			}
 		}
 	}
 
-	pRemove->m_hSquadLeader = NULL;
+	pRemove->m_hSquadLeader = nullptr;
 }
 
 //=========================================================
@@ -187,13 +187,13 @@ void CSquadMonster::SquadRemove(CSquadMonster* pRemove)
 //=========================================================
 bool CSquadMonster::SquadAdd(CSquadMonster* pAdd)
 {
-	ASSERT(pAdd != NULL);
+	ASSERT(pAdd != nullptr);
 	ASSERT(!pAdd->InSquad());
 	ASSERT(this->IsLeader());
 
 	for (int i = 0; i < MAX_SQUAD_MEMBERS - 1; i++)
 	{
-		if (m_hSquadMember[i] == NULL)
+		if (m_hSquadMember[i] == nullptr)
 		{
 			m_hSquadMember[i] = pAdd;
 			pAdd->m_hSquadLeader = this;
@@ -215,7 +215,7 @@ bool CSquadMonster::SquadAdd(CSquadMonster* pAdd)
 void CSquadMonster::SquadPasteEnemyInfo()
 {
 	CSquadMonster* pSquadLeader = MySquadLeader();
-	if (pSquadLeader)
+	if (pSquadLeader != nullptr)
 		pSquadLeader->m_vecEnemyLKP = m_vecEnemyLKP;
 }
 
@@ -230,7 +230,7 @@ void CSquadMonster::SquadPasteEnemyInfo()
 void CSquadMonster::SquadCopyEnemyInfo()
 {
 	CSquadMonster* pSquadLeader = MySquadLeader();
-	if (pSquadLeader)
+	if (pSquadLeader != nullptr)
 		m_vecEnemyLKP = pSquadLeader->m_vecEnemyLKP;
 }
 
@@ -245,7 +245,7 @@ void CSquadMonster::SquadMakeEnemy(CBaseEntity* pEnemy)
 	if (!InSquad())
 		return;
 
-	if (!pEnemy)
+	if (pEnemy == nullptr)
 	{
 		ALERT(at_debug, "ERROR: SquadMakeEnemy() - pEnemy is NULL!\n");
 		return;
@@ -255,12 +255,12 @@ void CSquadMonster::SquadMakeEnemy(CBaseEntity* pEnemy)
 	for (int i = 0; i < MAX_SQUAD_MEMBERS; i++)
 	{
 		CSquadMonster* pMember = pSquadLeader->MySquadMember(i);
-		if (pMember)
+		if (pMember != nullptr)
 		{
 			// reset members who aren't activly engaged in fighting
 			if (pMember->m_hEnemy != pEnemy && !pMember->HasConditions(bits_COND_SEE_ENEMY))
 			{
-				if (pMember->m_hEnemy != NULL)
+				if (pMember->m_hEnemy != nullptr)
 				{
 					// remember their current enemy
 					pMember->PushEnemy(pMember->m_hEnemy, pMember->m_vecEnemyLKP);
@@ -290,7 +290,7 @@ int CSquadMonster::SquadCount()
 	int squadCount = 0;
 	for (int i = 0; i < MAX_SQUAD_MEMBERS; i++)
 	{
-		if (pSquadLeader->MySquadMember(i) != NULL)
+		if (pSquadLeader->MySquadMember(i) != nullptr)
 			squadCount++;
 	}
 
@@ -321,17 +321,17 @@ int CSquadMonster::SquadRecruit(int searchRadius, int maxMembers)
 	m_hSquadLeader = this;
 	squadCount = 1;
 
-	CBaseEntity* pEntity = NULL;
+	CBaseEntity* pEntity = nullptr;
 
 	if (!FStringNull(pev->netname))
 	{
 		// I have a netname, so unconditionally recruit everyone else with that name.
 		pEntity = UTIL_FindEntityByString(pEntity, "netname", STRING(pev->netname));
-		while (pEntity)
+		while (pEntity != nullptr)
 		{
 			CSquadMonster* pRecruit = pEntity->MySquadMonsterPointer();
 
-			if (pRecruit)
+			if (pRecruit != nullptr)
 			{
 				if (!pRecruit->InSquad() && pRecruit->Classify() == iMyClass && pRecruit != this)
 				{
@@ -347,11 +347,11 @@ int CSquadMonster::SquadRecruit(int searchRadius, int maxMembers)
 	}
 	else
 	{
-		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, searchRadius)) != NULL)
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, searchRadius)) != nullptr)
 		{
 			CSquadMonster* pRecruit = pEntity->MySquadMonsterPointer();
 
-			if (pRecruit && pRecruit != this && pRecruit->IsAlive() && !pRecruit->m_pCine)
+			if ((pRecruit != nullptr) && pRecruit != this && pRecruit->IsAlive() && (pRecruit->m_pCine == nullptr))
 			{
 				// Can we recruit this guy?
 				if (!pRecruit->InSquad() && pRecruit->Classify() == iMyClass &&
@@ -375,7 +375,7 @@ int CSquadMonster::SquadRecruit(int searchRadius, int maxMembers)
 	// no single member squads
 	if (squadCount == 1)
 	{
-		m_hSquadLeader = NULL;
+		m_hSquadLeader = nullptr;
 	}
 
 	return squadCount;
@@ -472,7 +472,7 @@ bool CSquadMonster::NoFriendlyFire(bool playerAlly)
 
 	//!!!BUGBUG - to fix this, the planes must be aligned to where the monster will be firing its gun, not the direction it is facing!!!
 
-	if (m_hEnemy != NULL)
+	if (m_hEnemy != nullptr)
 	{
 		UTIL_MakeVectors(UTIL_VecToAngles(m_hEnemy->Center() - pev->origin));
 	}
@@ -502,7 +502,7 @@ bool CSquadMonster::NoFriendlyFire(bool playerAlly)
 	for (int i = 0; i < MAX_SQUAD_MEMBERS; i++)
 	{
 		CSquadMonster* pMember = pSquadLeader->MySquadMember(i);
-		if (pMember && pMember != this)
+		if ((pMember != nullptr) && pMember != this)
 		{
 
 			if (backPlane.PointInFront(pMember->pev->origin) &&
@@ -592,7 +592,7 @@ bool CSquadMonster::SquadEnemySplit()
 	for (int i = 0; i < MAX_SQUAD_MEMBERS; i++)
 	{
 		CSquadMonster* pMember = pSquadLeader->MySquadMember(i);
-		if (pMember != NULL && pMember->m_hEnemy != NULL && pMember->m_hEnemy != pEnemy)
+		if (pMember != nullptr && pMember->m_hEnemy != nullptr && pMember->m_hEnemy != pEnemy)
 		{
 			return true;
 		}

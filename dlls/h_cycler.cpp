@@ -92,7 +92,7 @@ void CCyclerProbe::Spawn()
 
 void CCycler::GenericCyclerSpawn(const char* szModel, Vector vecMin, Vector vecMax)
 {
-	if (!szModel || '\0' == *szModel)
+	if ((szModel == nullptr) || '\0' == *szModel)
 	{
 		ALERT(at_error, "cycler at %.0f %.0f %0.f missing modelname", pev->origin.x, pev->origin.y, pev->origin.z);
 		REMOVE_ENTITY(ENT(pev));

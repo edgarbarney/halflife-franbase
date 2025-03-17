@@ -265,21 +265,21 @@ CGlobalState::CGlobalState()
 
 void CGlobalState::Reset()
 {
-	m_pList = NULL;
+	m_pList = nullptr;
 	m_listCount = 0;
 }
 
 globalentity_t* CGlobalState::Find(string_t globalname)
 {
 	if (FStringNull(globalname))
-		return NULL;
+		return nullptr;
 
 	globalentity_t* pTest;
 	const char* pEntityName = STRING(globalname);
 
 
 	pTest = m_pList;
-	while (pTest)
+	while (pTest != nullptr)
 	{
 		if (FStrEq(pEntityName, pTest->name))
 			break;
@@ -300,7 +300,7 @@ void CGlobalState::DumpGlobals()
 
 	ALERT(at_debug, "-- Globals --\n");
 	pTest = m_pList;
-	while (pTest)
+	while (pTest != nullptr)
 	{
 		ALERT(at_debug, "%s: %s (%s)\n", pTest->name, pTest->levelName, estates[pTest->state]);
 		pTest = pTest->pNext;
@@ -314,7 +314,7 @@ void CGlobalState::EntityAdd(string_t globalname, string_t mapName, GLOBALESTATE
 	ASSERT(!Find(globalname));
 
 	globalentity_t* pNewEntity = (globalentity_t*)calloc(sizeof(globalentity_t), 1);
-	ASSERT(pNewEntity != NULL);
+	ASSERT(pNewEntity != nullptr);
 	pNewEntity->pNext = m_pList;
 	m_pList = pNewEntity;
 	strcpy(pNewEntity->name, STRING(globalname));
@@ -328,7 +328,7 @@ void CGlobalState::EntitySetState(string_t globalname, GLOBALESTATE state)
 {
 	globalentity_t* pEnt = Find(globalname);
 
-	if (pEnt)
+	if (pEnt != nullptr)
 		pEnt->state = state;
 }
 
@@ -344,7 +344,7 @@ const globalentity_t* CGlobalState::EntityFromTable(string_t globalname)
 GLOBALESTATE CGlobalState::EntityGetState(string_t globalname)
 {
 	globalentity_t* pEnt = Find(globalname);
-	if (pEnt)
+	if (pEnt != nullptr)
 		return pEnt->state;
 
 	return GLOBAL_OFF;
@@ -375,7 +375,7 @@ bool CGlobalState::Save(CSave& save)
 		return false;
 
 	pEntity = m_pList;
-	for (i = 0; i < m_listCount && pEntity; i++)
+	for (i = 0; i < m_listCount && (pEntity != nullptr); i++)
 	{
 		if (!save.WriteFields("cGENT", "GENT", pEntity, gGlobalEntitySaveData, std::size(gGlobalEntitySaveData)))
 			return false;
@@ -411,7 +411,7 @@ void CGlobalState::EntityUpdate(string_t globalname, string_t mapname)
 {
 	globalentity_t* pEnt = Find(globalname);
 
-	if (pEnt)
+	if (pEnt != nullptr)
 		strcpy(pEnt->levelName, STRING(mapname));
 }
 
@@ -419,7 +419,7 @@ void CGlobalState::EntityUpdate(string_t globalname, string_t mapname)
 void CGlobalState::ClearStates()
 {
 	globalentity_t* pFree = m_pList;
-	while (pFree)
+	while (pFree != nullptr)
 	{
 		globalentity_t* pNext = pFree->pNext;
 		free(pFree);
@@ -481,7 +481,7 @@ bool g_startSuit; //LRC
 
 CWorld::CWorld()
 {
-	if (World)
+	if (World != nullptr)
 	{
 		ALERT(at_error, "Do not create multiple instances of worldspawn\n");
 		return;
@@ -517,11 +517,11 @@ void CWorld::Precache()
 
 	//LRC - set up the world lists
 	g_pWorld = this;
-	m_pAssistLink = NULL;
-	m_pFirstAlias = NULL;
+	m_pAssistLink = nullptr;
+	m_pFirstAlias = nullptr;
 	//	ALERT(at_console, "Clearing AssistList\n");
 
-	g_pLastSpawn = NULL;
+	g_pLastSpawn = nullptr;
 
 #if 1
 	CVAR_SET_STRING("sv_gravity", "800"); // 67ft/sec
@@ -554,10 +554,10 @@ void CWorld::Precache()
 
 	///!!!LATER - do we want a sound ent in deathmatch? (sjb)
 	//pSoundEnt = CBaseEntity::Create( "soundent", g_vecZero, g_vecZero, edict() );
-	pSoundEnt = GetClassPtr((CSoundEnt*)NULL);
+	pSoundEnt = GetClassPtr((CSoundEnt*)nullptr);
 	pSoundEnt->Spawn();
 
-	if (!pSoundEnt)
+	if (pSoundEnt == nullptr)
 	{
 		ALERT(at_debug, "**COULD NOT CREATE SOUNDENT**\n");
 	}
@@ -658,8 +658,8 @@ void CWorld::Precache()
 	if (!FStringNull(pev->netname))
 	{
 		ALERT(at_aiconsole, "Chapter title: %s\n", STRING(pev->netname));
-		CBaseEntity* pEntity = CBaseEntity::Create("env_message", g_vecZero, g_vecZero, NULL);
-		if (pEntity)
+		CBaseEntity* pEntity = CBaseEntity::Create("env_message", g_vecZero, g_vecZero, nullptr);
+		if (pEntity != nullptr)
 		{
 			pEntity->SetThink(&CBaseEntity::SUB_CallUseToggle);
 			pEntity->pev->message = pev->netname;
@@ -759,7 +759,7 @@ bool CWorld::KeyValue(KeyValueData* pkvd)
 	//LRC- let map designers start the player with his suit already on
 	else if (FStrEq(pkvd->szKeyName, "startsuit"))
 	{
-		g_startSuit = atoi(pkvd->szValue);
+		g_startSuit = (atoi(pkvd->szValue) != 0);
 		return true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "allowmonsters"))
@@ -772,7 +772,7 @@ bool CWorld::KeyValue(KeyValueData* pkvd)
 	//AJH- Gauss Jump in single play
 	else if (FStrEq(pkvd->szKeyName, "allow_sp_gjump"))
 	{
-		g_allowGJump = atoi(pkvd->szValue);
+		g_allowGJump = (atoi(pkvd->szValue) != 0);
 		return true;
 	}
 	else if (FStrEq(pkvd->szKeyName, "timed_damage"))

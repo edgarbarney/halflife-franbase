@@ -71,7 +71,7 @@ float* GetClientColor(int clientIndex)
 		return g_ColorGrey;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool CHudDeathNotice::Init()
@@ -124,7 +124,7 @@ bool CHudDeathNotice::Draw(float flTime)
 		rgDeathNoticeList[i].flDisplayTime = V_min(rgDeathNoticeList[i].flDisplayTime, gHUD.m_flTime + DEATHNOTICE_DISPLAY_TIME);
 
 		// Only draw if the viewport will let me
-		if (gViewPort && gViewPort->AllowedToPrintText())
+		if ((gViewPort != nullptr) && gViewPort->AllowedToPrintText())
 		{
 			// Draw the death notice
 			y = DEATHNOTICE_TOP + 2 + (gap * i);
@@ -139,7 +139,7 @@ bool CHudDeathNotice::Draw(float flTime)
 				x -= (5 + ConsoleStringLen(rgDeathNoticeList[i].szKiller));
 
 				// Draw killers name
-				if (rgDeathNoticeList[i].KillerColor)
+				if (rgDeathNoticeList[i].KillerColor != nullptr)
 					gEngfuncs.pfnDrawSetTextColor(rgDeathNoticeList[i].KillerColor[0], rgDeathNoticeList[i].KillerColor[1], rgDeathNoticeList[i].KillerColor[2]);
 				x = 5 + DrawConsoleString(x, texty, rgDeathNoticeList[i].szKiller);
 			}
@@ -163,7 +163,7 @@ bool CHudDeathNotice::Draw(float flTime)
 			// Draw victims name (if it was a player that was killed)
 			if (!rgDeathNoticeList[i].iNonPlayerKill)
 			{
-				if (rgDeathNoticeList[i].VictimColor)
+				if (rgDeathNoticeList[i].VictimColor != nullptr)
 					gEngfuncs.pfnDrawSetTextColor(rgDeathNoticeList[i].VictimColor[0], rgDeathNoticeList[i].VictimColor[1], rgDeathNoticeList[i].VictimColor[2]);
 				x = DrawConsoleString(x, texty, rgDeathNoticeList[i].szVictim);
 			}
@@ -206,7 +206,7 @@ bool CHudDeathNotice::MsgFunc_DeathMsg(const char* pszName, int iSize, void* pbu
 	//AJH End:Custom death 'techniques'
 
 
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		gViewPort->DeathMsg(killer, victim);
 
 	gHUD.m_Spectator.DeathMessage(victim);
@@ -222,12 +222,12 @@ bool CHudDeathNotice::MsgFunc_DeathMsg(const char* pszName, int iSize, void* pbu
 		i = MAX_DEATHNOTICES - 1;
 	}
 
-	if (gViewPort)
+	if (gViewPort != nullptr)
 		gViewPort->GetAllPlayersInfo();
 
 	// Get the Killer's name
 	const char* killer_name = g_PlayerInfoList[killer].name;
-	if (!killer_name)
+	if (killer_name == nullptr)
 	{
 		killer_name = "";
 		rgDeathNoticeList[i].szKiller[0] = 0;
@@ -240,11 +240,11 @@ bool CHudDeathNotice::MsgFunc_DeathMsg(const char* pszName, int iSize, void* pbu
 	}
 
 	// Get the Victim's name
-	const char* victim_name = NULL;
+	const char* victim_name = nullptr;
 	// If victim is -1, the killer killed a specific, non-player object (like a sentrygun)
 	if (((char)victim) != -1)
 		victim_name = g_PlayerInfoList[victim].name;
-	if (!victim_name)
+	if (victim_name == nullptr)
 	{
 		victim_name = "";
 		rgDeathNoticeList[i].szVictim[0] = 0;
@@ -322,7 +322,7 @@ bool CHudDeathNotice::MsgFunc_DeathMsg(const char* pszName, int iSize, void* pbu
 			ConsolePrint(technique_B); //AJH Custom death methods
 		}
 
-		if (killedwith && '\0' != *killedwith && (*killedwith > 13) && 0 != strcmp(killedwith, "d_world") && !rgDeathNoticeList[i].iTeamKill)
+		if ((killedwith != nullptr) && '\0' != *killedwith && (*killedwith > 13) && 0 != strcmp(killedwith, "d_world") && !rgDeathNoticeList[i].iTeamKill)
 		{
 			ConsolePrint(" with ");
 

@@ -82,7 +82,7 @@ public:
 		if (pOther->IsPlayer())
 		{
 			// If the client is pushing me, give me some base velocity
-			if (gpGlobals->trace_ent && gpGlobals->trace_ent == edict())
+			if ((gpGlobals->trace_ent != nullptr) && gpGlobals->trace_ent == edict())
 			{
 				pev->basevelocity = pOther->pev->velocity;
 				pev->flags |= FL_BASEVELOCITY;
@@ -181,7 +181,7 @@ const char* CLeech::pAlertSounds[] =
 void CLeech::Spawn()
 {
 	Precache();
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/leech.mdl");
@@ -201,8 +201,8 @@ void CLeech::Spawn()
 	m_flDistLook = 750;
 	MonsterInit();
 	SetThink(&CLeech::SwimThink);
-	SetUse(NULL);
-	SetTouch(NULL);
+	SetUse(nullptr);
+	SetTouch(nullptr);
 	pev->view_ofs = g_vecZero;
 
 	m_flTurning = 0;
@@ -250,7 +250,7 @@ void CLeech::SwitchLeechState()
 	m_stateTime = gpGlobals->time + RANDOM_FLOAT(3, 6);
 	if (m_MonsterState == MONSTERSTATE_COMBAT)
 	{
-		m_hEnemy = NULL;
+		m_hEnemy = nullptr;
 		SetState(MONSTERSTATE_IDLE);
 		// We may be up against the player, so redo the side checks
 		m_sideTime = 0;
@@ -259,7 +259,7 @@ void CLeech::SwitchLeechState()
 	{
 		Look(m_flDistLook);
 		CBaseEntity* pEnemy = BestVisibleEnemy();
-		if (pEnemy && pEnemy->pev->waterlevel != 0 && pEnemy->pev->watertype != CONTENT_FOG)
+		if ((pEnemy != nullptr) && pEnemy->pev->waterlevel != 0 && pEnemy->pev->watertype != CONTENT_FOG)
 		{
 			m_hEnemy = pEnemy;
 			SetState(MONSTERSTATE_COMBAT);
@@ -298,7 +298,7 @@ void CLeech::AlertSound()
 void CLeech::Precache()
 {
 	//PRECACHE_MODEL("models/icky.mdl");
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/leech.mdl");
@@ -313,7 +313,7 @@ bool CLeech::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float f
 	pev->velocity = g_vecZero;
 
 	// Nudge the leech away from the damage
-	if (pevInflictor)
+	if (pevInflictor != nullptr)
 	{
 		pev->velocity = (pev->origin - pevInflictor->origin).Normalize() * 25;
 	}
@@ -336,11 +336,11 @@ void CLeech::HandleAnimEvent(MonsterEvent_t* pEvent)
 		CBaseEntity* pEnemy;
 
 		pEnemy = m_hEnemy;
-		if (pEnemy != NULL)
+		if (pEnemy != nullptr)
 		{
 			Vector dir, face;
 
-			UTIL_MakeVectorsPrivate(pev->angles, face, NULL, NULL);
+			UTIL_MakeVectorsPrivate(pev->angles, face, nullptr, nullptr);
 			face.z = 0;
 			dir = (pEnemy->pev->origin - pev->origin);
 			dir.z = 0;
@@ -398,7 +398,7 @@ float CLeech::ObstacleDistance(CBaseEntity* pTarget)
 
 	if (tr.flFraction != 1.0)
 	{
-		if ((pTarget == NULL || tr.pHit != pTarget->edict()))
+		if ((pTarget == nullptr || tr.pHit != pTarget->edict()))
 		{
 			return tr.flFraction;
 		}
@@ -435,7 +435,7 @@ void CLeech::DeadThink()
 	{
 		if (m_Activity == ACT_DIEFORWARD)
 		{
-			SetThink(NULL);
+			SetThink(nullptr);
 			StopAnimation();
 			return;
 		}
@@ -600,7 +600,7 @@ void CLeech::SwimThink()
 	{
 	case MONSTERSTATE_COMBAT:
 		pTarget = m_hEnemy;
-		if (!pTarget)
+		if (pTarget == nullptr)
 			SwitchLeechState();
 		else
 		{
@@ -639,7 +639,7 @@ void CLeech::SwimThink()
 		}
 		if (RANDOM_LONG(0, 100) < 10)
 			targetYaw = RANDOM_LONG(-30, 30);
-		pTarget = NULL;
+		pTarget = nullptr;
 		// oldorigin test
 		if ((pev->origin - pev->oldorigin).Length() < 1)
 		{
@@ -709,7 +709,7 @@ void CLeech::Killed(entvars_t* pevAttacker, int iGib)
 	//ALERT(at_aiconsole, "Leech: killed\n");
 	// tell owner ( if any ) that we're dead.This is mostly for MonsterMaker functionality.
 	CBaseEntity* pOwner = CBaseEntity::Instance(pev->owner);
-	if (pOwner)
+	if (pOwner != nullptr)
 		pOwner->DeathNotice(pev);
 
 	// When we hit the ground, play the "death_end" activity

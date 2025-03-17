@@ -152,7 +152,7 @@ const char* CHeadCrab::pBiteSounds[] =
 //=========================================================
 int CHeadCrab::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_ALIEN_PREY;
+	return (m_iClass != 0) ? m_iClass : CLASS_ALIEN_PREY;
 }
 
 //=========================================================
@@ -219,7 +219,7 @@ void CHeadCrab::HandleAnimEvent(MonsterEvent_t* pEvent)
 		UTIL_MakeVectors(pev->angles);
 
 		Vector vecJumpDir;
-		if (m_hEnemy != NULL)
+		if (m_hEnemy != nullptr)
 		{
 			float gravity = g_psv_gravity->value;
 			if (gravity <= 1)
@@ -275,7 +275,7 @@ void CHeadCrab::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/headcrab.mdl");
@@ -307,7 +307,7 @@ void CHeadCrab::Precache()
 	PRECACHE_SOUND_ARRAY(pDeathSounds);
 	PRECACHE_SOUND_ARRAY(pBiteSounds);
 
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/headcrab.mdl");
@@ -327,7 +327,7 @@ void CHeadCrab::RunTask(Task_t* pTask)
 		if (m_fSequenceFinished)
 		{
 			TaskComplete();
-			SetTouch(NULL);
+			SetTouch(nullptr);
 			m_IdealActivity = ACT_IDLE;
 		}
 		break;
@@ -363,7 +363,7 @@ void CHeadCrab::LeapTouch(CBaseEntity* pOther)
 		pOther->TakeDamage(pev, pev, GetDamageAmount(), DMG_SLASH);
 	}
 
-	SetTouch(NULL);
+	SetTouch(nullptr);
 }
 
 //=========================================================
@@ -501,7 +501,7 @@ LINK_ENTITY_TO_CLASS(monster_babycrab, CBabyCrab);
 void CBabyCrab::Spawn()
 {
 	CHeadCrab::Spawn();
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/baby_headcrab.mdl");
@@ -514,7 +514,7 @@ void CBabyCrab::Spawn()
 
 void CBabyCrab::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/baby_headcrab.mdl");
@@ -532,7 +532,7 @@ bool CBabyCrab::CheckRangeAttack1(float flDot, float flDist)
 {
 	if ((pev->flags & FL_ONGROUND) != 0)
 	{
-		if (pev->groundentity && (pev->groundentity->v.flags & (FL_CLIENT | FL_MONSTER)) != 0)
+		if ((pev->groundentity != nullptr) && (pev->groundentity->v.flags & (FL_CLIENT | FL_MONSTER)) != 0)
 			return true;
 
 		// A little less accurate, but jump from closer
@@ -549,7 +549,7 @@ Schedule_t* CBabyCrab::GetScheduleOfType(int Type)
 	switch (Type)
 	{
 	case SCHED_FAIL: // If you fail, try to jump!
-		if (m_hEnemy != NULL)
+		if (m_hEnemy != nullptr)
 			return slHCRangeAttack1Fast;
 		break;
 

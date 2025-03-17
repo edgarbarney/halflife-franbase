@@ -25,7 +25,7 @@ void AddAmmoNameToAmmoRegistry(const char* szAmmoname, const char* weaponName)
 	// make sure it's not already in the registry
 	for (int i = 0; i < MAX_AMMO_SLOTS; i++)
 	{
-		if (!CBasePlayerItem::AmmoInfoArray[i].pszName)
+		if (CBasePlayerItem::AmmoInfoArray[i].pszName == nullptr)
 			continue;
 
 		if (stricmp(CBasePlayerItem::AmmoInfoArray[i].pszName, szAmmoname) == 0)
@@ -49,17 +49,17 @@ bool CBasePlayerWeapon::CanDeploy()
 {
 	bool bHasAmmo = false;
 
-	if (!pszAmmo1())
+	if (pszAmmo1() == nullptr)
 	{
 		// this weapon doesn't use ammo, can always deploy.
 		return true;
 	}
 
-	if (pszAmmo1())
+	if (pszAmmo1() != nullptr)
 	{
 		bHasAmmo |= (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] != 0);
 	}
-	if (pszAmmo2())
+	if (pszAmmo2() != nullptr)
 	{
 		bHasAmmo |= (m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType] != 0);
 	}
@@ -140,7 +140,7 @@ void CBasePlayerWeapon::ItemPostFrame()
 
 	if ((m_pPlayer->pev->button & IN_ATTACK2) != 0 && CanAttack(m_flNextSecondaryAttack, gpGlobals->time, UseDecrement()))
 	{
-		if (pszAmmo2() && 0 == m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()])
+		if ((pszAmmo2() != nullptr) && 0 == m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()])
 		{
 			m_fFireOnEmpty = true;
 		}
@@ -151,7 +151,7 @@ void CBasePlayerWeapon::ItemPostFrame()
 	}
 	else if ((m_pPlayer->pev->button & IN_ATTACK) != 0 && CanAttack(m_flNextPrimaryAttack, gpGlobals->time, UseDecrement()))
 	{
-		if ((m_iClip == 0 && pszAmmo1()) || (iMaxClip() == -1 && 0 == m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]))
+		if ((m_iClip == 0 && (pszAmmo1() != nullptr)) || (iMaxClip() == -1 && 0 == m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()]))
 		{
 			m_fFireOnEmpty = true;
 		}
@@ -204,12 +204,12 @@ void CBasePlayerWeapon::ItemPostFrame()
 
 void CBasePlayer::SelectLastItem()
 {
-	if (!m_pLastItem)
+	if (m_pLastItem == nullptr)
 	{
 		return;
 	}
 
-	if (m_pActiveItem && !m_pActiveItem->CanHolster())
+	if ((m_pActiveItem != nullptr) && !m_pActiveItem->CanHolster())
 	{
 		return;
 	}
@@ -217,7 +217,7 @@ void CBasePlayer::SelectLastItem()
 	ResetAutoaim();
 
 	// FIX, this needs to queue them up and delay
-	if (m_pActiveItem)
+	if (m_pActiveItem != nullptr)
 		m_pActiveItem->Holster();
 
 #ifdef USE_QUEUEITEM
@@ -228,7 +228,7 @@ void CBasePlayer::SelectLastItem()
 	m_pLastItem = pTemp;
 #endif
 
-	if (m_pActiveItem)
+	if (m_pActiveItem != nullptr)
 	{
 		m_pActiveItem->m_ForceSendAnimations = true;
 		m_pActiveItem->Deploy();

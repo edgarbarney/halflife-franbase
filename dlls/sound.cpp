@@ -252,10 +252,10 @@ void CAmbientGeneric::Precache()
 			m_fActive = true;
 	}
 
-	if (pev->target)
+	if (pev->target != 0u)
 	{
-		CBaseEntity* pTarget = UTIL_FindEntityByTargetname(NULL, STRING(pev->target));
-		if (!pTarget)
+		CBaseEntity* pTarget = UTIL_FindEntityByTargetname(nullptr, STRING(pev->target));
+		if (pTarget == nullptr)
 		{
 			ALERT(at_debug, "WARNING: ambient_generic \"%s\" can't find \"%s\", its entity to play from.\n",
 				STRING(pev->targetname), STRING(pev->target));
@@ -266,7 +266,7 @@ void CAmbientGeneric::Precache()
 
 	if (m_fActive)
 	{
-		if (m_pPlayFrom)
+		if (m_pPlayFrom != nullptr)
 		{
 			SetThink(&CAmbientGeneric::StartPlayFrom); //LRC
 													   //			EMIT_SOUND_DYN( m_pPlayFrom, m_iChannel, szSoundFile, //LRC
@@ -339,7 +339,7 @@ void CAmbientGeneric::RampThink()
 			m_dpv.spindown = 0; // done with ramp down
 
 			// shut sound off
-			if (m_pPlayFrom)
+			if (m_pPlayFrom != nullptr)
 			{
 				STOP_SOUND(m_pPlayFrom, m_iChannel, szSoundFile); //LRC
 			}
@@ -390,7 +390,7 @@ void CAmbientGeneric::RampThink()
 			m_dpv.fadeout = 0; // done with ramp down
 
 			// shut sound off
-			if (m_pPlayFrom)
+			if (m_pPlayFrom != nullptr)
 			{
 				STOP_SOUND(m_pPlayFrom, m_iChannel, szSoundFile); //LRC
 			}
@@ -503,7 +503,7 @@ void CAmbientGeneric::RampThink()
 		if (pitch == PITCH_NORM)
 			pitch = PITCH_NORM + 1; // don't send 'no pitch' !
 
-		if (m_pPlayFrom)
+		if (m_pPlayFrom != nullptr)
 		{
 			EMIT_SOUND_DYN(m_pPlayFrom, m_iChannel, szSoundFile, (vol * 0.01), //LRC
 				m_flAttenuation, flags, pitch);
@@ -633,7 +633,7 @@ void CAmbientGeneric::ToggleUse(CBaseEntity* pActivator, CBaseEntity* pCaller, U
 
 		m_dpv.pitch = fraction * 255;
 
-		if (m_pPlayFrom)
+		if (m_pPlayFrom != nullptr)
 		{
 			EMIT_SOUND_DYN(m_pPlayFrom, m_iChannel, szSoundFile, 0, 0, SND_CHANGE_PITCH, m_dpv.pitch);
 		}
@@ -694,7 +694,7 @@ void CAmbientGeneric::ToggleUse(CBaseEntity* pActivator, CBaseEntity* pCaller, U
 				m_dpv.fadein = 0;
 				SetNextThink(0.1);
 			}
-			else if (m_pPlayFrom)
+			else if (m_pPlayFrom != nullptr)
 			{
 				STOP_SOUND(m_pPlayFrom, m_iChannel, szSoundFile);
 			}
@@ -717,7 +717,7 @@ void CAmbientGeneric::ToggleUse(CBaseEntity* pActivator, CBaseEntity* pCaller, U
 		{
 			m_fActive = true;
 		}
-		else if (m_pPlayFrom)
+		else if (m_pPlayFrom != nullptr)
 		{
 			STOP_SOUND(m_pPlayFrom, m_iChannel, szSoundFile); //LRC
 		}
@@ -734,9 +734,9 @@ void CAmbientGeneric::ToggleUse(CBaseEntity* pActivator, CBaseEntity* pCaller, U
 
 		// AJH / MJB - [LN] volume field:
 		if (!FStringNull(pev->noise))
-			m_dpv.vol = CalcLocus_Number(this, STRING(pev->noise), 0);
+			m_dpv.vol = CalcLocus_Number(this, STRING(pev->noise), nullptr);
 
-		if (m_pPlayFrom)
+		if (m_pPlayFrom != nullptr)
 		{
 			EMIT_SOUND_DYN(m_pPlayFrom, m_iChannel, szSoundFile, //LRC
 				(m_dpv.vol * 0.01), m_flAttenuation, 0, m_dpv.pitch);
@@ -1191,7 +1191,7 @@ void CTriggerSound::Touch(CBaseEntity* pOther)
 			pPlayer->m_SndRoomtype = (int) m_flRoomtype;
 			pPlayer->m_flSndRange = 0;
 
-			MESSAGE_BEGIN(MSG_ONE, SVC_ROOMTYPE, NULL, pPlayer->edict()); // use the magic #1 for "one client"
+			MESSAGE_BEGIN(MSG_ONE, SVC_ROOMTYPE, nullptr, pPlayer->edict()); // use the magic #1 for "one client"
 			WRITE_SHORT((short)m_flRoomtype);							  // sequence number
 			MESSAGE_END();
 
@@ -1366,7 +1366,7 @@ int SENTENCEG_GetIndex(const char* szgroupname)
 {
 	int i;
 
-	if (!fSentencesInit || !szgroupname)
+	if (!fSentencesInit || (szgroupname == nullptr))
 		return -1;
 
 	// search rgsentenceg for match on szgroupname
@@ -1399,7 +1399,7 @@ int SENTENCEG_PlayRndI(edict_t* entity, int isentenceg,
 	name[0] = 0;
 
 	ipick = USENTENCEG_Pick(isentenceg, name);
-	if (ipick > 0 && name)
+	if (ipick > 0 && (name != nullptr))
 		EMIT_SOUND_DYN(entity, CHAN_VOICE, name, volume, attenuation, flags, pitch);
 	return ipick;
 }
@@ -1502,11 +1502,11 @@ void SENTENCEG_Init()
 
 	int filePos = 0, fileSize;
 	byte* pMemFile = g_engfuncs.pfnLoadFileForMe("sound/sentences.txt", &fileSize);
-	if (!pMemFile)
+	if (pMemFile == nullptr)
 		return;
 
 	// for each line in the file...
-	while (memfgets(pMemFile, fileSize, filePos, buffer, 511) != NULL)
+	while (memfgets(pMemFile, fileSize, filePos, buffer, 511) != nullptr)
 	{
 		// skip whitespace
 		i = 0;
@@ -1613,7 +1613,7 @@ int SENTENCEG_Lookup(const char* sample, char* sentencenum)
 	for (i = 0; i < gcallsentences; i++)
 		if (!stricmp(gszallsentencenames[i], sample + 1))
 		{
-			if (sentencenum)
+			if (sentencenum != nullptr)
 			{
 				strcpy(sentencenum, "!");
 				sprintf(sznum, "%d", i);
@@ -1628,7 +1628,7 @@ int SENTENCEG_Lookup(const char* sample, char* sentencenum)
 void EMIT_SOUND_DYN(edict_t* entity, int channel, const char* sample, float volume, float attenuation,
 	int flags, int pitch)
 {
-	if (sample && *sample == '!')
+	if ((sample != nullptr) && *sample == '!')
 	{
 		char name[32];
 		if (SENTENCEG_Lookup(sample, name) >= 0)
@@ -1718,11 +1718,11 @@ char grgchTextureType[CTEXTURESMAX];				   // parallel array of texture types
 static char* memfgets(byte* pMemFile, int fileSize, int& filePos, char* pBuffer, int bufferSize)
 {
 	// Bullet-proofing
-	if (!pMemFile || !pBuffer)
-		return NULL;
+	if ((pMemFile == nullptr) || (pBuffer == nullptr))
+		return nullptr;
 
 	if (filePos >= fileSize)
-		return NULL;
+		return nullptr;
 
 	int i = filePos;
 	int last = fileSize;
@@ -1760,7 +1760,7 @@ static char* memfgets(byte* pMemFile, int fileSize, int& filePos, char* pBuffer,
 	}
 
 	// No data read, bail
-	return NULL;
+	return nullptr;
 }
 
 
@@ -1781,11 +1781,11 @@ void TEXTURETYPE_Init()
 	memset(buffer, 0, 512);
 
 	pMemFile = g_engfuncs.pfnLoadFileForMe("sound/materials.txt", &fileSize);
-	if (!pMemFile)
+	if (pMemFile == nullptr)
 		return;
 
 	// for each line in the file...
-	while (memfgets(pMemFile, fileSize, filePos, buffer, 511) != NULL && (gcTextures < CTEXTURESMAX))
+	while (memfgets(pMemFile, fileSize, filePos, buffer, 511) != nullptr && (gcTextures < CTEXTURESMAX))
 	{
 		// skip whitespace
 		i = 0;
@@ -1874,7 +1874,7 @@ float TEXTURETYPE_PlaySound(TraceResult* ptr, Vector vecSrc, Vector vecEnd, int 
 
 	chTextureType = 0;
 
-	if (pEntity && pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE)
+	if ((pEntity != nullptr) && pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE)
 		// hit body
 		chTextureType = CHAR_TEX_FLESH;
 	else
@@ -1889,12 +1889,12 @@ float TEXTURETYPE_PlaySound(TraceResult* ptr, Vector vecSrc, Vector vecEnd, int 
 		vecEnd.CopyToArray(rgfl2);
 
 		// get texture from entity or world (world is ent(0))
-		if (pEntity)
+		if (pEntity != nullptr)
 			pTextureName = TRACE_TEXTURE(ENT(pEntity->pev), rgfl1, rgfl2);
 		else
 			pTextureName = TRACE_TEXTURE(CWorld::World->edict(), rgfl1, rgfl2);
 
-		if (pTextureName)
+		if (pTextureName != nullptr)
 		{
 			// strip leading '-0' or '+0~' or '{' or '!'
 			if (*pTextureName == '-' || *pTextureName == '+')
@@ -2001,7 +2001,7 @@ float TEXTURETYPE_PlaySound(TraceResult* ptr, Vector vecSrc, Vector vecEnd, int 
 
 	// did we hit a breakable?
 
-	if (pEntity && FClassnameIs(pEntity->pev, "func_breakable"))
+	if ((pEntity != nullptr) && FClassnameIs(pEntity->pev, "func_breakable"))
 	{
 		// drop volumes, the object will already play a damaged sound
 		fvol /= 1.5;

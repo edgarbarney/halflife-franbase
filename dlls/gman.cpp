@@ -69,7 +69,7 @@ IMPLEMENT_SAVERESTORE(CGMan, CBaseMonster);
 //=========================================================
 int CGMan::Classify()
 {
-	return m_iClass ? m_iClass : CLASS_NONE;
+	return (m_iClass != 0) ? m_iClass : CLASS_NONE;
 }
 
 //=========================================================
@@ -120,7 +120,7 @@ void CGMan::Spawn()
 {
 	Precache();
 
-	if (pev->model)
+	if (pev->model != 0u)
 		SET_MODEL(ENT(pev), STRING(pev->model)); //LRC
 	else
 		SET_MODEL(ENT(pev), "models/gman.mdl");
@@ -141,7 +141,7 @@ void CGMan::Spawn()
 //=========================================================
 void CGMan::Precache()
 {
-	if (pev->model)
+	if (pev->model != 0u)
 		PRECACHE_MODEL((char*)STRING(pev->model)); //LRC
 	else
 		PRECACHE_MODEL("models/gman.mdl");
@@ -158,9 +158,9 @@ void CGMan::StartTask(Task_t* pTask)
 	switch (pTask->iTask)
 	{
 	case TASK_WAIT:
-		if (m_hPlayer == NULL)
+		if (m_hPlayer == nullptr)
 		{
-			m_hPlayer = UTIL_FindEntityByClassname(NULL, "player");
+			m_hPlayer = UTIL_FindEntityByClassname(nullptr, "player");
 		}
 		break;
 	}
@@ -173,7 +173,7 @@ void CGMan::RunTask(Task_t* pTask)
 	{
 	case TASK_WAIT:
 		// look at who I'm talking to
-		if (m_flTalkTime > gpGlobals->time && m_hTalkTarget != NULL)
+		if (m_flTalkTime > gpGlobals->time && m_hTalkTarget != nullptr)
 		{
 			float yaw = VecToYaw(m_hTalkTarget->pev->origin - pev->origin) - pev->angles.y;
 
@@ -186,7 +186,7 @@ void CGMan::RunTask(Task_t* pTask)
 			SetBoneController(0, yaw);
 		}
 		// look at player, but only if playing a "safe" idle animation
-		else if (m_hPlayer != NULL && pev->sequence == 0)
+		else if (m_hPlayer != nullptr && pev->sequence == 0)
 		{
 			float yaw = VecToYaw(m_hPlayer->pev->origin - pev->origin) - pev->angles.y;
 

@@ -141,7 +141,7 @@ bool CHudMenu::Draw(float flTime)
 	}
 
 	// don't draw the menu if the scoreboard is being shown
-	if (gViewPort && gViewPort->IsScoreBoardVisible())
+	if ((gViewPort != nullptr) && gViewPort->IsScoreBoardVisible())
 		return true;
 
 	SCREENINFO screenInfo;
@@ -238,7 +238,7 @@ void CHudMenu::SelectMenuItem(int menu_item)
 // if this message is never received, then scores will simply be the combined totals of the players.
 bool CHudMenu::MsgFunc_ShowMenu(const char* pszName, int iSize, void* pbuf)
 {
-	char* temp = NULL;
+	char* temp = nullptr;
 
 	BEGIN_READ(pbuf, iSize);
 

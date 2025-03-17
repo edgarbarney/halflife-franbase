@@ -20,7 +20,7 @@ int CMP3::Initialize()
 
 	m_hFMod = LOAD_LIBRARY(fmodlib);
 
-	if (m_hFMod != NULL)
+	if (m_hFMod != nullptr)
 	{
 		// fill in the function pointers
 		//	GET_FUNCTION(VER, m_hFMod, FSOUND_GetVersion, 0);
@@ -35,7 +35,7 @@ int CMP3::Initialize()
 		GET_FUNCTION(SPLAY, m_hFMod, FSOUND_Stream_Play, 8);
 		GET_FUNCTION(CLOSE, m_hFMod, FSOUND_Close, 0);
 
-		if (!(SCL && SOP && SBS && SDRV && INIT && (SOF || SO) && SPLAY && CLOSE))
+		if (!((SCL != nullptr) && (SOP != nullptr) && (SBS != nullptr) && (SDRV != nullptr) && (INIT != nullptr) && ((SOF != nullptr) || (SO != nullptr)) && (SPLAY != nullptr) && (CLOSE != nullptr)))
 		{
 			UNLOAD_LIBRARY(m_hFMod);
 			gEngfuncs.Con_Printf("Fatal Error: FMOD functions couldn't be loaded!\n");
@@ -53,13 +53,13 @@ int CMP3::Initialize()
 
 int CMP3::Shutdown()
 {
-	if (m_hFMod)
+	if (m_hFMod != nullptr)
 	{
 		CLOSE();
 		fmodInit = false;
 
 		UNLOAD_LIBRARY(m_hFMod);
-		m_hFMod = NULL;
+		m_hFMod = nullptr;
 		m_iIsPlaying = 0;
 		return 1;
 	}
@@ -67,7 +67,7 @@ int CMP3::Shutdown()
 		return 0;
 }
 
-int CMP3::StopMP3(void)
+int CMP3::StopMP3()
 {
 	SCL(m_Stream);
 	m_iIsPlaying = 0;
@@ -76,7 +76,7 @@ int CMP3::StopMP3(void)
 
 int CMP3::PlayMP3(const char* pszSong)
 {
-	if (m_iIsPlaying)
+	if (m_iIsPlaying != 0)
 	{
 		// sound system is already initialized
 		SCL(m_Stream);
@@ -96,15 +96,15 @@ int CMP3::PlayMP3(const char* pszSong)
 
 	//	gEngfuncs.Con_Printf("Using fmod.dll version %f\n",VER());
 
-	if (SO)
+	if (SO != nullptr)
 	{
 		m_Stream = SO(song, FSOUND_NORMAL | FSOUND_LOOP_NORMAL, 0, 0); //AJH new version fmod uses Open
 	}
-	else if (SOF)
+	else if (SOF != nullptr)
 	{
 		m_Stream = SOF(song, FSOUND_NORMAL | FSOUND_LOOP_NORMAL, 1); //AJH old version fmod OpenFile
 	}
-	if (m_Stream)
+	if (m_Stream != nullptr)
 	{
 		SPLAY(0, m_Stream);
 		m_iIsPlaying = 1;
