@@ -807,7 +807,7 @@ LoadMDL
 */
 bool CPropManager::LoadMDL(const char* name, cl_entity_t* pEntity, entity_t* pBSPEntity)
 {
-	if (m_pCurrentExtraData->pModelData = GetHeader(name) != nullptr)
+	if (m_pCurrentExtraData->pModelData = GetHeader(name))
 		return true;
 
 	if (m_iNumHeaders == MAXRENDERENTS)

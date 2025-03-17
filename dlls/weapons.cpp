@@ -138,7 +138,7 @@ const char* DamageDecal(CBaseEntity* pEntity, int bitsDamageType, const Vector& 
 	float rgfl2[3];
 	chTextureType = 0;
 
-	if ((vecSrc != nullptr) && (vecEnd != nullptr))
+	if ((vecSrc) && (vecEnd))
 	{
 		if ((pEntity != nullptr) && pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE)
 		{

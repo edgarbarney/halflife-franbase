@@ -661,7 +661,7 @@ void CMultiManager::Spawn()
 {
 	CBaseEntity* pTarget;
 	pTarget = UTIL_FindEntityByTargetname(nullptr, STRING(pev->targetname));
-	if (pTarget = UTIL_FindEntityByTargetname(nullptr, "gen_lightsmm2") != nullptr)
+	if (pTarget = UTIL_FindEntityByTargetname(nullptr, "gen_lightsmm2"))
 	{
 		ALERT(at_debug, "DEBUG: multi_manager \"%s\": killed.\n", STRING(pev->targetname));
 		UTIL_Remove(this);

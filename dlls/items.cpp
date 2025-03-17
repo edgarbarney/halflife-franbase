@@ -639,7 +639,7 @@ void CItemFlare::Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_TYPE use
 		WRITE_COORD(m_hActivator->pev->origin.y);
 		WRITE_COORD(m_hActivator->pev->origin.z);
 		WRITE_BYTE(32); // radius
-		if (pev->rendercolor != nullptr)
+		if (pev->rendercolor)
 		{
 			WRITE_BYTE(pev->rendercolor.x); // R
 			WRITE_BYTE(pev->rendercolor.y); // G

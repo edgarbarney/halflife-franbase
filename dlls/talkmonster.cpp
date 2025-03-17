@@ -633,7 +633,7 @@ CBaseEntity* CTalkMonster::EnumFriends(CBaseEntity* pPrevious, int listNumber, b
 	Vector vecCheck;
 
 	pszFriend = m_szFriends[FriendNumber(listNumber)];
-	while (pFriend = UTIL_FindEntityByClassname(pFriend, pszFriend) != nullptr)
+	while (pFriend = UTIL_FindEntityByClassname(pFriend, pszFriend))
 	{
 		if (pFriend == this || !pFriend->IsAlive())
 			// don't talk to self or dead people
@@ -666,7 +666,7 @@ void CTalkMonster::AlertFriends()
 	// for each friend in this bsp...
 	for (i = 0; i < TLK_CFRIENDS; i++)
 	{
-		while (pFriend = EnumFriends(pFriend, i, true) != nullptr)
+		while (pFriend = EnumFriends(pFriend, i, true))
 		{
 			CBaseMonster* pMonster = pFriend->MyMonsterPointer();
 			if (pMonster->IsAlive())
@@ -688,7 +688,7 @@ void CTalkMonster::ShutUpFriends()
 	// for each friend in this bsp...
 	for (i = 0; i < TLK_CFRIENDS; i++)
 	{
-		while (pFriend = EnumFriends(pFriend, i, true) != nullptr)
+		while (pFriend = EnumFriends(pFriend, i, true))
 		{
 			CBaseMonster* pMonster = pFriend->MyMonsterPointer();
 			if (pMonster != nullptr)
@@ -711,7 +711,7 @@ void CTalkMonster::LimitFollowers(CBaseEntity* pPlayer, int maxFollowers)
 	// for each friend in this bsp...
 	for (i = 0; i < TLK_CFRIENDS; i++)
 	{
-		while (pFriend = EnumFriends(pFriend, i, false) != nullptr)
+		while (pFriend = EnumFriends(pFriend, i, false))
 		{
 			CBaseMonster* pMonster = pFriend->MyMonsterPointer();
 			if (pMonster != nullptr)
@@ -868,7 +868,7 @@ CBaseEntity* CTalkMonster::FindNearestFriend(bool fPlayer)
 			continue;
 
 		// for each friend in this bsp...
-		while (pFriend = UTIL_FindEntityByClassname(pFriend, pszFriend) != nullptr)
+		while (pFriend = UTIL_FindEntityByClassname(pFriend, pszFriend))
 		{
 			if (pFriend == this || !pFriend->IsAlive())
 				// don't talk to self or dead people

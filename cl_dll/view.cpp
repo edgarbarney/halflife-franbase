@@ -441,7 +441,7 @@ int GetAnimBoneFromFile(char* name)
 		return -1;
 	}
 
-	while (pfile = gEngfuncs.COM_ParseFile(pfile, token) != nullptr)
+	while (pfile = gEngfuncs.COM_ParseFile(pfile, token))
 	{
 		if (!stricmp(token, name))
 		{

@@ -160,12 +160,12 @@ void CInterpolation::Interpolate(float t, Vector& point, Vector& angle, float* f
 		t = -(t * t) + 1;
 	}
 
-	if (point != nullptr)
+	if (point)
 	{
 		BezierInterpolatePoint(t, point);
 	}
 
-	if (angle != nullptr)
+	if (angle)
 	{
 		InterpolateAngle(t, angle);
 	}

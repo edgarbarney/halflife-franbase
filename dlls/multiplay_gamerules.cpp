@@ -488,7 +488,7 @@ void CHalfLifeMultiplay::PlayerSpawn(CBasePlayer* pPlayer)
 
 	addDefault = true;
 
-	while (pWeaponEntity = UTIL_FindEntityByClassname(pWeaponEntity, "game_player_equip") != nullptr)
+	while (pWeaponEntity = UTIL_FindEntityByClassname(pWeaponEntity, "game_player_equip"))
 	{
 		pWeaponEntity->Touch(pPlayer);
 		addDefault = false;
