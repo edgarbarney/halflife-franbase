@@ -1,12 +1,12 @@
 # About
 
-Spirinity is a modbase for Half-Life, combining features from Spirit of Half-Life and the Trinity Renderer.
+FranBase is a modbase for Half-Life. It combines features from Spirit of Half-Life and the Trinity Renderer, and features a new Audio Engine and a scripting system.
 
-This is a reimagined version of Spirinity, currently in an incomplete state. If you're looking for the legacy version, [an archived repository](https://github.com/edgarbarney/halflife-planckepoch) is available. However, it's recommended to wait for this updated version to be completed before starting any mods based on Spirinity, instead of using the legacy base.
+This is a reimagined version of Spirinity, and currently is in an incomplete state. If you're looking for the legacy version, [an archived repository](https://github.com/edgarbarney/halflife-planckepoch) is available. However, it's recommended to wait for this updated version to be completed before starting any mods based on FranBase, instead of using the legacy Spirinity base.
 
-[![Spirinity - Win32 (MSVC)](https://github.com/edgarbarney/halflife-spirinity/actions/workflows/spirinity-win32.yaml/badge.svg?event=push)](https://github.com/edgarbarney/halflife-spirinity/actions/workflows/spirinity-win32.yaml)
+[![FranBase - Win32 (MSVC)](https://github.com/edgarbarney/halflife-franbase/actions/workflows/franbase-win32.yaml/badge.svg?event=push)](https://github.com/edgarbarney/halflife-franbase/actions/workflows/franbase-win32.yaml)
 
-[![Spirinity - Linux-x86 (GCC)](https://github.com/edgarbarney/halflife-spirinity/actions/workflows/spirinity-linux.yaml/badge.svg?event=push)](https://github.com/edgarbarney/halflife-spirinity/actions/workflows/spirinity-linux.yaml)
+[![FranBase - Linux-x86 (GCC)](https://github.com/edgarbarney/halflife-franbase/actions/workflows/franbase-linux.yaml/badge.svg?event=push)](https://github.com/edgarbarney/halflife-franbase/actions/workflows/franbase-linux.yaml)
 
 # Half Life 1 SDK LICENSE
 

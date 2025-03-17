@@ -1,4 +1,4 @@
-name: Spirinity - Win32 (MSVC)
+name: FranBase - Win32 (MSVC)
 
 on: [push, pull_request]
 
@@ -25,5 +25,5 @@ jobs:
           path: |
             projects/vs2019/Release/hl_cdll/client.dll
             projects/vs2019/Release/hl_cdll/client.pdb
-            projects/vs2019/Release/hldll/spirit.dll
-            projects/vs2019/Release/hldll/spirit.pdb
+            projects/vs2019/Release/hldll/franbase.dll
+            projects/vs2019/Release/hldll/franbase.pdb

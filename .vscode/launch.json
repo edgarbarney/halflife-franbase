@@ -6,7 +6,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${env:HOME}/.steam/steam/steamapps/common/Half-Life/hl_linux",
-      "args": ["-dev", "-console", "-windowed", "-w", "1280", "-h", "720", "-game", "Spirinity"],
+      "args": ["-dev", "-console", "-windowed", "-w", "1280", "-h", "720", "-game", "FranBase"],
       "stopAtEntry": false,
       "cwd": "${env:HOME}/.steam/steam/steamapps/common/Half-Life",
       "environment": [
@@ -28,7 +28,7 @@
           "ignoreFailures": false
         }
       ],
-      "preLaunchTask": "Build Spirinity",
+      "preLaunchTask": "Build FranBase",
       "miDebuggerPath": "/usr/bin/gdb",
       "symbolLoadInfo": {
         "loadAll": true

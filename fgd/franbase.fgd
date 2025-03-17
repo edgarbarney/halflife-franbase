@@ -1,6 +1,5 @@
-// Spirit of Half-Life v1.8 FGD
-// For WorldCraft 3.5+ and Half-Life 1.1.0.8+
-// Last update: 9th March 2008
+// FranBase FGD
+// Based on Spirit of Half-Life v1.8 FGD and Trinity FGD
 // Created by Laurie Cheers	 	- http://www.bearkey.com/?laurie
 // Additions by Shambler Team 		- http://shamteam.cbi.ru/
 // Additions by Killar			- http://www.bearkey.com/?killar
@@ -5375,7 +5374,7 @@ sequence(Choices) : "Animation Sequence (editor)" : 10 =
 //1.5 the default folder of /sounds/fmod/ was removed from the code
 @PointClass base(Targetname) = ambient_fmodstream: "FMOD Audio player (MP3/OGG/WMA)"
 [
-     message(string) : "File Name (relative to \spirit\)"
+     message(string) : "File Name (relative to \franbase\)"
      spawnflags(flags) =
      [
           1: "Remove on fire" : 0

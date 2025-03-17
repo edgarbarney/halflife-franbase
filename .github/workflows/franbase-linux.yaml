@@ -1,4 +1,4 @@
-name: Spirinity - Linux-x86 (GCC)
+name: FranBase - Linux-x86 (GCC)
 
 on: [push, pull_request]
 
@@ -29,5 +29,5 @@ jobs:
           path: |
             linux/release/client.so
             linux/release/client.so.dbg
-            linux/release/spirit.so
-            linux/release/spirit.so.dbg
+            linux/release/franbase.so
+            linux/release/franbase.so.dbg

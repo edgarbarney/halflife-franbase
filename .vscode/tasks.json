@@ -34,8 +34,8 @@
       "type": "shell",
       "command": "cp",
       "args": [
-        "${workspaceFolder}/linux/release/spirit.so",
-        "${env:HOME}/.steam/steam/steamapps/common/Half-Life/Spirinity/dlls/"
+        "${workspaceFolder}/linux/release/franbase.so",
+        "${env:HOME}/.steam/steam/steamapps/common/Half-Life/FranBase/dlls/"
       ],
       "problemMatcher": []
     },
@@ -44,8 +44,8 @@
       "type": "shell",
       "command": "cp",
       "args": [
-        "${workspaceFolder}/linux/release/spirit.so.dbg",
-        "${env:HOME}/.steam/steam/steamapps/common/Half-Life/Spirinity/dlls/"
+        "${workspaceFolder}/linux/release/franbase.so.dbg",
+        "${env:HOME}/.steam/steam/steamapps/common/Half-Life/FranBase/dlls/"
       ],
       "problemMatcher": []
     },
@@ -55,7 +55,7 @@
       "command": "cp",
       "args": [
         "${workspaceFolder}/linux/release/client.so",
-        "${env:HOME}/.steam/steam/steamapps/common/Half-Life/Spirinity/cl_dlls/"
+        "${env:HOME}/.steam/steam/steamapps/common/Half-Life/FranBase/cl_dlls/"
       ],
       "problemMatcher": []
     },
@@ -65,21 +65,21 @@
       "command": "cp",
       "args": [
         "${workspaceFolder}/linux/release/client.so.dbg",
-        "${env:HOME}/.steam/steam/steamapps/common/Half-Life/Spirinity/cl_dlls/"
+        "${env:HOME}/.steam/steam/steamapps/common/Half-Life/FranBase/cl_dlls/"
       ],
       "problemMatcher": []
     },
     {
-      "label": "Build Spirinity",
+      "label": "Build FranBase",
       "type": "shell",
-      "command": "echo Building Spirinity...",
+      "command": "echo Building FranBase...",
       "dependsOn": ["Call Make", "Copy Server .so File", "Copy Client .so File", "Copy Server .so.dbg File", "Copy Client .so.dbg File"] 
     },
     {
-      "label": "Rebuild Spirinity",
+      "label": "Rebuild FranBase",
       "type": "shell",
-      "command": "echo Rebuilding Spirinity...",
-      "dependsOn": ["Clean Make","Build Spirinity"] 
+      "command": "echo Rebuilding FranBase...",
+      "dependsOn": ["Clean Make","Build FranBase"] 
     }
   ]
 }

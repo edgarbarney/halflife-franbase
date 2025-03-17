@@ -73,7 +73,7 @@ namespace FranUtils
 		inline static std::string GetGameDisplayName()
 		{
 			if (gameName.empty())
-				return "Half-Life"; // Replace With Spirinity?
+				return "Half-Life"; // Replace With FranBase?
 
 			return gameName;
 		}
