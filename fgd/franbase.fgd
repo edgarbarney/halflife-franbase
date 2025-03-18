@@ -1905,26 +1905,6 @@
 ]
 
 //NEW 0.7.1
-@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) iconsprite("sprites/env.spr") = env_decal : "Decal sprayer"
-[
-	target(string) : "Position (blank = here) [LP]"
-	netname(string) : "Spray direction (blank = angle) [LV]"
-	message(string) : "Max distance (blank = none) [LN]"
-	impulse(choices) : "Decal group" : 0 =
-	[
-		1 : "Gunshot"
-		5 : "Big gunshot"
-		2 : "Blood"
-		3 : "Alien blood"
-		4 : "Glass cracks"
-		6 : "Scorch marks"
-		7 : "Bullsquid splat"
-		0 : "Custom (see below)"
-	]
-	noise(sprite) : "Custom decal texture"
-]
-
-//NEW 0.7.1
 //* Creates a temporary ball of light when triggered.
 //*   Note that this primarily lights the world (i.e. brushes); studio models will
 //* pick up the lighting if they're standing in it, but they'll just be a solid colour.
@@ -6082,4 +6062,5 @@ sequence(Choices) : "Animation Sequence (editor)" : 10 =
   lightorigin(string) : "Light Origin"
 ]
 @PointClass base(Targetname) size(-4 -4 -4, 4 4 4) color(200 100 50) = info_light_origin : "Entity Light Origin Marker" []
+@SolidClass base(Targetname, Global, Appearflags, RenderFields, ZHLT) = func_mirror : "Mirror" []
 //Trinity End

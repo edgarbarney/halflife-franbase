@@ -20,6 +20,9 @@ Written by Andrew Lucas
 #endif
 #include "gl/glext.h"
 
+#include "FranUtils/FranUtils_String.hpp"
+#include "FranUtils/FranUtils_FileSystem.hpp"
+
 #pragma warning(disable : 4018)
 
 /*
@@ -94,11 +97,12 @@ LoadTexture
 
 ====================
 */
-cl_texture_t* CTextureLoader::LoadTexture(const char* szFile, int iAltIndex, bool bPrompt, bool bNoMip, bool bBorder)
+cl_texture_t* CTextureLoader::LoadTexture(const std::string& strFile, int iAltIndex, bool bPrompt, bool bNoMip, bool bBorder)
 {
 	int iType = 0;
 	char szAlt[64];
 	byte* pFile = nullptr;
+	const char* szFile = strFile.c_str(); //TODO: Properly convert to C++ string
 
 	if (strlen(szFile) >= 64)
 	{
@@ -157,8 +161,7 @@ cl_texture_t* CTextureLoader::LoadTexture(const char* szFile, int iAltIndex, boo
 		pTexture->iIndex = iAltIndex;
 	}
 
-	// Copy the name over
-	strcpy(pTexture->szName, szFile);
+	pTexture->strName = szFile;
 
 	// Load DDS file
 	if (iType == 0)
@@ -202,7 +205,7 @@ bool CTextureLoader::LoadTGAFile(byte* pFile, cl_texture_t* pTexture, bool bNoMi
 	tga_header_t* pHeader = (tga_header_t*)pFile;
 	if (pHeader->datatypecode != 2 && pHeader->datatypecode != 10 || pHeader->bitsperpixel != 24 && pHeader->bitsperpixel != 32)
 	{
-		gEngfuncs.Con_Printf("Error! %s is using a non-supported format. Only 24 bit and 32 bit true color formats are supported.\n", pTexture->szName);
+		gEngfuncs.Con_Printf("Error! %s is using a non-supported format. Only 24 bit and 32 bit true color formats are supported.\n", pTexture->strName.c_str());
 		return false;
 	}
 
@@ -211,7 +214,7 @@ bool CTextureLoader::LoadTGAFile(byte* pFile, cl_texture_t* pTexture, bool bNoMi
 
 	if (!IsPowerOfTwo(pTexture->iWidth, pTexture->iHeight))
 	{
-		gEngfuncs.Con_Printf("Error! %s is not a power of two texture!\n", pTexture->szName);
+		gEngfuncs.Con_Printf("Error! %s is not a power of two texture!\n", pTexture->strName.c_str());
 		return false;
 	}
 
@@ -401,7 +404,7 @@ bool CTextureLoader::LoadDDSFile(byte* pFile, cl_texture_t* pTexture, bool bNoMi
 
 	if (!IsPowerOfTwo(pTexture->iWidth, pTexture->iHeight))
 	{
-		gEngfuncs.Con_Printf("Error! %s is not a power of two texture!\n", pTexture->szName);
+		gEngfuncs.Con_Printf("Error! %s is not a power of two texture!\n", pTexture->strName.c_str());
 		return false;
 	}
 
@@ -422,7 +425,7 @@ bool CTextureLoader::LoadDDSFile(byte* pFile, cl_texture_t* pTexture, bool bNoMi
 
 	if (iFourCC != D3DFMT_DXT1 && iFourCC != D3DFMT_DXT5)
 	{
-		gEngfuncs.Con_Printf("Error! Incorrect compression on: %s! Only DXT1 and DXT5 are supported!\n", pTexture->szName);
+		gEngfuncs.Con_Printf("Error! Incorrect compression on: %s! Only DXT1 and DXT5 are supported!\n", pTexture->strName.c_str());
 		return false; // Not correct compression
 	}
 
@@ -460,11 +463,11 @@ HasTexture
 
 ====================
 */
-cl_texture_t* CTextureLoader::HasTexture(const char* szFile)
+cl_texture_t* CTextureLoader::HasTexture(const std::string& strFile)
 {
 	for (int i = 0; i < m_iNumTextures; i++)
 	{
-		if (strcmp(m_pTextures[i].szName, szFile) == 0)
+		if (strFile == m_pTextures[i].strName)
 			return &m_pTextures[i];
 	}
 	return nullptr;
@@ -478,61 +481,37 @@ LoadWADFiles
 */
 void CTextureLoader::LoadWADFiles()
 {
-	char szWAD[64];
-	char szFile[32];
-
-	char* pWAD = gPropManager.ValueForKey(&gPropManager.m_pBSPEntities[0], "wad");
-	if (pWAD == nullptr)
+	std::string wadString = gPropManager.ValueForKey(&gPropManager.m_pBSPEntities[0], "wad");
+	if (wadString.empty())
 		return;
 
-	int iLength = strlen(pWAD);
-	int iCur = 0;
-	;
-	while (true)
+	std::istringstream wadStream(wadString);
+	std::string wadEntry;
+
+	while (std::getline(wadStream, wadEntry, ';'))
 	{
-		if (iCur >= iLength)
-			return;
-
-		int iLen = 0;
-		while (true)
-		{
-			if (pWAD[iCur] == ';' || iCur >= iLength)
-			{
-				szWAD[iLen] = 0;
-				iLen++;
-				iCur++;
-				break;
-			}
-
-			szWAD[iLen] = pWAD[iCur];
-			iCur++;
-			iLen++;
-		}
-
-		FilenameFromPath(szWAD, szFile);
-		strcat(szFile, ".wad");
+		std::string strFile = FilenameFromPath(wadEntry) + ".wad";
 
 		int iSize = 0;
-		byte* pFile = gEngfuncs.COM_LoadFile(szFile, 5, &iSize);
-		if (pFile == nullptr)
+		byte* pFile = gEngfuncs.COM_LoadFile(strFile.c_str(), 5, &iSize);
+		if (!pFile)
 			continue;
 
-		wadinfo_t* pInfo = (wadinfo_t*)pFile;
-		if (strncmp("WAD3", pInfo->identification, 4) != 0)
+		wadinfo_t* pInfo = reinterpret_cast<wadinfo_t*>(pFile);
+		if (std::string_view(pInfo->identification, 4) != "WAD3")
 		{
 			gEngfuncs.COM_FreeFile(pFile);
 			continue;
 		}
 
-		wadfile_t* pWADFile = &m_pWADFiles[m_iNumWADFiles];
-		m_iNumWADFiles++;
+		wadfile_t& pWADFile = m_pWADFiles[m_iNumWADFiles++];
+		pWADFile.wadfile = pFile;
+		pWADFile.info = reinterpret_cast<wadinfo_t*>(pWADFile.wadfile);
 
-		pWADFile->wadfile = pFile;
-		pWADFile->info = (wadinfo_t*)pWADFile->wadfile;
-
-		pWADFile->lumps = new lumpinfo_t[pWADFile->info->numlumps];
-		memcpy(pWADFile->lumps, (pWADFile->wadfile + pWADFile->info->infotableofs), sizeof(lumpinfo_t) * pWADFile->info->numlumps);
-		pWADFile->numlumps = pWADFile->info->numlumps;
+		pWADFile.lumps = new lumpinfo_t[pWADFile.info->numlumps];
+		std::memcpy(pWADFile.lumps, reinterpret_cast<byte*>(pWADFile.wadfile) + pWADFile.info->infotableofs,
+			sizeof(lumpinfo_t) * pWADFile.info->numlumps);
+		pWADFile.numlumps = pWADFile.info->numlumps;
 	}
 }
 
@@ -563,9 +542,9 @@ LoadWADTexture
 
 ====================
 */
-cl_texture_t* CTextureLoader::LoadWADTexture(const char* szTexture, int iAltIndex)
+cl_texture_t* CTextureLoader::LoadWADTexture(const std::string& strTexture, int iAltIndex)
 {
-	char szName[32];
+	std::string strName;
 	cl_texture_t* pTexture = nullptr;
 
 	for (int i = 0; i < m_iNumWADFiles; i++)
@@ -578,16 +557,16 @@ cl_texture_t* CTextureLoader::LoadWADTexture(const char* szTexture, int iAltInde
 			if (pLump->type != 0 && ((pLump->type & 0x43) == 0))
 				continue;
 
-			strcpy(szName, pLump->name);
-			strLower(szName);
+			strName = std::string(pLump->name);
+			FranUtils::StringUtils::LowerCase_Ref(strName);
 
-			if (strcmp(szName, szTexture) == 0)
+			if (strName == strTexture)
 			{
 				pTexture = &m_pTextures[m_iNumTextures];
 				m_iNumTextures++;
 
 				// Fill in data
-				strcpy(pTexture->szName, szTexture);
+				pTexture->strName = strTexture;
 				pTexture->iWidth = ByteToUInt(pFile + pLump->filepos + 16);
 				pTexture->iHeight = ByteToUInt(pFile + pLump->filepos + 20);
 				pTexture->iBpp = 4;
@@ -613,6 +592,7 @@ cl_texture_t* CTextureLoader::LoadWADTexture(const char* szTexture, int iAltInde
 
 	return nullptr;
 }
+
 
 /*
 ====================
@@ -667,7 +647,7 @@ void CTextureLoader::LoadPallettedTexture(byte* data, byte* pal, cl_texture_t* p
 			alpha3 = 0xFF;
 			alpha4 = 0xFF;
 
-			if (pTexture->szName[0] == '{')
+			if (pTexture->strName[0] == '{')
 			{
 				if (data[row1[i] + col1[j]] == 0xFF)
 				{
@@ -734,185 +714,67 @@ LoadTextureScript
 */
 void CTextureLoader::LoadTextureScript()
 {
-	int iFlags = 0;
-	char szFlag[32];
-	char szModel[32];
-	char szTexture[32];
-
 	// Clear previous list
 	if (m_iNumTextureEntries != 0)
 	{
 		memset(m_pTextureEntries, 0, sizeof(m_pTextureEntries));
-		m_iNumTextureEntries = NULL;
+		m_iNumTextureEntries = 0;
 	}
 
-	int iSize = NULL;
-	char* pFile = (char*)gEngfuncs.COM_LoadFile("gfx/textures/texture_flags.txt", 5, &iSize);
+	std::ifstream inputStream{};
+	std::stringstream strStream{};
+	FranUtils::FileSystem::OpenInputFile("gfx/textures/texture_flags.txt", inputStream);
 
-	if (pFile == nullptr)
+	if (!inputStream)
 	{
 		gEngfuncs.Con_Printf("Could not load gfx/textures/texture_flags.txt!\n");
 		return;
 	}
 
-	int i = NULL;
-	while (true)
+	strStream << inputStream.rdbuf();
+	inputStream.close();
+
+	std::istringstream fileStream(strStream.str());
+	std::string strModel;
+	std::string strTexture;
+	std::string strFlag;
+	int iFlags = 0;
+
+	while (fileStream >> strModel >> strTexture)
 	{
-		// Reset
 		iFlags = 0;
 
-		// Reached EOF
-		if (i >= iSize)
-			break;
+		FranUtils::StringUtils::LowerCase_Ref(strModel);
+		FranUtils::StringUtils::LowerCase_Ref(strTexture);
 
-		// Skip to next token
-		while (true)
+		while (fileStream >> strFlag)
 		{
-			if (i >= iSize)
-				break;
+			FranUtils::StringUtils::LowerCase_Ref(strFlag);
 
-			if (pFile[i] != ' ' && pFile[i] != '\n' && pFile[i] != '\r')
-				break;
-
-			i++;
-		}
-
-		if (i >= iSize)
-			break;
-
-		// Read token in
-		int j = NULL;
-		while (true)
-		{
-			if (i >= iSize)
-				break;
-
-			if (pFile[i] == ' ' || pFile[i] == '\n' || pFile[i] == '\r')
-				break;
-
-			szModel[j] = pFile[i];
-			j++;
-			i++;
-		}
-
-		// Terminator
-		szModel[j] = 0;
-
-		if (i >= iSize)
-			break;
-
-		// Skip to next token
-		while (true)
-		{
-			if (i >= iSize)
-				break;
-
-			if (pFile[i] != ' ' && pFile[i] != '\n' && pFile[i] != '\r')
-				break;
-
-			i++;
-		}
-
-		if (i >= iSize)
-			break;
-
-		// Read token in
-		j = NULL;
-		while (true)
-		{
-			if (i >= iSize)
-				break;
-
-			if (pFile[i] == ' ' || pFile[i] == '\n' || pFile[i] == '\r')
-				break;
-
-			szTexture[j] = pFile[i];
-			j++;
-			i++;
-		}
-
-		// Terminator
-		szTexture[j] = 0;
-
-		if (i >= iSize)
-			break;
-
-		while (true)
-		{
-			// Skip to next token
-			while (true)
-			{
-				if (i >= iSize)
-					break;
-
-				if (pFile[i] != ' ' && pFile[i] != '\n' && pFile[i] != '\r')
-					break;
-
-				i++;
-			}
-
-			if (i >= iSize)
-				break;
-
-			// Read token in
-			j = NULL;
-			while (true)
-			{
-				if (i >= iSize)
-					break;
-
-				if (pFile[i] == ' ' || pFile[i] == '\n' || pFile[i] == '\r')
-					break;
-
-				szFlag[j] = pFile[i];
-				j++;
-				i++;
-			}
-
-			// Terminator
-			szFlag[j] = 0;
-			strLower(szFlag);
-
-			// Only this flag for now
-			if (strcmp(szFlag, "alternate") == 0)
+			if (strFlag == "alternate")
 				iFlags |= TEXFLAG_ALTERNATE;
-			else if (strcmp(szFlag, "fullbright") == 0)
+			else if (strFlag == "fullbright")
 				iFlags |= TEXFLAG_FULLBRIGHT;
-			else if (strcmp(szFlag, "none") == 0)
+			else if (strFlag == "none")
 				iFlags |= TEXFLAG_NONE;
-			else if (strcmp(szFlag, "nomipmap") == 0)
+			else if (strFlag == "nomipmap")
 				iFlags |= TEXFLAG_NOMIPMAP;
-			else if (strcmp(szFlag, "eraseflags") == 0)
+			else if (strFlag == "eraseflags")
 				iFlags |= TEXFLAG_ERASE;
-
-			// See if there's anything else ahead
-			while (true)
-			{
-				if (i >= iSize)
-					break;
-
-				if (pFile[i] == ' ' || pFile[i] == '\n' || pFile[i] == '\r')
-					break;
-			}
-
-			if (pFile[i] == '\n' || pFile[i] == '\r' || i >= iSize)
-				break; // End of entry
+			else
+				break; // Invalid flag
 		}
 
-		if (iFlags != 0)
-		{
-			texentry_t* pEntry = &m_pTextureEntries[m_iNumTextureEntries];
-			m_iNumTextureEntries++;
+		// TODO: Implement overflow protection
 
-			strcpy(pEntry->szModel, szModel);
-			strLower(pEntry->szModel);
-			strcpy(pEntry->szTexture, szTexture);
-			strLower(pEntry->szTexture);
+		if (iFlags != 0 /* && m_iNumTextureEntries < MAX_TEXTURE_ENTRIES */)
+		{
+			texentry_t* pEntry = &m_pTextureEntries[m_iNumTextureEntries++];
+			pEntry->strModel = strModel;
+			pEntry->strTexture = strTexture;
 			pEntry->iFlags = iFlags;
 		}
 	}
-
-	gEngfuncs.COM_FreeFile(pFile);
 }
 
 /*
@@ -921,15 +783,17 @@ TextureHasFlag
 
 ====================
 */
-bool CTextureLoader::TextureHasFlag(const char* szModel, const char* szTexture, int iFlag)
+bool CTextureLoader::TextureHasFlag(const std::string& model, const std::string& texture, int flag) const
 {
 	if (m_iNumTextureEntries == 0)
 		return false;
 
 	for (int i = 0; i < m_iNumTextureEntries; i++)
 	{
-		if ((strcmp(m_pTextureEntries[i].szModel, szModel) == 0) && (strcmp(m_pTextureEntries[i].szTexture, szTexture) == 0) && ((m_pTextureEntries[i].iFlags & iFlag) != 0))
+		if ((m_pTextureEntries[i].strModel == model) && (m_pTextureEntries[i].strTexture == texture) && ((m_pTextureEntries[i].iFlags & flag) != 0))
+		{
 			return true;
+		}
 	}
 
 	return false;

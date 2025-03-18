@@ -124,14 +124,16 @@ public:
 	void ResetCache();
 
 	bool ExtensionSupported(const char* ext);
-	cl_texture_t* LoadDetailTexture(char* texname);
+	cl_texture_t* LoadDetailTexture(const std::string& texname);
 	void ParseDetailTextureFile();
 	void LoadDetailTextures();
 
 	void AnimateLight();
 	void UploadLightmaps();
 	void BuildLightmap(msurface_t* surf, int surfindex, color24* out);
-	void AddLightStyle(int iNum, const char* szStyle);
+	void AddLightStyle(size_t index, const std::string& strStyle);
+	void ClearLightStyleValues();
+	int GetLightStyleValue(int index);
 
 	void SetTexEnvs(int env0 = 0, int env1 = 0, int env2 = 0, int env3 = 0);
 	void SetTexEnv_Internal(int env);
@@ -145,13 +147,13 @@ public:
 	void LoadDecals();
 	void DeleteDecals();
 
-	decalgroup_t* FindGroup(const char* _name);
+	decalgroup_t* FindGroup(const std::string& _name);
 	cl_texture_t* LoadDecalTexture(const char* texname);
 	decalgroupentry_t* GetRandomDecal(decalgroup_t* group);
-	decalgroupentry_t* FindDecalByName(const char* szName);
+	decalgroupentry_t* FindDecalByName(const std::string& szName);
 
 	bool CullDecalBBox(Vector mins, Vector maxs);
-	void CreateDecal(Vector endpos, Vector pnormal, const char* name, int persistent = 0);
+	void CreateDecal(Vector endpos, Vector pnormal, const std::string& name, int persistent = 0);
 	void RecursiveCreateDecal(mnode_t* node, decalgroupentry_t* texptr, customdecal_t* pDecal, Vector endpos, Vector pnormal);
 	void DecalSurface(msurface_t* surf, decalgroupentry_t* texptr, cl_entity_t* pEntity, customdecal_t* pDecal, Vector endpos, Vector pnormal);
 
@@ -254,8 +256,7 @@ public:
 	mlight_t m_pModelLights[MAXRENDERENTS];
 	int m_iNumModelLights;
 
-	lightstyle_t m_pLightStyles[MAX_LIGHTSTYLES];
-	int m_iLightStyleValue[MAX_LIGHTSTYLES];
+	std::vector<LightStyle> m_vectorLightStyles;
 
 	color24 m_pBlockLights[BLOCKLIGHTS_SIZE];
 	int m_iNumLightmaps;
@@ -287,11 +288,10 @@ public:
 	int m_iBrushPolyCounter;  // bmodel poly counter
 	int m_iStudioPolyCounter; // studiomodel poly counter
 
-	char m_szSkyName[64];
-	char m_szMapName[64];
+	std::string m_strSkyName;
+	std::string m_strMapName;
 
-	detailtexentry_t m_pDetailTextures[MAX_DETAIL_TEXTURES];
-	int m_iNumDetailTextures;
+	std::vector<DetailTexture> m_vectorDetailTextures;
 
 	texture_t m_pNormalTextureList[MAX_MAP_TEXTURES];
 	texture_t m_pMultiPassTextureList[MAX_MAP_TEXTURES];

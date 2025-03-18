@@ -475,9 +475,9 @@ void CBSPRenderer::VidInit()
 	}
 
 	// Clear all lightstyles.
-	memset(m_iLightStyleValue, 0, sizeof(m_iLightStyleValue));
+	ClearLightStyleValues();
 	memset(m_pDynLights, 0, sizeof(m_pDynLights));
-	memset(m_pDetailTextures, 0, sizeof(m_pDetailTextures));
+	m_vectorDetailTextures.clear();
 	memset(m_pDecalGroups, 0, sizeof(m_pDecalGroups));
 	memset(m_pNormalTextureList, 0, sizeof(m_pNormalTextureList));
 	memset(m_pMultiPassTextureList, 0, sizeof(m_pMultiPassTextureList));
@@ -536,7 +536,6 @@ void CBSPRenderer::VidInit()
 	m_pFirstDLight = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
 	m_fSkySpeed = NULL;
 	m_pWorld = nullptr;
-	m_iNumDetailTextures = NULL;
 	m_iFrameCount = NULL;
 	m_iVisFrame = NULL;
 	m_iNumDecalGroups = NULL;
@@ -855,13 +854,50 @@ AddLightStyle
 
 ====================
 */
-void CBSPRenderer::AddLightStyle(int iNum, const char* szStyle)
+void CBSPRenderer::AddLightStyle(size_t index, const std::string& strStyle)
 {
-	memset(&m_pLightStyles[iNum], 0, sizeof(lightstyle_t));
+	// Check if vector is big enough
+	// If not, resize it
+	if (index >= m_vectorLightStyles.size())
+	{
+		m_vectorLightStyles.resize(index + 1);
+	}
 
-	m_pLightStyles[iNum].length = strlen(szStyle);
-	strcpy(m_pLightStyles[iNum].map, szStyle);
-};
+	// If the index is already taken, replace it
+	if (m_vectorLightStyles.size() > index)
+	{
+		m_vectorLightStyles[index] = LightStyle(strStyle, 256);
+		return;
+	}
+
+	m_vectorLightStyles.insert(m_vectorLightStyles.begin() + index, LightStyle(strStyle, 256));
+}
+
+/*
+====================
+ClearLightStyleValues
+
+====================
+
+*/
+void CBSPRenderer::ClearLightStyleValues()
+{
+	for (auto& style : m_vectorLightStyles)
+	{
+		std::get<1>(style) = 0;
+	}
+}
+
+/*
+====================
+GetLightStyleValue
+
+====================
+*/
+int CBSPRenderer::GetLightStyleValue(int index)
+{
+	return std::get<1>(m_vectorLightStyles[index]);
+}
 
 /*
 ====================
@@ -952,36 +988,40 @@ CheckTextures
 */
 void CBSPRenderer::CheckTextures()
 {
-	char szFile[64];
-	char szTexture[32];
-
 	model_t* pWorld = IEngineStudio.GetModelByIndex(1);
+	if (!pWorld)
+		return;
+
 	for (int i = 0; i < pWorld->numtextures; i++)
 	{
-		if (pWorld->textures[i] == nullptr)
+		if (!pWorld->textures[i])
 			continue;
 
-		// Skip specials
-		if ((strcmp(pWorld->textures[i]->name, "origin") == 0) || (strcmp(pWorld->textures[i]->name, "clip") == 0) || (strcmp(pWorld->textures[i]->name, "null") == 0) || (strcmp(pWorld->textures[i]->name, "skip") == 0) || (strcmp(pWorld->textures[i]->name, "hint") == 0))
+		std::string textureName = pWorld->textures[i]->name;
+
+		if (textureName == "origin" || textureName == "clip" || textureName == "null" ||
+			textureName == "skip" || textureName == "hint")
+		{
 			continue;
+		}
 
-		strcpy(szTexture, pWorld->textures[i]->name);
-		strLower(szTexture);
+		FranUtils::StringUtils::LowerCase_Ref(textureName);
 
-		if (gTextureLoader.TextureHasFlag("world", szTexture, TEXFLAG_ALTERNATE))
+		if (gTextureLoader.TextureHasFlag("world", textureName, TEXFLAG_ALTERNATE))
 		{
 			gEngfuncs.Con_DPrintf("World has '%s' marked as using an alternate texture.\n", pWorld->textures[i]->name);
-			sprintf(szFile, "gfx/textures/world/%s.dds", szTexture);
-			cl_texture_t* pTexture = gTextureLoader.LoadTexture(szFile, pWorld->textures[i]->gl_texturenum);
 
-			if (pTexture != nullptr)
+			std::string filePath = "gfx/textures/world/" + textureName + ".dds";
+			cl_texture_t* pTexture = gTextureLoader.LoadTexture(filePath, pWorld->textures[i]->gl_texturenum);
+
+			if (pTexture)
 			{
-				gEngfuncs.Con_DPrintf("Loaded '%s'\n", szFile);
+				gEngfuncs.Con_DPrintf("Loaded '%s'\n", filePath.c_str());
 				continue;
 			}
 		}
 
-		gTextureLoader.LoadWADTexture(szTexture, pWorld->textures[i]->gl_texturenum);
+		gTextureLoader.LoadWADTexture(textureName, pWorld->textures[i]->gl_texturenum);
 	}
 }
 /*
@@ -1375,11 +1415,9 @@ void CBSPRenderer::CreateTextures()
 	for (int i = 0; i < gTextureLoader.m_iNumTextureEntries; i++)
 	{
 		texentry_t* pEntry = &gTextureLoader.m_pTextureEntries[i];
-		if (strcmp(pEntry->szModel, "flashlight") == 0)
+		if (pEntry->strModel == "flashlight")
 		{
-			char szPath[64];
-			sprintf(szPath, "gfx/textures/%s.tga", pEntry->szTexture);
-			cl_texture_t* pTexture = gTextureLoader.LoadTexture(szPath, FALSE, true, false, true);
+			cl_texture_t* pTexture = gTextureLoader.LoadTexture("gfx/textures/" + pEntry->strTexture + ".tga", FALSE, true, false, true);
 			if (pTexture != nullptr)
 			{
 				m_pFlashlightTextures[m_iNumFlashlightTextures] = pTexture;
@@ -1644,11 +1682,11 @@ void CBSPRenderer::GenerateVertexArray()
 			}
 		}
 
-		detailtexentry_t* dtex = nullptr;
+		DetailTexture* dtex = nullptr;
 		if (m_pSurfaces[ext->index].regtexture != nullptr)
 		{
 			if (m_pSurfaces[ext->index].regtexture->offsets[3] != 0u)
-				dtex = &m_pDetailTextures[m_pSurfaces[ext->index].regtexture->offsets[2]];
+				dtex = &m_vectorDetailTextures[m_pSurfaces[ext->index].regtexture->offsets[2]];
 		}
 
 		float column = surfaces[i].lightmaptexturenum % LIGHTMAP_NUMROWS;
@@ -1812,11 +1850,11 @@ void CBSPRenderer::GenerateVertexArray()
 					}
 				}
 
-				detailtexentry_t* dtex = nullptr;
+				DetailTexture* dtex = nullptr;
 				if (m_pSurfaces[ext->index].regtexture != nullptr)
 				{
 					if (m_pSurfaces[ext->index].regtexture->offsets[3] != 0u)
-						dtex = &m_pDetailTextures[m_pSurfaces[ext->index].regtexture->offsets[2]];
+						dtex = &m_vectorDetailTextures[m_pSurfaces[ext->index].regtexture->offsets[2]];
 				}
 
 				float column = psurf->lightmaptexturenum % LIGHTMAP_NUMROWS;
@@ -2394,7 +2432,7 @@ void CBSPRenderer::RenderFirstPass(bool bSecond)
 			glAlphaFunc(GL_GREATER, 0.5);
 		}
 
-		if (((m_pCurrentEntity->curstate.effects & FL_CONVEYOR) != 0) && (stristr(pTexture->name, "scroll") != nullptr))
+		if (((m_pCurrentEntity->curstate.effects & FL_CONVEYOR) != 0) && (FranUtils::StringUtils::HasInsentitiveSubstring(pTexture->name, "scroll")))
 		{
 			while (psurface != nullptr)
 			{
@@ -2571,7 +2609,7 @@ void CBSPRenderer::RenderFinalPasses(bool bSecond)
 			Bind2DTexture(GL_TEXTURE0_ARB, pTexture->gl_texturenum);
 		}
 
-		if (((m_pCurrentEntity->curstate.effects & FL_CONVEYOR) != 0) && (stristr(pTexture->name, "scroll") != nullptr))
+		if (((m_pCurrentEntity->curstate.effects & FL_CONVEYOR) != 0) && (FranUtils::StringUtils::HasInsentitiveSubstring(pTexture->name, "scroll")))
 		{
 			while (psurface != nullptr)
 			{
@@ -2997,7 +3035,7 @@ void CBSPRenderer::SurfaceToChain(msurface_t* psurfbase, msurface_t* s, bool dyn
 	for (int i = 1; i < MAXLIGHTMAPS && s->styles[i] != 255 || (s->dlightframe != 0); i++)
 	{
 
-		if (m_iLightStyleValue[s->styles[i]] != pclsurf->cached_light[i] || (s->dlightframe != 0))
+		if (GetLightStyleValue(s->styles[i]) != pclsurf->cached_light[i] || (s->dlightframe != 0))
 		{
 			BuildLightmap(s, surfaceIndex, m_pEngineLightmaps);
 
@@ -3227,22 +3265,29 @@ AnimateLight
 */
 void CBSPRenderer::AnimateLight()
 {
-	int i, j, k;
+	int i, k;
 
 	i = (int)(gEngfuncs.GetClientTime() * 10);
-	for (j = 0; j < MAX_LIGHTSTYLES; j++)
+	for (auto& lightStyle : m_vectorLightStyles)
 	{
-		if (m_pLightStyles[j].length == 0)
+		const std::string& strStyle = std::get<0>(lightStyle);
+		int& lightValue = std::get<1>(lightStyle);
+
+		if (strStyle.empty())
 		{
-			m_iLightStyleValue[j] = 256;
-			continue;
+			lightValue = 256; // Default
 		}
-		k = i % m_pLightStyles[j].length;
-		k = m_pLightStyles[j].map[k] - 'a';
-		k = k * 22;
-		m_iLightStyleValue[j] = k;
+		else
+		{
+			k = i % strStyle.length();
+			k = strStyle[k] - 'a';
+			k = k * 22;
+
+			lightValue = k;
+		}
 	}
 }
+
 
 /*
 ====================
@@ -3356,10 +3401,10 @@ void CBSPRenderer::BuildLightmap(msurface_t* surf, int surfindex, color24* out)
 	for (int maps = 1; maps < MAXLIGHTMAPS && surf->styles[maps] != 255; maps++)
 	{
 		lightmap += size; // skip to next lightmap
-		m_pSurfaces[surfindex].cached_light[maps] = m_iLightStyleValue[surf->styles[maps]];
+		m_pSurfaces[surfindex].cached_light[maps] = GetLightStyleValue(surf->styles[maps]);
 		if (m_pSurfaces[surfindex].cached_light[maps] != 0)
 		{
-			float scale = (float)m_iLightStyleValue[surf->styles[maps]] / 255;
+			float scale = (float)GetLightStyleValue(surf->styles[maps]) / 255;
 			for (int i = 0; i < size; i++)
 			{
 				int iR = (int)m_pBlockLights[i].r + (int)lightmap[i].r * scale;
@@ -3418,7 +3463,7 @@ UploadLightmaps
 */
 void CBSPRenderer::UploadLightmaps()
 {
-	memset(m_iLightStyleValue, 0, sizeof(m_iLightStyleValue));
+	ClearLightStyleValues();
 	memset(m_pEngineLightmaps, 0, sizeof(m_pEngineLightmaps));
 	memset(m_pDetailLightmaps, 0, sizeof(m_pDetailLightmaps));
 	m_iNumLightmaps = NULL;
@@ -3691,12 +3736,9 @@ LoadDetailTexture
 
 ====================
 */
-cl_texture_t* CBSPRenderer::LoadDetailTexture(char* texname)
+cl_texture_t* CBSPRenderer::LoadDetailTexture(const std::string& texname)
 {
-	// load the texture file
-	char szPath[256];
-	sprintf(szPath, "gfx/textures/details/%s.dds", texname);
-	cl_texture_t* pTexture = gTextureLoader.LoadTexture(szPath);
+	cl_texture_t* pTexture = gTextureLoader.LoadTexture("gfx/textures/details/" + texname + ".dds");
 
 	if (pTexture == nullptr)
 		return nullptr;
@@ -3712,89 +3754,62 @@ ParseDetailTextureFile
 */
 void CBSPRenderer::ParseDetailTextureFile()
 {
-	char szLevelName[256];
-	m_iNumDetailTextures = 0;
-
-	strcpy(szLevelName, gEngfuncs.pfnGetLevelName());
-
-	if (strlen(szLevelName) == 0)
+	std::string levelName = gEngfuncs.pfnGetLevelName();
+	if (levelName.empty())
 		return;
 
-	szLevelName[strlen(szLevelName) - 4] = 0;
-	strcat(szLevelName, "_detail.txt");
+	// Remove ".bsp" extension and append "_detail.txt"
+	levelName.erase(levelName.length() - 4);
+	levelName += ("_detail.txt");
 
-	char* pfile = (char*)gEngfuncs.COM_LoadFile(szLevelName, 5, nullptr);
-	if (pfile == nullptr)
+	FranUtils::FileSystem::ComplexStringMap parsedData;
+	bool result = FranUtils::FileSystem::ParseSpacedFile(levelName, parsedData);
+	
+	if (!result)
 	{
-		gEngfuncs.Con_Printf("BSP Renderer: Failed to load detail texture file for %s\n", szLevelName);
+		gEngfuncs.Con_Printf("BSP Renderer: Failed to load detail texture file for %s\n", levelName.c_str());
 		return;
 	}
 
-	char* ptext = pfile;
-	while (true)
+	int iter = 0;
+	for (const auto& entry : parsedData)
 	{
-		char temp[256];
-		char texture[256];
-		char detailtexture[256];
-		char sz_xscale[64];
-		char sz_yscale[64];
+		//if (m_iNumDetailTextures >= MAX_DETAIL_TEXTURES)
+		//{
+		//	gEngfuncs.Con_Printf("BSP Renderer: Too many entries in detail texture file %s\n", levelName.c_str());
+		//	break;
+		//}
 
-		if (m_iNumDetailTextures >= MAX_DETAIL_TEXTURES)
+		const std::string& texture = entry.first;
+		const auto& values = entry.second;
+
+		if (values.size() < 3)
 		{
-			gEngfuncs.Con_Printf("BSP Renderer: Too many entries in detail texture file %s\n", szLevelName);
-			break;
-		}
-
-		ptext = gEngfuncs.COM_ParseFile(ptext, texture);
-		if (ptext == nullptr)
-			break;
-
-		if (texture[0] == '{')
-		{
-			ptext = gEngfuncs.COM_ParseFile(ptext, temp);
-			strcat(texture, temp);
-		}
-
-		if (ptext == nullptr)
-			break;
-
-		ptext = gEngfuncs.COM_ParseFile(ptext, detailtexture);
-		if (ptext == nullptr)
-			break;
-
-		ptext = gEngfuncs.COM_ParseFile(ptext, sz_xscale);
-		if (ptext == nullptr)
-			break;
-
-		ptext = gEngfuncs.COM_ParseFile(ptext, sz_yscale);
-		if (ptext == nullptr)
-			break;
-
-		float i_xscale = atof(sz_xscale);
-		float i_yscale = atof(sz_yscale);
-
-		if (strlen(texture) > 32 || strlen(detailtexture) > 32)
-		{
-			gEngfuncs.Con_Printf("BSP Renderer: Error in detail texture file %s: token too large\n", szLevelName);
-			gEngfuncs.Con_Printf("(entry %d: %s - %s)\n", m_iNumDetailTextures, texture, detailtexture);
+			gEngfuncs.Con_Printf("BSP Renderer: Error in detail texture file %s: not enough values for texture %s\n",
+				levelName.c_str(), texture.c_str());
 			continue;
 		}
 
-		cl_texture_t* pTexture = LoadDetailTexture(detailtexture);
+		std::string detailTexture = values[0];
+		float xscale = std::stof(values[1]);
+		float yscale = std::stof(values[2]);
 
-		if (pTexture == nullptr)
+		if (texture.length() > 32 || detailTexture.length() > 32)
+		{
+			gEngfuncs.Con_Printf("BSP Renderer: Error in detail texture file %s: token too large\n", levelName.c_str());
+			gEngfuncs.Con_Printf("(entry %d: %s - %s)\n", iter, texture.c_str(), detailTexture.c_str());
+			continue;
+		}
+
+		cl_texture_t* pTexture = LoadDetailTexture(detailTexture);
+		if (!pTexture)
 			continue;
 
-		strLower(texture);
-		strcpy(m_pDetailTextures[m_iNumDetailTextures].texname, texture);
-		strcpy(m_pDetailTextures[m_iNumDetailTextures].detailtexname, detailtexture);
-		m_pDetailTextures[m_iNumDetailTextures].xscale = i_xscale;
-		m_pDetailTextures[m_iNumDetailTextures].yscale = i_yscale;
-		m_pDetailTextures[m_iNumDetailTextures].texindex = pTexture->iIndex;
-		m_iNumDetailTextures++;
+		m_vectorDetailTextures.push_back(DetailTexture(FranUtils::StringUtils::LowerCase(texture), detailTexture, xscale, yscale, pTexture->iIndex));
+		iter++;
 	}
-	gEngfuncs.COM_FreeFile(pfile);
-};
+}
+
 
 /*
 ====================
@@ -3806,31 +3821,28 @@ void CBSPRenderer::LoadDetailTextures()
 {
 	ParseDetailTextureFile();
 
-	texture_t* tex = m_pNormalTextureList;
-	for (int i = 0; i < m_iNumTextures; i++)
+	for (int i = 0; i < m_iNumTextures; ++i)
 	{
-		if (tex[i].name[0] == 0)
+		if (m_pNormalTextureList[i].name[0] == 0)
 			continue;
 
-		char szName[16];
-		strcpy(szName, tex[i].name);
-		strLower(szName);
+		std::string texName = FranUtils::StringUtils::LowerCase(m_pNormalTextureList[i].name);
 
-		int j = 0;
-		for (; j < m_iNumDetailTextures; j++)
-		{
-			if (strcmp(m_pDetailTextures[j].texname, szName) == 0)
-				break;
-		}
+		auto it = std::find_if(m_vectorDetailTextures.begin(), m_vectorDetailTextures.end(),
+			[&texName](const DetailTexture& detailTex)
+			{
+				return detailTex.texname == texName;
+			});
 
-		// Found detail texture
-		if (j != m_iNumDetailTextures)
+
+		if (it != m_vectorDetailTextures.end())
 		{
-			tex[i].offsets[2] = j;
-			tex[i].offsets[3] = m_pDetailTextures[j].texindex;
+			int j = std::distance(m_vectorDetailTextures.begin(), it);
+			m_pNormalTextureList[i].offsets[2] = j;
+			m_pNormalTextureList[i].offsets[3] = it->texindex;
 		}
 	}
-};
+}
 
 /*
 ====================
@@ -4018,6 +4030,9 @@ LoadDecals
 */
 void CBSPRenderer::LoadDecals()
 {
+	// TODO: Properly convert to c++ string
+	// TODO: Get rid of COM_LoadFile and COM_ParseFile
+
 	char* pfile = (char*)gEngfuncs.COM_LoadFile("gfx/textures/decals/decalinfo.txt", 5, nullptr);
 	if (pfile == nullptr)
 	{
@@ -4076,7 +4091,7 @@ void CBSPRenderer::LoadDecals()
 			if (pTexture == nullptr)
 				continue;
 
-			strcpy(tempentries[numtemp].szName, token);
+			tempentries[numtemp].strName = token;
 			tempentries[numtemp].gl_texid = pTexture->iIndex;
 			tempentries[numtemp].xsize = atof(sz_xsize) / 2;
 			tempentries[numtemp].ysize = atof(sz_ysize) / 2;
@@ -4094,7 +4109,7 @@ void CBSPRenderer::LoadDecals()
 			}
 
 			m_pDecalGroups[m_iNumDecalGroups].iSize = numtemp;
-			strcpy(m_pDecalGroups[m_iNumDecalGroups].szName, token);
+			m_pDecalGroups[m_iNumDecalGroups].strName = token;
 			memcpy(m_pDecalGroups[m_iNumDecalGroups].entries, tempentries, sizeof(tempentries));
 
 			m_iNumDecalGroups++;
@@ -4159,7 +4174,7 @@ FindDecalByName
 
 ====================
 */
-decalgroupentry_t* CBSPRenderer::FindDecalByName(const char* szName)
+decalgroupentry_t* CBSPRenderer::FindDecalByName(const std::string& szName)
 {
 	for (int i = 0; i < m_iNumDecalGroups; i++)
 	{
@@ -4168,7 +4183,7 @@ decalgroupentry_t* CBSPRenderer::FindDecalByName(const char* szName)
 
 		for (int j = 0; j < m_pDecalGroups[i].iSize; j++)
 		{
-			if (strcmp(m_pDecalGroups[i].entries[j].szName, szName) == 0)
+			if (m_pDecalGroups[i].entries[j].strName == szName)
 				return &m_pDecalGroups[i].entries[j];
 		}
 	}
@@ -4200,11 +4215,11 @@ FindGroup
 
 ====================
 */
-decalgroup_t* CBSPRenderer::FindGroup(const char* _name)
+decalgroup_t* CBSPRenderer::FindGroup(const std::string& _name)
 {
 	for (int i = 0; i < m_iNumDecalGroups; i++)
 	{
-		if (strcmp(m_pDecalGroups[i].szName, _name) == 0)
+		if (m_pDecalGroups[i].strName == _name)
 			return &m_pDecalGroups[i];
 	}
 
@@ -4246,7 +4261,7 @@ CreateDecal
 
 ====================
 */
-void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, int persistent)
+void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const std::string& name, int persistent)
 {
 	Vector mins, maxs;
 	Vector decalpos, decalnormal;
@@ -4258,7 +4273,7 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const char* name, 
 		if (m_iCacheDecals >= MAX_DECAL_MSG_CACHE)
 			return;
 
-		strcpy(m_pMsgCache[m_iCacheDecals].name, name);
+		m_pMsgCache[m_iCacheDecals].name = name;
 		m_pMsgCache[m_iCacheDecals].normal = pnormal;
 		m_pMsgCache[m_iCacheDecals].pos = endpos;
 		m_pMsgCache[m_iCacheDecals].persistent = persistent;
@@ -4541,7 +4556,7 @@ void CBSPRenderer::DecalSurface(msurface_t* surf, decalgroupentry_t* texptr, cl_
 	if ((pEntity != nullptr) && surf->texinfo->texture->name[0] == '{' && pEntity->curstate.rendermode == kRenderTransAlpha)
 		return;
 
-	if ((stristr(surf->texinfo->texture->name, "scroll") != nullptr) && pEntity->curstate.eflags == EFLAG_CONVEYOR)
+	if ((FranUtils::StringUtils::HasInsentitiveSubstring(surf->texinfo->texture->name, "scroll")) && pEntity->curstate.eflags == EFLAG_CONVEYOR)
 		return;
 
 	if (((surf->flags & SURF_DRAWTURB) != 0) || ((surf->flags & SURF_DRAWSKY) != 0))
@@ -5630,7 +5645,8 @@ InitSky
 void CBSPRenderer::InitSky()
 {
 	m_bDrawSky = true;
-	if (m_szSkyName[0] == 0)
+	//if (m_strSkyName[0] == 0)
+	if (m_strSkyName.empty() || m_strSkyName[0] == 0)
 	{
 		m_bDrawSky = false;
 		return;
@@ -5640,11 +5656,11 @@ void CBSPRenderer::InitSky()
 
 	for (int i = 0; i < 6; i++)
 	{
-		char szPathS[64];
-		char szPathL[64];
+		//sprintf(szPathL, "gfx/env/%s%s_large.dds", m_strSkyName, szSkySuffixes[i]);
+		//sprintf(szPathS, "gfx/env/%s%s.tga", m_szSkyName, szSkySuffixes[i]);
 
-		sprintf(szPathL, "gfx/env/%s%s_large.dds", m_szSkyName, szSkySuffixes[i]);
-		sprintf(szPathS, "gfx/env/%s%s.tga", m_szSkyName, szSkySuffixes[i]);
+		const std::string szPathL("gfx/env/" + m_strSkyName + szSkySuffixes[i] + "_large.dds");
+		const std::string szPathS("gfx/env/" + m_strSkyName + szSkySuffixes[i] + ".tga");
 
 		cl_texture_t* pTexture = gTextureLoader.LoadTexture(szPathL, FALSE, false, true);
 

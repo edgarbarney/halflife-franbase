@@ -188,9 +188,7 @@ void CPropManager::ClearEntityData()
 			epair_t* pFree = pPair;
 			pPair = pFree->next;
 
-			delete[] pFree->key;
-			delete[] pFree->value;
-			delete[] pFree;
+			delete pFree;
 		}
 	}
 	memset(m_pBSPEntities, 0, sizeof(m_pBSPEntities));
@@ -232,13 +230,13 @@ GetHeader
 
 ====================
 */
-modeldata_t* CPropManager::GetHeader(const char* name)
+modeldata_t* CPropManager::GetHeader(const std::string& name)
 {
 	if (m_iNumHeaders != 0)
 	{
 		for (int i = 0; i < m_iNumHeaders; i++)
 		{
-			if (strcmp(m_pHeaders[i].name, name) == 0)
+			if (m_pHeaders[i].name == name)
 				return &m_pHeaders[i];
 		}
 	}
@@ -251,14 +249,14 @@ ValueForKey
 
 ====================
 */
-char* CPropManager::ValueForKey(entity_t* ent, const char* key)
+std::string CPropManager::ValueForKey(entity_t* ent, const std::string& key)
 {
 	for (epair_t* pEPair = ent->epairs; pEPair != nullptr; pEPair = pEPair->next)
 	{
-		if (strcmp(pEPair->key, key) == 0)
+		if (pEPair->key == key)
 			return pEPair->value;
 	}
-	return nullptr;
+	return {};
 }
 
 /*
@@ -270,6 +268,8 @@ ParseEntities
 void CPropManager::ParseEntities()
 {
 	// Entity parser done by me, parses nicely, no errors detected ever.
+	// Fran: Errors detected, rework this.
+	// Hehe
 	char* pCurText = m_pEntData;
 	while ((pCurText != nullptr) && pCurText - m_pEntData < m_iEntDataSize)
 	{
@@ -315,7 +315,6 @@ void CPropManager::ParseEntities()
 				break;
 
 			epair_t* pEPair = new epair_t;
-			memset(pEPair, 0, sizeof(epair_t));
 
 			if (pEntity->epairs != nullptr)
 				pEPair->next = pEntity->epairs;
@@ -340,10 +339,7 @@ void CPropManager::ParseEntities()
 				pTemp++;
 			}
 
-			pEPair->key = new char[iLength + 1];
-			pEPair->key[iLength] = NULL; // terminator
-
-			memcpy(pEPair->key, pCurText, sizeof(char) * iLength);
+			pEPair->key = std::string(pCurText);
 			pCurText += iLength + 1;
 
 			// skip to next token
@@ -383,26 +379,23 @@ void CPropManager::ParseEntities()
 				pTemp++;
 			}
 
-			pEPair->value = new char[iLength + 1];
-			pEPair->value[iLength] = NULL;
-
-			memcpy(pEPair->value, pCurText, sizeof(char) * iLength);
+			pEPair->value = std::string(pCurText);
 			pCurText += iLength + 1;
 		}
 	}
 
 	// Get sky name for bsp renderer
-	char* szSky = ValueForKey(&m_pBSPEntities[0], "skyname");
+	const std::string& strSky = ValueForKey(&m_pBSPEntities[0], "skyname");
 
-	if (szSky != nullptr)
-		strcpy(gBSPRenderer.m_szSkyName, szSky);
+	if (!strSky.empty())
+		gBSPRenderer.m_strSkyName = strSky;
 	else
-		sprintf(gBSPRenderer.m_szSkyName, "desert");
+		gBSPRenderer.m_strSkyName = "desert";
 
 	// See if special fog is set
-	char* szSpecial = ValueForKey(&m_pBSPEntities[0], "specialfog");
+	const std::string& strSpecial = ValueForKey(&m_pBSPEntities[0], "specialfog");
 
-	if (szSpecial != nullptr)
+	if (!strSpecial.empty())
 		gBSPRenderer.m_bSpecialFog = true;
 }
 
@@ -414,46 +407,44 @@ LoadEntVars
 */
 void CPropManager::LoadEntVars()
 {
+	std::stringstream strStream;
+
 	for (int i = 0; i < m_iNumBSPEntities; i++)
 	{
-		char* pValue = ValueForKey(&m_pBSPEntities[i], "classname");
+		std::string pValue = ValueForKey(&m_pBSPEntities[i], "classname");
 
-		if (pValue == nullptr)
+		if (pValue.empty())
 			continue;
 
-		if (strcmp(pValue, "env_elight") == 0)
+		if (pValue == "env_elight")
 		{
 			pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
-			if (pValue != nullptr)
+			if (!pValue.empty())
 				continue;
 
 			memset(&m_pModelLights[m_iNumModelLights], 0, sizeof(cl_entity_t));
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "origin");
-			if (pValue != nullptr)
+			if (!pValue.empty())
 			{
-				sscanf(pValue, "%f %f %f", &m_pModelLights[m_iNumModelLights].origin[0],
-					&m_pModelLights[m_iNumModelLights].origin[1],
-					&m_pModelLights[m_iNumModelLights].origin[2]);
+				strStream.str(pValue);
+				strStream >> m_pModelLights[m_iNumModelLights].origin[0] >> m_pModelLights[m_iNumModelLights].origin[1] >> m_pModelLights[m_iNumModelLights].origin[2];
 
 				VectorCopy(m_pModelLights[m_iNumModelLights].origin, m_pModelLights[m_iNumModelLights].curstate.origin);
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "renderamt");
-			if (pValue != nullptr)
+			if (!pValue.empty())
 			{
-				sscanf(pValue, "%d", &m_pModelLights[m_iNumModelLights].curstate.renderamt);
+				m_pModelLights[m_iNumModelLights].curstate.renderamt = std::stoi(pValue);
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "rendercolor");
-			if (pValue != nullptr)
+			if (!pValue.empty())
 			{
-				int iColR, iColG, iColB;
-				sscanf(pValue, "%d %d %d", &iColR, &iColG, &iColB);
-				m_pModelLights[m_iNumModelLights].curstate.rendercolor.r = iColR;
-				m_pModelLights[m_iNumModelLights].curstate.rendercolor.g = iColG;
-				m_pModelLights[m_iNumModelLights].curstate.rendercolor.b = iColB;
+				strStream.str(pValue);
+				strStream >> m_pModelLights[m_iNumModelLights].curstate.rendercolor.r >> m_pModelLights[m_iNumModelLights].curstate.rendercolor.g >> m_pModelLights[m_iNumModelLights].curstate.rendercolor.b;
 			}
 
 			model_t* pWorld = IEngineStudio.GetModelByIndex(1);
@@ -466,53 +457,49 @@ void CPropManager::LoadEntVars()
 				m_iNumModelLights++;
 			}
 		}
-		if (strcmp(pValue, "env_cable") == 0)
+		if (pValue == "env_cable")
 		{
 			if (SetupCable(&m_pCables[m_iNumCables], &m_pBSPEntities[i]))
 				m_iNumCables++;
 		}
-		else if (strcmp(pValue, "env_decal") == 0)
+		else if (pValue == "env_decal")
 		{
 			pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
-			if (pValue != nullptr)
+			if (!pValue.empty())
 				continue;
 
 			// Always TRUE
 			m_pDecals[m_iNumDecals].persistent = TRUE;
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "origin");
-			if (pValue != nullptr)
+			if (!pValue.empty())
 			{
-				sscanf(pValue, "%f %f %f", &m_pDecals[m_iNumDecals].pos[0],
-					&m_pDecals[m_iNumDecals].pos[1],
-					&m_pDecals[m_iNumDecals].pos[2]);
+				strStream.str(pValue);
+				strStream >> m_pDecals[m_iNumDecals].pos[0] >> m_pDecals[m_iNumDecals].pos[1] >> m_pDecals[m_iNumDecals].pos[2];
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "message");
 
-			if (pValue == nullptr)
+			if (pValue.empty())
 				continue;
 
-			if (strlen(pValue) == 0u)
-				continue;
-
-			strcpy(m_pDecals[m_iNumDecals].name, pValue);
+			m_pDecals[m_iNumDecals].name = pValue;
 			m_iNumDecals++;
 		}
-		else if (strcmp(pValue, "item_generic") == 0)
+		else if (pValue == "item_generic")
 		{
 			pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
-			if (pValue != nullptr)
+			if (!pValue.empty())
 				continue;
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "model");
 
-			if (pValue == nullptr)
+			if (!pValue.empty())
 				continue;
 
-			if (stristr(pValue, ".mdl") == nullptr)
+			if (!FranUtils::StringUtils::HasInsentitiveSubstring(pValue, ".mdl"))
 				continue;
 
 			m_pCurrentExtraData = &m_pExtraData[m_iNumExtraData];
@@ -533,99 +520,96 @@ void CPropManager::LoadEntVars()
 			m_iNumExtraData++;
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "origin");
-			if (pValue != nullptr)
+			if (!pValue.empty())
 			{
-				sscanf(pValue, "%f %f %f", &m_pEntities[m_iNumEntities].origin[0],
-					&m_pEntities[m_iNumEntities].origin[1],
-					&m_pEntities[m_iNumEntities].origin[2]);
+				strStream.str(pValue);
+				strStream >> m_pEntities[m_iNumEntities].origin[0] >> m_pEntities[m_iNumEntities].origin[1] >> m_pEntities[m_iNumEntities].origin[2];
 
 				VectorCopy(m_pEntities[m_iNumEntities].origin, m_pEntities[m_iNumEntities].curstate.origin);
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "angles");
-			if (pValue != nullptr)
+			if (!pValue.empty())
 			{
-				// set the yaw angle...
-				sscanf(pValue, "%f %f %f", &m_pEntities[m_iNumEntities].angles[0],
-					&m_pEntities[m_iNumEntities].angles[1],
-					&m_pEntities[m_iNumEntities].angles[2]);
+				strStream.str(pValue);
+				strStream >> m_pEntities[m_iNumEntities].angles[0] >> m_pEntities[m_iNumEntities].angles[1] >> m_pEntities[m_iNumEntities].angles[2];
+
 				m_pEntities[m_iNumEntities].curstate.angles = m_pEntities[m_iNumEntities].angles;
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "renderamt");
-			if (pValue != nullptr)
+			if (!pValue.empty())
 			{
-				sscanf(pValue, "%d", &m_pEntities[m_iNumEntities].curstate.renderamt);
+				m_pEntities[m_iNumEntities].curstate.renderamt = std::stoi(pValue);
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "sequence");
-
-			if (pValue != nullptr)
-				sscanf(pValue, "%d", &m_pEntities[m_iNumEntities].curstate.sequence);
+			if (!pValue.empty())
+			{
+				m_pEntities[m_iNumEntities].curstate.sequence = std::stoi(pValue);
+			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "body");
-
-			if (pValue != nullptr)
-				sscanf(pValue, "%d", &m_pEntities[m_iNumEntities].curstate.body);
+			if (!pValue.empty())
+			{
+				m_pEntities[m_iNumEntities].curstate.body = std::stoi(pValue);
+			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "skin");
-
-			if (pValue != nullptr)
-				sscanf(pValue, "%hd", &m_pEntities[m_iNumEntities].curstate.skin);
-
+			if (!pValue.empty())
+			{
+				m_pEntities[m_iNumEntities].curstate.skin = std::stoi(pValue);
+			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "scale");
-
-			if (pValue != nullptr)
-				sscanf(pValue, "%f", &m_pEntities[m_iNumEntities].curstate.scale);
-
+			if (!pValue.empty())
+			{
+				m_pEntities[m_iNumEntities].curstate.scale = std::stof(pValue);
+			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "renderfx");
-
-			if (pValue != nullptr)
-				sscanf(pValue, "%d", &m_pEntities[m_iNumEntities].curstate.renderfx);
+			if (!pValue.empty())
+			{
+				m_pEntities[m_iNumEntities].curstate.renderfx = std::stoi(pValue);
+			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "DisableShadows");
-
-			if (pValue != nullptr)
+			if (!pValue.empty())
+			{
 				m_pEntities[m_iNumEntities].curstate.iuser2 = FL_NOSHADOW;
+			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "rendercolor");
-			if (pValue != nullptr)
+			if (!pValue.empty())
 			{
-				int iColR, iColG, iColB;
-				sscanf(pValue, "%d %d %d", &iColR, &iColG, &iColB);
-				m_pEntities[m_iNumEntities].curstate.rendercolor.r = iColR;
-				m_pEntities[m_iNumEntities].curstate.rendercolor.g = iColG;
-				m_pEntities[m_iNumEntities].curstate.rendercolor.b = iColB;
+				strStream.str(pValue);
+				strStream >> m_pEntities[m_iNumEntities].curstate.rendercolor.r >> m_pEntities[m_iNumEntities].curstate.rendercolor.g >> m_pEntities[m_iNumEntities].curstate.rendercolor.b;
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "lightorigin");
-			if ((pValue != nullptr) && (strlen(pValue) != 0u))
+			if (!pValue.empty())
 			{
-				char szLightTarget[32];
-				strcpy(szLightTarget, pValue);
+				std::string strLightTarget = pValue;
 
 				int j = 0;
 				for (; j < m_iNumBSPEntities; j++)
 				{
 					pValue = ValueForKey(&m_pBSPEntities[j], "classname");
 
-					if (strcmp(pValue, "info_light_origin") != 0)
+					if (pValue == "info_light_origin")
 						continue;
 
 					pValue = ValueForKey(&m_pBSPEntities[j], "targetname");
 
-					if (pValue != nullptr)
+					if (!pValue.empty())
 					{
-						if (strcmp(pValue, szLightTarget) == 0)
+						if (pValue == strLightTarget)
 						{
 							pValue = ValueForKey(&m_pBSPEntities[j], "origin");
-							if (pValue != nullptr)
+							if (!pValue.empty())
 							{
-								sscanf(pValue, "%f %f %f", &m_pCurrentExtraData->lightorigin[0],
-									&m_pCurrentExtraData->lightorigin[1],
-									&m_pCurrentExtraData->lightorigin[2]);
+								strStream.str(pValue);
+								strStream >> m_pCurrentExtraData->lightorigin[0] >> m_pCurrentExtraData->lightorigin[1] >> m_pCurrentExtraData->lightorigin[2];
 
 								break;
 							}
@@ -775,15 +759,13 @@ PostLoadModel
 
 ====================
 */
-bool CPropManager::PostLoadModel(const char* modelname, studiohdr_t* hdr, cl_entity_t* pEntity)
+bool CPropManager::PostLoadModel(const std::string& modelname, studiohdr_t* hdr, cl_entity_t* pEntity)
 {
 	// preload textures
 	if (hdr->numtextures == 0)
 	{
-		char texturename[256];
-
-		strcpy(texturename, modelname);
-		strcpy(&texturename[strlen(texturename) - 4], "T.mdl");
+		std::string texturename = modelname;
+		texturename.replace(texturename.length() - 4, 4, "T.mdl");
 
 		model_t* pModel = g_StudioRenderer.Mod_LoadModel(texturename);
 
@@ -805,7 +787,7 @@ LoadMDL
 
 ====================
 */
-bool CPropManager::LoadMDL(const char* name, cl_entity_t* pEntity, entity_t* pBSPEntity)
+bool CPropManager::LoadMDL(const std::string& name, cl_entity_t* pEntity, entity_t* pBSPEntity)
 {
 	if (m_pCurrentExtraData->pModelData = GetHeader(name))
 		return true;
@@ -822,7 +804,7 @@ bool CPropManager::LoadMDL(const char* name, cl_entity_t* pEntity, entity_t* pBS
 		return false;
 
 	m_pHeaders[m_iNumHeaders].pHdr = (studiohdr_t*)pModel->cache.data;
-	strcpy(m_pHeaders[m_iNumHeaders].name, name);
+	m_pHeaders[m_iNumHeaders].name = name;
 
 	if (m_iNumHeaders == MAXRENDERENTS)
 	{
@@ -838,7 +820,7 @@ bool CPropManager::LoadMDL(const char* name, cl_entity_t* pEntity, entity_t* pBS
 	memset(pTempEnt, 0, sizeof(cl_entity_t));
 	model_t* pTempModel = new model_t;
 	memset(pTempModel, 0, sizeof(model_t));
-	strcpy(pTempModel->name, name);
+	strcpy(pTempModel->name, name.c_str());
 
 	g_StudioRenderer.m_bExternalEntity = true;
 	g_StudioRenderer.m_pCurrentEntity = pTempEnt;
@@ -867,7 +849,8 @@ SetupCable
 */
 bool CPropManager::SetupCable(cabledata_t* cable, entity_t* entity)
 {
-	char sz[64];
+	std::string str;
+	std::stringstream strStream;
 	Vector vdroppoint;
 	Vector vposition1;
 	Vector vposition2;
@@ -876,66 +859,68 @@ bool CPropManager::SetupCable(cabledata_t* cable, entity_t* entity)
 	Vector vendpoint;
 
 	// Get our origin
-	char* pValue = ValueForKey(entity, "origin");
+	std::string pValue = ValueForKey(entity, "origin");
 
-	if (pValue == nullptr)
+	if (pValue.empty())
 		return false;
 
-	sscanf(pValue, "%f %f %f", &vposition1[0], &vposition1[1], &vposition1[2]);
+	strStream.str(pValue);
+	strStream >> vposition1[0] >> vposition1[1] >> vposition1[2];
 
 	// Find our target entity
 	pValue = ValueForKey(entity, "target");
 
-	if (pValue == nullptr)
+	if (pValue.empty())
 		return false;
 
-	strcpy(sz, pValue);
+	str = pValue;
 
 	for (int i = 0; i < m_iNumBSPEntities; i++)
 	{
 		pValue = ValueForKey(&m_pBSPEntities[i], "targetname");
 
-		if (pValue == nullptr)
+		if (pValue.empty())
 			continue;
 
-		if (strcmp(pValue, sz) == 0)
+		if (pValue == str)
 		{
 			pValue = ValueForKey(&m_pBSPEntities[i], "origin");
 
-			if (pValue == nullptr)
+			if (pValue.empty())
 				return false;
 
 			// Copy origin over
-			sscanf(pValue, "%f %f %f", &vposition2[0], &vposition2[1], &vposition2[2]);
+			strStream.str(pValue);
+			strStream >> vposition2[0] >> vposition2[1] >> vposition2[2];
 		}
 	}
 
 	// Get our falling depth
 	pValue = ValueForKey(entity, "falldepth");
 
-	if (pValue == nullptr)
+	if (pValue.empty())
 		return false;
 
 	// Calculate dropping point
 	VectorSubtract(vposition2, vposition1, vdirection);
 	VectorMASSE(vposition1, 0.5, vdirection, vmidpoint);
-	vdroppoint = Vector(vmidpoint[0], vmidpoint[1], vmidpoint[2] - atoi(pValue));
+	vdroppoint = Vector(vmidpoint[0], vmidpoint[1], vmidpoint[2] - std::stoi(pValue));
 
 	// Get sprite width
 	pValue = ValueForKey(entity, "spritewidth");
 
-	if (pValue == nullptr)
+	if (pValue.empty())
 		return false;
 
-	cable->iwidth = atoi(pValue);
+	cable->iwidth = std::stoi(pValue);
 
 	// Get segment count
 	pValue = ValueForKey(entity, "segments");
 
-	if (pValue == nullptr)
+	if (pValue.empty())
 		return false;
 
-	cable->isegments = atoi(pValue);
+	cable->isegments = std::stoi(pValue);
 	cable->inumpoints = cable->isegments + 1;
 
 	cable->vmins = Vector(4096, 4096, 4096);

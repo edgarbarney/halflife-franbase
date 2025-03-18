@@ -71,80 +71,6 @@ void *wglGetProcAddress( const char *name )
 #endif
 
 //==========================
-//	stristr
-//
-//==========================
-char* stristr(const char* string, const char* string2)
-{
-	int c, len;
-	c = tolower(*string2);
-	len = strlen(string2);
-
-	while (string != nullptr)
-	{
-		for (; (*string != 0) && tolower(*string) != c; string++)
-			;
-		if (*string != 0)
-		{
-			if (strnicmp(string, string2, len) == 0)
-			{
-				break;
-			}
-			string++;
-		}
-		else
-		{
-			return nullptr;
-		}
-	}
-	return (char*)string;
-}
-
-//==========================
-//	strLower
-//
-//==========================
-char* strLower(char* str)
-{
-	char* temp;
-
-	for (temp = str; *temp != 0; temp++)
-		*temp = tolower(*temp);
-
-	return str;
-}
-
-//==========================
-// FilenameFromPath (legacy)
-//
-//==========================
-void FilenameFromPath(const char* szin, char* szout)
-{
-	int lastdot = 0;
-	int lastbar = 0;
-	int pathlength = 0;
-
-	for (int i = 0; i < (int)strlen(szin); i++)
-	{
-		if (szin[i] == '/' || szin[i] == '\\')
-			lastbar = i + 1;
-
-		if (szin[i] == '.')
-			lastdot = i;
-	}
-
-	for (int i = lastbar; i < (int)strlen(szin); i++)
-	{
-		if (i == lastdot)
-			break;
-
-		szout[pathlength] = szin[i];
-		pathlength++;
-	}
-	szout[pathlength] = 0;
-}
-
-//==========================
 // FilenameFromPath
 //
 //==========================
@@ -1069,7 +995,7 @@ void RenderersDumpInfo()
 	gEngfuncs.Con_Printf("Number of triangles: %i.\n", gBSPRenderer.m_iTotalTriCount);
 	gEngfuncs.Con_Printf("Number of vertexes: %i.\n", gBSPRenderer.m_iTotalVertCount);
 	gEngfuncs.Con_Printf("Number of client side entities: %i.\n", gPropManager.m_iNumEntities);
-	gEngfuncs.Con_Printf("Number of detail textures: %i.\n", gBSPRenderer.m_iNumDetailTextures);
+	gEngfuncs.Con_Printf("Number of detail textures: %zu.\n", gBSPRenderer.m_vectorDetailTextures.size());
 	gEngfuncs.Con_Printf("Current free texture ID: %i.\n", current_ext_texture_id);
 	if (gBSPRenderer.m_bShaderSupport)
 		gEngfuncs.Con_Printf("ARB shaders supported.\n");
@@ -1202,9 +1128,11 @@ void GenDetail()
 
 		texture_t* pTexture = nullptr;
 
+		// TODO: Properly convert to c++ string
+
 		char maptexture[16];
-		strLower(szTexture);
-		strLower(szDetail);
+		strcpy(szTexture, FranUtils::StringUtils::LowerCase(szTexture).c_str());
+		strcpy(szDetail, FranUtils::StringUtils::LowerCase(szDetail).c_str());
 
 		int i = 0;
 		for (; i < pWorld->numtextures; i++)
@@ -1213,7 +1141,7 @@ void GenDetail()
 				continue;
 
 			strcpy(maptexture, pWorld->textures[i]->name);
-			strLower(maptexture);
+			strcpy(maptexture, FranUtils::StringUtils::LowerCase(maptexture).c_str());
 
 			if (strcmp(maptexture, szTexture) == 0)
 			{

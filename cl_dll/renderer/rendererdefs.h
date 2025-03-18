@@ -55,7 +55,7 @@ Written by Andrew Lucas, Richard Rohac, BUzer, Laurie, Botman and Id Software
 //==============================
 struct cl_texture_t
 {
-	char szName[64];
+	std::string strName;
 
 	GLuint iIndex;
 
@@ -189,6 +189,7 @@ struct particle_system_t
 	int framesizey;
 	int framerate;
 
+	// TODO: Convert to std::string
 	char create[64];
 	char deathcreate[64];
 	char watercreate[64];
@@ -264,11 +265,11 @@ struct cl_particle_t
 #define MAX_DECAL_MSG_CACHE 256
 #define MAX_DECAL_GROUPS 256
 #define MAX_LIGHTMAPS 64
-#define MAX_LIGHTSTYLES 64
-#define MAX_STYLESTRING 64
+//#define MAX_LIGHTSTYLES 64
+//#define MAX_STYLESTRING 64
 #define MAX_DYNLIGHTS 64
 #define MAX_MAP_DETAILOBJECTS 512
-#define MAX_DETAIL_TEXTURES 1024
+//#define MAX_DETAIL_TEXTURES 1024
 #define MAX_MAP_LEAFS 65534
 #define DEPTHMAP_RESOLUTION 256
 #define MAX_MAP_TEXTURES 512
@@ -355,25 +356,28 @@ struct brushface_t
 	Vector t_tangent;
 };
 
-typedef struct detailtexentry_s
+struct DetailTexture
 {
-	char texname[32];
-	char detailtexname[32];
+	std::string texname;
+	std::string detailtexname;
 	int texindex;
 	float xscale;
 	float yscale;
-} detailtexentry_t;
+
+	DetailTexture() : texindex(0), xscale(1.0f), yscale(1.0f) {}
+	DetailTexture(const std::string& tex, const std::string& detail, int index, float x, float y) : texname(tex), detailtexname(detail), texindex(index), xscale(x), yscale(y) {}
+};
 
 struct decalgroupentry_t
 {
-	char szName[64];
+	std::string strName;
 	int gl_texid;
 	int xsize, ysize;
 	struct decalgroup_t* group;
 };
 struct decalgroup_t
 {
-	char szName[64];
+	std::string strName;
 	int iSize;
 	decalgroupentry_t entries[MAX_GROUPENTRIES];
 };
@@ -409,7 +413,7 @@ struct decal_msg_cache
 {
 	Vector pos;
 	Vector normal;
-	char name[16];
+	std::string name;
 	int persistent;
 };
 
@@ -424,11 +428,7 @@ struct clientsurfdata_t
 	int light_t;
 };
 
-typedef struct
-{
-	int length;
-	char map[MAX_STYLESTRING];
-} lightstyle_t;
+using LightStyle = std::tuple<std::string, int>;
 
 struct detailobject_t
 {
@@ -607,8 +607,8 @@ struct mlight_t
 
 struct texentry_t
 {
-	char szModel[64];
-	char szTexture[32];
+	std::string strModel;
+	std::string strTexture;
 
 	int iFlags;
 };
@@ -633,8 +633,11 @@ struct lighting_ext
 typedef struct epair_s
 {
 	struct epair_s* next;
-	char* key;
-	char* value;
+	std::string key;
+	std::string value;
+
+	epair_s() : next(nullptr) {}
+
 } epair_t;
 
 typedef struct
@@ -671,7 +674,7 @@ struct vboheader_t
 
 struct modeldata_t
 {
-	char name[256];
+	std::string name;
 
 	studiohdr_t* pHdr;
 	studiohdr_t* pTexHdr;
@@ -756,7 +759,6 @@ void *wglGetProcAddress(const char *name);
 extern engine_studio_api_t IEngineStudio;
 
 extern void ClampColor(int r, int g, int b, color24* out);
-extern void FilenameFromPath(const char* szin, char* szout);
 extern std::string FilenameFromPath(const std::string& inputPath);
 
 extern void MyLookAt(GLdouble eyex, GLdouble eyey, GLdouble eyez, GLdouble centerx, GLdouble centery, GLdouble centerz, GLdouble upx, GLdouble upy, GLdouble upz);
@@ -788,9 +790,6 @@ extern int IsEntityMoved(cl_entity_t* e);
 extern int IsEntityTransparent(cl_entity_t* e);
 extern int IsPitchReversed(float pitch);
 extern int TrinityBoxOnPlaneSide(Vector emins, Vector emaxs, mplane_t* p);
-
-extern char* strLower(char* str);
-extern char* stristr(const char* string, const char* string2);
 
 extern void DotProductSSE(float* result, const float* v0, const float* v1);
 extern void SSEDotProductWorld(float* result, const float* v0, const float* v1);

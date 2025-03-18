@@ -84,8 +84,8 @@ char* EV_HLDM_HDDecal(pmtrace_t* ptr, physent_t* pe, float* vecSrc, float* vecEn
 	// hit the world, try to play sound based on texture material type
 	char chTextureType = 0;
 	int entity;
-	char* pStart;
-	char* pTextureName;
+	char* pStart = nullptr;
+	char* pTextureName = nullptr;
 	char texname[64];
 	char szbuffer[64];
 	static char decalname[32];
@@ -137,7 +137,7 @@ char* EV_HLDM_HDDecal(pmtrace_t* ptr, physent_t* pe, float* vecSrc, float* vecEn
 		}
 	}
 
-	if (pStart[0] == '{')
+	if (pStart != nullptr && pStart[0] == '{')
 		return nullptr;
 
 	cl_entity_t* pHit = gEngfuncs.GetEntityByIndex(gEngfuncs.pEventAPI->EV_IndexFromTrace(ptr));

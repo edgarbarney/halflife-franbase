@@ -46,16 +46,16 @@ public:
 	void RenderPropsSolid();
 
 	// Models
-	bool PostLoadModel(const char* modelname, studiohdr_t* hdr, cl_entity_t* pEntity);
-	bool LoadMDL(const char* name, cl_entity_t* pEntity, entity_t* pBSPEntity);
-	modeldata_t* GetHeader(const char* name);
+	bool PostLoadModel(const std::string& modelname, studiohdr_t* hdr, cl_entity_t* pEntity);
+	bool LoadMDL(const std::string& name, cl_entity_t* pEntity, entity_t* pBSPEntity);
+	modeldata_t* GetHeader(const std::string& name);
 
 	bool SetupCable(cabledata_t* cable, entity_t* entity);
 	void DrawCables();
 
 	void ParseEntities();
 	void LoadEntVars();
-	char* ValueForKey(entity_t* ent, const char* key);
+	std::string ValueForKey(entity_t* ent, const std::string& key);
 
 public:
 	int m_iEntDataSize;

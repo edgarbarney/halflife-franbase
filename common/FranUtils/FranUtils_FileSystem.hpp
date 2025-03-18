@@ -28,6 +28,7 @@ namespace FranUtils::FileSystem
 	// A map that stores key-value pairs as strings
 	// This is used as a container for parsed files' output
 	using StringMap = std::unordered_map<std::string, std::string>;
+	using ComplexStringMap = std::unordered_map<std::string, std::vector<std::string>>;
 
 	inline std::string GetModDirectory(std::string endLine = "//") //Yes, string
 	{
@@ -128,6 +129,71 @@ namespace FranUtils::FileSystem
 		if (OpenInputFile(file, fstream))
 		{
 			ParseBasicFileStream(fstream, out);
+			fstream.close();
+			return true;
+		}
+		return false;
+	}
+
+	// Splits file into lines, separated by spaces.
+	inline void ParseSpacedFileStreamLines(std::ifstream& fstream, ComplexStringMap& out)
+	{
+		std::string line;
+		std::string key;
+		std::vector<std::string> values;
+		while (std::getline(fstream, line))
+		{
+			key.clear();
+			values.clear();
+
+			if (line.empty()) // Ignore empty lines
+			{
+				continue;
+			}
+			else if (line[0] == '/') // Ignore comments
+			{
+				continue;
+			}
+			// Split line into key and value with first space as a delimiter
+			// Then split the value into a vector of strings with spaces as delimiters
+			else if (line.find(' ') != std::string::npos)
+			{
+				key = line.substr(0, line.find(' '));
+				auto value = line.substr(line.find(' ') + 1);
+				values = FranUtils::StringUtils::SplitWords(value);
+			}
+			else
+			{
+				key = line;
+			}
+
+			// Remove quotation marks from the key and value if they exist
+			if (key[0] == '\"')
+			{
+				key = key.substr(1, key.size() - 2);
+			}
+			for (auto& value : values)
+			{
+				if (value[0] == '\"')
+				{
+					value = value.substr(1, value.size() - 2);
+				}
+			}
+
+			out[key] = values;
+		}
+	}
+
+	// Check if a file exists and parse if it does.
+	// Returns false if the file doesn't exist
+	//
+	// Splits file into lines, separated by spaces.
+	inline bool ParseSpacedFile(const std::string& file, ComplexStringMap& out)
+	{
+		std::ifstream fstream;
+		if (OpenInputFile(file, fstream))
+		{
+			ParseSpacedFileStreamLines(fstream, out);
 			fstream.close();
 			return true;
 		}

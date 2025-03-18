@@ -11,51 +11,44 @@
 
 namespace FranUtils::StringUtils
 {
-	// Returns the first occurrence of a substring in a string
-	// Case-insensitive
-	// Returns nullptr if the substring is not found
-	// e.g. strcharstr("Hello World", "world") returns "World"
-	// e.g. strcharstr("Hello World", "worlds") returns nullptr
-	inline char* strcharstr(const char* mainstr, const char* substr)
+	// Check if a string contains a substring
+	// Case insensitive
+	// e.g. HasSubstring("Hello World", "world") returns true
+	// e.g. HasSubstring("Hello World", "WORLD") returns true
+	// e.g. HasSubstring("Hello World", "Worler") returns false
+	inline bool HasInsentitiveSubstring(const std::string& container, const std::string& substring)
 	{
-		const char* buffer1 = mainstr;
-		const char* buffer2 = substr;
-		const char* result = *buffer2 == 0 ? mainstr : nullptr;
-
-		while (*buffer1 != 0 && *buffer2 != 0)
+		if (substring.empty())
 		{
-			if (tolower((unsigned char)*buffer1) == tolower((unsigned char)*buffer2))
-			{
-				if (result == nullptr)
-				{
-					result = buffer1;
-				}
-
-				buffer2++;
-			}
-			else
-			{
-				buffer2 = substr;
-				if (result != nullptr)
-				{
-					buffer1 = result + 1;
-				}
-
-				if (tolower((unsigned char)*buffer1) == tolower((unsigned char)*buffer2))
-				{
-					result = buffer1;
-					buffer2++;
-				}
-				else
-				{
-					result = nullptr;
-				}
-			}
-
-			buffer1++;
+			return true;
 		}
 
-		return *buffer2 == 0 ? (char*)result : nullptr;
+		auto it = std::search(container.begin(), container.end(),substring.begin(), substring.end(),[](char a, char b)
+		{ 
+				return std::tolower(a) == std::tolower(b); 
+		});
+
+		return it != container.end();
+	}
+
+	// Check if a string contains a substring
+	// Case sensitive
+	// e.g. HasSubstring("Hello World", "World") returns true
+	// e.g. HasSubstring("Hello World", "WORLD") returns false
+	// e.g. HasSubstring("Hello World", "Worler") returns false
+	inline bool HasSubstring(const std::string& container, const std::string& substring)
+	{
+		if (substring.empty())
+		{
+			return true;
+		}
+
+		auto it = std::search(container.begin(), container.end(), substring.begin(), substring.end(), [](char a, char b)
+		{ 
+				return a == b;
+		});
+
+		return it != container.end();
 	}
 
 	// Split quoted tokens into words
@@ -93,6 +86,35 @@ namespace FranUtils::StringUtils
 		} 
 		while (firstQuotePos != std::string::npos);
 			
+		return out;
+	}
+
+	// Split a string into words
+	// e.g. SplitWords("Hello World") returns {"Hello", "World"}
+	inline std::vector<std::string> SplitWords(std::string str)
+	{
+		std::vector<std::string> out;
+		std::string tempStr;
+
+		size_t spacePos = 0;
+
+		do
+		{
+			spacePos = str.find(" ");
+
+			if (spacePos == std::string::npos)
+			{
+				break;
+			}
+			tempStr = str.substr(0, spacePos);
+			out.push_back(tempStr);
+
+			str.erase(0, spacePos + 1);
+		} 
+		while (spacePos != std::string::npos);
+
+		out.push_back(str);
+
 		return out;
 	}
 

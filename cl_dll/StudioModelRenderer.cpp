@@ -51,6 +51,7 @@ Transparency code by Neil "Jed" Jedrzejewski
 #include "mathlib.h"
 
 #include "FranUtils/FranUtils_Maths.hpp"
+#include "FranUtils/FranUtils_String.hpp"
 
 viewinfo_s g_viewinfo;
 
@@ -1905,24 +1906,24 @@ void CStudioModelRenderer::VidInit()
 
 	// The texture cache is cleared at vidinit, reload textures
 	char szPath[64];
-	char szModel[32];
-	char szTexture[32];
+	std::string strModel;
+	std::string strTexture;
 	for (int i = 0; i < m_iNumStudioModels; i++)
 	{
-		FilenameFromPath(m_pStudioModels[i].name, szModel);
-		strLower(szModel);
+		strModel = FilenameFromPath(m_pStudioModels[i].name);
+		FranUtils::StringUtils::LowerCase_Ref(strModel);
 
 		studiohdr_t* pHeader = (studiohdr_t*)m_pStudioModels[i].cache.data;
 		mstudiotexture_t* ptextures = (mstudiotexture_t*)((byte*)pHeader + pHeader->textureindex);
 
 		for (int j = 0; j < pHeader->numtextures; j++)
 		{
-			FilenameFromPath(ptextures[j].name, szTexture);
-			strLower(szTexture);
+			strTexture = FilenameFromPath(ptextures[j].name);
+			FranUtils::StringUtils::LowerCase_Ref(strTexture);
 
-			if (gTextureLoader.TextureHasFlag(szModel, szTexture, TEXFLAG_ALTERNATE))
+			if (gTextureLoader.TextureHasFlag(strModel, strTexture, TEXFLAG_ALTERNATE))
 			{
-				sprintf(szPath, "gfx/textures/models/%s/%s.dds", szModel, szTexture);
+				sprintf(szPath, "gfx/textures/models/%s/%s.dds", strModel.c_str(), strTexture.c_str());
 				gTextureLoader.LoadTexture(szPath, ptextures[j].index, true, (ptextures[j].flags & STUDIO_NF_NOMIPMAP ? 1 : 0) != 0);
 			}
 		}
@@ -3748,9 +3749,11 @@ StudioSwapEngineCache
 */
 void CStudioModelRenderer::StudioSwapEngineCache()
 {
+	// TODO: Properly convert to c++ string
+
 	char szFile[256];
-	char szModelName[64];
-	char szTexture[32];
+	std::string strModelName;
+	std::string strTexture;
 
 	m_iNumEngineCacheModels = NULL;
 	for (int i = 0; i < 1024; i++)
@@ -3772,23 +3775,23 @@ void CStudioModelRenderer::StudioSwapEngineCache()
 		if (m_pTextureHeader == nullptr)
 			continue;
 
-		FilenameFromPath(pModel->name, szModelName);
-		strLower(szModelName);
+		strModelName = FilenameFromPath(pModel->name);
+		FranUtils::StringUtils::LowerCase_Ref(strModelName);
 
 		mstudiotexture_t* ptexture = (mstudiotexture_t*)((byte*)m_pTextureHeader + m_pTextureHeader->textureindex);
 		for (int j = 0; j < m_pTextureHeader->numtextures; j++, ptexture++)
 		{
-			FilenameFromPath(ptexture->name, szTexture);
-			strLower(szTexture);
+			strTexture = FilenameFromPath(ptexture->name);
+			FranUtils::StringUtils::LowerCase_Ref(strTexture);
 
-			if (!gTextureLoader.TextureHasFlag(szModelName, szTexture, TEXFLAG_ALTERNATE))
+			if (!gTextureLoader.TextureHasFlag(strModelName, strTexture, TEXFLAG_ALTERNATE))
 				continue;
 
 			if (m_pCvarDeveloper->value > 1)
 				gEngfuncs.Con_Printf("Model '%s' has '%s' marked as using an alternate texture.\n", pModel->name, ptexture->name);
 
-			bool bNoMipMap = gTextureLoader.TextureHasFlag(szModelName, szTexture, TEXFLAG_NOMIPMAP);
-			sprintf(szFile, "gfx/textures/models/%s/%s.dds", szModelName, szTexture);
+			bool bNoMipMap = gTextureLoader.TextureHasFlag(strModelName, strTexture, TEXFLAG_NOMIPMAP);
+			sprintf(szFile, "gfx/textures/models/%s/%s.dds", strModelName.c_str(), strTexture.c_str());
 			cl_texture_t* pTexture = gTextureLoader.LoadTexture(szFile, ptexture->index, false, bNoMipMap ? true : false);
 
 			if ((pTexture != nullptr) && m_pCvarDeveloper->value > 1)
@@ -4285,7 +4288,7 @@ int CStudioModelRenderer::StudioRecursiveLightPoint(entextrainfo_t* ext, mnode_t
 			// gEngfuncs.Con_DPrintf("rgb val: %f %f %f\n", (float)(int)lightmap->r, (float)(int)lightmap->g, (float)(int)lightmap->b);
 
 			if (ext != nullptr)
-				ext->lightstyles[0] = gBSPRenderer.m_iLightStyleValue[surf->styles[0]];
+				ext->lightstyles[0] = gBSPRenderer.GetLightStyleValue(surf->styles[0]);
 
 			if (ext != nullptr)
 				ext->surfindex = node->firstsurface + i;
@@ -6177,18 +6180,18 @@ Mod_LoadModel
 
 ====================
 */
-model_t* CStudioModelRenderer::Mod_LoadModel(const char* szName)
+model_t* CStudioModelRenderer::Mod_LoadModel(const std::string& strName)
 {
 	// Try and find it in our cache
 	for (int i = 0; i < m_iNumStudioModels; i++)
 	{
-		if (strcmp(m_pStudioModels[i].name, szName) == 0)
+		if (m_pStudioModels[i].name == strName)
 			return &m_pStudioModels[i];
 	}
 
 	// Otherwise load it in
 	int iSize = NULL;
-	byte* pFile = gEngfuncs.COM_LoadFile(szName, 5, &iSize);
+	byte* pFile = gEngfuncs.COM_LoadFile(strName.c_str(), 5, &iSize);
 
 	if (pFile == nullptr)
 		return nullptr;
@@ -6210,13 +6213,13 @@ model_t* CStudioModelRenderer::Mod_LoadModel(const char* szName)
 	if (pHdr->textureindex != 0)
 	{
 		for (int i = 0; i < pHdr->numtextures; i++)
-			Mod_LoadTexture(&pTexture[i], pBuffer, szName);
+			Mod_LoadTexture(&pTexture[i], pBuffer, strName);
 	}
 
 	model_t* pModel = &m_pStudioModels[m_iNumStudioModels];
 	m_iNumStudioModels++;
 
-	strcpy(pModel->name, szName);
+	strcpy(pModel->name, strName.c_str());
 	pModel->cache.data = (void*)pBuffer;
 	pModel->type = mod_studio;
 
@@ -6229,7 +6232,7 @@ Mod_LoadTexture
 
 ====================
 */
-void CStudioModelRenderer::Mod_LoadTexture(mstudiotexture_t* ptexture, byte* pbuffer, const char* szmodelname)
+void CStudioModelRenderer::Mod_LoadTexture(mstudiotexture_t* ptexture, byte* pbuffer, std::string strModelName)
 {
 	int i, j;
 	int row1[1024], row2[1024], col1[1024], col2[1024];
@@ -6240,35 +6243,31 @@ void CStudioModelRenderer::Mod_LoadTexture(mstudiotexture_t* ptexture, byte* pbu
 	byte* data = pbuffer + ptexture->index;
 	byte* pal = pbuffer + ptexture->height * ptexture->width + ptexture->index;
 
-	char szTexture[32];
-	char szModelName[32];
+	std::string strTexture = FilenameFromPath(ptexture->name);
+	FranUtils::StringUtils::LowerCase_Ref(strTexture);
 
-	FilenameFromPath(ptexture->name, szTexture);
-	strLower(szTexture);
+	strModelName = FilenameFromPath(strModelName);
+	FranUtils::StringUtils::LowerCase_Ref(strModelName);
 
-	FilenameFromPath(szmodelname, szModelName);
-	strLower(szModelName);
-
-	if (gTextureLoader.TextureHasFlag(szModelName, szTexture, TEXFLAG_ERASE))
+	if (gTextureLoader.TextureHasFlag(strModelName, strTexture, TEXFLAG_ERASE))
 		ptexture->flags = NULL;
 
-	if (gTextureLoader.TextureHasFlag(szModelName, szTexture, TEXFLAG_FULLBRIGHT))
+	if (gTextureLoader.TextureHasFlag(strModelName, strTexture, TEXFLAG_FULLBRIGHT))
 		ptexture->flags |= STUDIO_NF_FULLBRIGHT;
 
-	if (stristr(szTexture, "chrome") != nullptr)
+	if (FranUtils::StringUtils::HasSubstring(strTexture, "chrome"))
 	{
 		ptexture->flags |= STUDIO_NF_CHROME;
 		//ptexture->flags |= STUDIO_NF_FLATSHADE; // Chrome Textures has Flatshade
 	}
 
-	if (gTextureLoader.TextureHasFlag(szModelName, szTexture, TEXFLAG_NOMIPMAP))
+	if (gTextureLoader.TextureHasFlag(strModelName, strTexture, TEXFLAG_NOMIPMAP))
 		ptexture->flags |= STUDIO_NF_NOMIPMAP;
 
-	if (gTextureLoader.TextureHasFlag(szModelName, szTexture, TEXFLAG_ALTERNATE))
+	if (gTextureLoader.TextureHasFlag(strModelName, strTexture, TEXFLAG_ALTERNATE))
 	{
-		char szPath[64];
-		sprintf(szPath, "gfx/textures/models/%s/%s.dds", szModelName, szTexture);
-		cl_texture_t* pTexture = gTextureLoader.LoadTexture(szPath, NULL, true, (ptexture->flags & STUDIO_NF_NOMIPMAP ? 1 : 0) != 0);
+		std::string strPath = "gfx/textures/models/" + strModelName + "/" + strTexture + ".dds";
+		cl_texture_t* pTexture = gTextureLoader.LoadTexture(strPath, NULL, true, (ptexture->flags & STUDIO_NF_NOMIPMAP ? 1 : 0) != 0);
 
 		if (pTexture != nullptr)
 		{
