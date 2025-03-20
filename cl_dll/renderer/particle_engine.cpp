@@ -604,8 +604,8 @@ void CParticleEngine::CreateParticle(particle_system_t* pSystem, float* flOrigin
 		pParticle->normal[2] = pSystem->dir[2];
 	}
 
-	VectorClear(vUp);
-	VectorClear(vRight);
+	vUp = Vector();
+	vRight = Vector();
 
 	gBSPRenderer.GetUpRight(vForward, vUp, vRight);
 	VectorMASSE(pParticle->velocity, gEngfuncs.pfnRandomFloat(pSystem->minvel, pSystem->maxvel), vForward, pParticle->velocity);
@@ -624,7 +624,7 @@ void CParticleEngine::CreateParticle(particle_system_t* pSystem, float* flOrigin
 
 	if (flOrigin != nullptr)
 	{
-		VectorCopy(flOrigin, vBaseOrigin);
+		vBaseOrigin = flOrigin;
 
 		if (flNormal != nullptr)
 			VectorMA(vBaseOrigin, 0.1, flNormal, vBaseOrigin);
@@ -1042,7 +1042,7 @@ Vector CParticleEngine::LightForParticle(cl_particle_t* pParticle)
 		}
 
 		flRad = pLight->radius * pLight->radius;
-		VectorSubtract(pParticle->origin, pLight->origin, vDir);
+		vDir = pParticle->origin - pLight->origin;
 		DotProductSSE(&flDist, vDir, vDir);
 		flAtten = (flDist / flRad - 1) * -1;
 
@@ -1225,8 +1225,8 @@ bool CParticleEngine::UpdateParticle(cl_particle_t* pParticle)
 				pParticle->rotxvel = NULL;
 				pParticle->rotyvel = NULL;
 
-				VectorClear(pParticle->velocity);
-				VectorClear(vFinalVelocity);
+				pParticle->velocity = Vector();
+				vFinalVelocity = Vector();
 			}
 			else if (pSystem->collision == PARTICLE_COLLISION_BOUNCE)
 			{
@@ -1394,7 +1394,7 @@ bool CParticleEngine::UpdateParticle(cl_particle_t* pParticle)
 	if (pSystem->tracerdist != 0.0f)
 	{
 		Vector vDistance;
-		VectorSubtract(pParticle->origin, pParticle->lastspawn, vDistance);
+		vDistance = pParticle->origin - pParticle->lastspawn;
 
 		if (vDistance.Length() > pSystem->tracerdist)
 		{
@@ -1486,7 +1486,7 @@ void CParticleEngine::RenderParticle(cl_particle_t* pParticle, float flUp, float
 	}
 	*/
 
-	VectorSubtract(pParticle->origin, gBSPRenderer.m_vRenderOrigin, vDir);
+	vDir = pParticle->origin - gBSPRenderer.m_vRenderOrigin;
 	if (gHUD.m_pFogSettings.active)
 	{
 		if (vDir.Length() > gHUD.m_pFogSettings.end)
@@ -1729,14 +1729,13 @@ void CParticleEngine::DrawParticles()
 
 		if (psystem->displaytype == SYSTEM_DISPLAY_PARALELL)
 		{
-			VectorCopy(m_vRight, m_vRRight);
-			VectorClear(m_vRUp);
-			m_vRUp[2] = 1;
+			m_vRRight = m_vRight;
+			m_vRUp = Vector(0, 0, 1);
 		}
 		else if ((psystem->rotationvel == 0.0f) && (psystem->rotxvel == 0.0f) && (psystem->rotyvel == 0.0f))
 		{
-			VectorCopy(m_vRight, m_vRRight);
-			VectorCopy(m_vUp, m_vRUp);
+			m_vRRight = m_vRight;
+			m_vRUp = m_vUp;
 		}
 
 		if (psystem->overbright != 0)

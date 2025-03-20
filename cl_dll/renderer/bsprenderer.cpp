@@ -19,7 +19,6 @@ Extended and/or recoded by Andrew Lucas
 #include "hud.h"
 #include "cl_util.h"
 
-
 #include "const.h"
 #include "studio.h"
 #include "entity_state.h"
@@ -459,8 +458,8 @@ void CBSPRenderer::VidInit()
 		gEngfuncs.Con_Printf("Paranoia's shitty opengl32.dll was detected! This conflicts with shadow mapping! Remove this dll in order to have shadow maps.\n");
 
 	// Clear this
-	VectorClear(m_vSkyOrigin);
-	VectorClear(m_vSkyWorldOrigin);
+	m_vSkyOrigin = Vector();
+	m_vSkyOrigin = Vector();
 
 	if (m_bShadowSupport)
 	{
@@ -2253,7 +2252,7 @@ void CBSPRenderer::DrawWorld()
 		return;
 
 	m_pCurrentEntity = gEngfuncs.GetEntityByIndex(0);
-	VectorCopy(m_vRenderOrigin, m_vVecToEyes);
+	m_vVecToEyes = m_vRenderOrigin;
 
 	EnableVertexArray();
 	PrepareRenderer();
@@ -2309,7 +2308,7 @@ void CBSPRenderer::DrawDetails()
 	if (m_iNumDetailObjects == 0)
 		return;
 
-	VectorCopy(m_vRenderOrigin, m_vVecToEyes);
+	m_vVecToEyes = m_vRenderOrigin;
 	m_pCurrentEntity = gEngfuncs.GetEntityByIndex(0);
 
 	detailobject_t* pCurObject = m_pDetailObjects;
@@ -2868,8 +2867,8 @@ void CBSPRenderer::DrawBrushModel(cl_entity_t* pEntity, bool bStatic)
 	}
 	else
 	{
-		VectorAdd(m_pCurrentEntity->origin, pModel->mins, mins);
-		VectorAdd(m_pCurrentEntity->origin, pModel->maxs, maxs);
+		mins = m_pCurrentEntity->origin + pModel->mins;
+		maxs = m_pCurrentEntity->origin + pModel->maxs;
 	}
 
 	if (m_pCurrentEntity->curstate.renderfx == 70)
@@ -2877,14 +2876,14 @@ void CBSPRenderer::DrawBrushModel(cl_entity_t* pEntity, bool bStatic)
 		if (m_fSkySpeed == 0.0f)
 		{
 			trans = (m_pCurrentEntity->origin - m_vSkyOrigin) + m_vRenderOrigin;
-			VectorSubtract(m_vSkyOrigin, m_pCurrentEntity->origin, m_vVecToEyes);
+			m_vVecToEyes = m_vSkyOrigin - m_pCurrentEntity->origin;
 		}
 		else
 		{
 			trans = (m_pCurrentEntity->origin - m_vSkyOrigin) + m_vRenderOrigin;
 			trans = trans - (m_vRenderOrigin - m_vSkyWorldOrigin) / m_fSkySpeed;
 			Vector vSkyOrigin = m_vSkyOrigin + (m_vRenderOrigin - m_vSkyWorldOrigin) / m_fSkySpeed;
-			VectorSubtract(vSkyOrigin, m_pCurrentEntity->origin, m_vVecToEyes);
+			m_vVecToEyes = vSkyOrigin - m_pCurrentEntity->origin;
 		}
 	}
 	else
@@ -2892,7 +2891,7 @@ void CBSPRenderer::DrawBrushModel(cl_entity_t* pEntity, bool bStatic)
 		if (gHUD.viewFrustum.CullBox(mins, maxs))
 			return;
 
-		VectorSubtract(m_vRenderOrigin, m_pCurrentEntity->origin, m_vVecToEyes);
+		m_vVecToEyes = m_vRenderOrigin - m_pCurrentEntity->origin;
 	}
 
 	if (bRotated)
@@ -2900,7 +2899,7 @@ void CBSPRenderer::DrawBrushModel(cl_entity_t* pEntity, bool bStatic)
 		Vector temp;
 		Vector forward, right, up;
 
-		VectorCopy(m_vVecToEyes, temp);
+		temp = m_vVecToEyes;
 		AngleVectors(m_pCurrentEntity->angles, forward, right, up);
 		DotProductSSE(&m_vVecToEyes[0], temp, forward);
 		DotProductSSE(&m_vVecToEyes[1], temp, right);
@@ -3311,13 +3310,13 @@ void CBSPRenderer::AddDynamicLights(msurface_t* surf)
 		Vector origin = dl->origin;
 		if (IsEntityMoved(m_pCurrentEntity) != 0)
 		{
-			VectorSubtract(origin, m_pCurrentEntity->origin, origin);
+			origin = origin - m_pCurrentEntity->origin;
 			if ((m_pCurrentEntity->angles[0] != 0.0f) || (m_pCurrentEntity->angles[1] != 0.0f) || (m_pCurrentEntity->angles[2] != 0.0f))
 			{
 				Vector forward, right, up, temp;
 				AngleVectors(m_pCurrentEntity->angles, forward, right, up);
 
-				VectorCopy(origin, temp);
+				temp = origin;
 				DotProductSSE(&origin[0], temp, forward);
 				DotProductSSE(&origin[1], temp, right);
 				DotProductSSE(&origin[2], temp, up);
@@ -3986,7 +3985,7 @@ GetUpRight
 */
 void CBSPRenderer::GetUpRight(Vector forward, Vector& up, Vector& right)
 {
-	VectorClear(up);
+	up = Vector();
 
 	if ((forward.x != 0.0f) || (forward.y != 0.0f))
 		up.z = 1;
@@ -4313,8 +4312,8 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const std::string&
 		return;
 
 	newDecal->textureBinding = decalTex;
-	VectorCopy(endpos, newDecal->position);
-	VectorCopy(pnormal, newDecal->normal);
+	newDecal->position = endpos;
+	newDecal->normal = pnormal;
 
 	RecursiveCreateDecal(m_pWorld->nodes, decalTex, newDecal, endpos, pnormal);
 
@@ -4354,32 +4353,32 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const std::string&
 
 		if ((pEntity->origin[0] != 0.0f) || (pEntity->origin[1] != 0.0f) || (pEntity->origin[2] != 0.0f))
 		{
-			VectorSubtract(endpos, pEntity->origin, decalpos);
+			decalpos = endpos - pEntity->origin;
 			if ((pEntity->angles[0] != 0.0f) || (pEntity->angles[1] != 0.0f) || (pEntity->angles[2] != 0.0f))
 			{
 				Vector temp, forward, right, up;
 				AngleVectors(pEntity->angles, forward, right, up);
 
-				VectorCopy(decalpos, temp);
+				temp = decalpos;
 				decalpos[0] = DotProduct(temp, forward);
 				decalpos[1] = -DotProduct(temp, right);
 				decalpos[2] = DotProduct(temp, up);
 
-				VectorCopy(pnormal, temp);
+				temp = pnormal;
 				decalnormal[0] = DotProduct(temp, forward);
 				decalnormal[1] = -DotProduct(temp, right);
 				decalnormal[2] = DotProduct(temp, up);
 			}
 			else
 			{
-				VectorSubtract(endpos, pEntity->origin, decalpos);
-				VectorCopy(pnormal, decalnormal);
+				decalpos = endpos - pEntity->origin;
+				decalnormal = pnormal;
 			}
 		}
 		else
 		{
-			VectorCopy(pnormal, decalnormal);
-			VectorCopy(endpos, decalpos);
+			decalnormal = pnormal;
+			decalpos = endpos;
 		}
 
 		msurface_t* surf = &m_pWorld->surfaces[pEntity->model->firstmodelsurface];
@@ -5466,12 +5465,12 @@ void CBSPRenderer::DrawDynamicLightsForEntity(cl_entity_t* pEntity)
 
 		m_pCurrentDynLight = dl;
 
-		VectorSubtract(m_pCurrentDynLight->origin, pEntity->origin, m_vCurDLightOrigin);
+		m_vCurDLightOrigin = m_pCurrentDynLight->origin - pEntity->origin;
 		if (rotated != 0)
 		{
 			AngleVectors(pEntity->angles, forward, right, up);
 
-			VectorCopy(m_vCurDLightOrigin, temp);
+			temp = m_vCurDLightOrigin;
 			m_vCurDLightOrigin[0] = DotProduct(temp, forward);
 			m_vCurDLightOrigin[1] = -DotProduct(temp, right);
 			m_vCurDLightOrigin[2] = DotProduct(temp, up);
@@ -5480,8 +5479,8 @@ void CBSPRenderer::DrawDynamicLightsForEntity(cl_entity_t* pEntity)
 		if (m_pCurrentDynLight->cone_size != 0.0f)
 		{
 			Vector tmins, tmaxs;
-			VectorAdd(mins, m_pCurrentEntity->origin, tmins);
-			VectorAdd(maxs, m_pCurrentEntity->origin, tmaxs);
+			tmins = mins + m_pCurrentEntity->origin;
+			tmaxs = maxs + m_pCurrentEntity->origin;
 
 			if (m_pCurrentDynLight->frustum.CullBox(tmins, tmaxs))
 				continue;
@@ -5489,7 +5488,7 @@ void CBSPRenderer::DrawDynamicLightsForEntity(cl_entity_t* pEntity)
 			AngleVectors(m_pCurrentDynLight->angles, m_vCurSpotForward, nullptr, nullptr);
 			if (rotated != 0)
 			{
-				VectorCopy(m_vCurSpotForward, temp);
+				temp = m_vCurSpotForward;
 				m_vCurSpotForward[0] = DotProduct(temp, forward);
 				m_vCurSpotForward[1] = -DotProduct(temp, right);
 				m_vCurSpotForward[2] = DotProduct(temp, up);
@@ -6021,7 +6020,7 @@ void CBSPRenderer::DrawWorldSolid()
 		m_iVisFrame = -2;
 
 	m_pCurrentEntity = gEngfuncs.GetEntityByIndex(0);
-	VectorCopy(m_vRenderOrigin, m_vVecToEyes);
+	m_vVecToEyes = m_vRenderOrigin;
 
 	EnableVertexArray();
 	RecursiveWorldNodeSolid(m_pWorld->nodes);
@@ -6240,21 +6239,21 @@ void CBSPRenderer::DrawBrushModelSolid(cl_entity_t* pEntity)
 	}
 	else
 	{
-		VectorAdd(m_pCurrentEntity->origin, pModel->mins, mins);
-		VectorAdd(m_pCurrentEntity->origin, pModel->maxs, maxs);
+		mins = m_pCurrentEntity->origin + pModel->mins;
+		maxs = m_pCurrentEntity->origin + pModel->maxs;
 	}
 
 	if (gHUD.viewFrustum.CullBox(mins, maxs))
 		return;
 
-	VectorSubtract(m_vRenderOrigin, m_pCurrentEntity->origin, m_vVecToEyes);
+	m_vVecToEyes = m_vRenderOrigin - m_pCurrentEntity->origin;
 
 	if (bRotated)
 	{
 		Vector temp;
 		Vector forward, right, up;
 
-		VectorCopy(m_vVecToEyes, temp);
+		temp = m_vVecToEyes;
 		AngleVectors(m_pCurrentEntity->angles, forward, right, up);
 		DotProductSSE(&m_vVecToEyes[0], temp, forward);
 		DotProductSSE(&m_vVecToEyes[1], temp, right);

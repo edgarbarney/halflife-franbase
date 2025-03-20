@@ -65,11 +65,11 @@ void PM_ShowClipBox()
 
 	if (0 != pmove->server)
 	{
-		VectorAdd(org, offset, org);
+		org = org + offset;
 	}
 	else
 	{
-		VectorSubtract(org, offset, org);
+		org = org - offset;
 	}
 
 	// Show our BBOX in particles.
@@ -107,7 +107,7 @@ void PM_ParticleLine(Vector start, Vector end, int pcolor, float life, float ver
 	int i;
 	// Determine distance;
 
-	VectorSubtract(end, start, diff);
+	diff = end - start;
 
 	len = VectorNormalize(diff);
 
@@ -209,7 +209,7 @@ void PM_DrawPhysEntBBox(int num, int pcolor, float life)
 			tmp[1] = (j & 2) != 0 ? pe->mins[1] : pe->maxs[1];
 			tmp[2] = (j & 4) != 0 ? pe->mins[2] : pe->maxs[2];
 
-			VectorAdd(tmp, pe->origin, tmp);
+			tmp = tmp + pe->origin;
 			VectorCopy(tmp, p[j]);
 		}
 
@@ -245,7 +245,7 @@ void PM_DrawBBox(Vector mins, Vector maxs, Vector origin, int pcolor, float life
 		tmp[1] = (j & 2) != 0 ? mins[1] - gap : maxs[1] + gap;
 		tmp[2] = (j & 4) != 0 ? mins[2] - gap : maxs[2] + gap;
 
-		VectorAdd(tmp, origin, tmp);
+		tmp = tmp + origin;
 		VectorCopy(tmp, p[j]);
 	}
 

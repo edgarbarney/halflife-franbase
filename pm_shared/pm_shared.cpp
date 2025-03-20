@@ -1063,14 +1063,14 @@ int PM_FlyMove()
 				if (planes[i][2] > 0.7)
 				{ // floor or slope
 					PM_ClipVelocity(original_velocity, planes[i], new_velocity, 1);
-					VectorCopy(new_velocity, original_velocity);
+					original_velocity = new_velocity;
 				}
 				else
 					PM_ClipVelocity(original_velocity, planes[i], new_velocity, 1.0 + pmove->movevars->bounce * (1 - pmove->friction));
 			}
 
 			VectorCopy(new_velocity, pmove->velocity);
-			VectorCopy(new_velocity, original_velocity);
+			original_velocity = new_velocity;
 		}
 		else
 		{
@@ -1219,7 +1219,7 @@ void PM_WalkMove()
 
 	wishvel[2] = 0; // Zero out z part of velocity
 
-	VectorCopy(wishvel, wishdir); // Determine maginitude of speed of move
+	wishdir = wishvel; // Determine maginitude of speed of move
 	wishspeed = VectorNormalize(wishdir);
 
 	//
@@ -1243,7 +1243,7 @@ void PM_WalkMove()
 
 	if (spd < 1.0f)
 	{
-		VectorClear(pmove->velocity);
+		pmove->velocity = Vector();
 		return;
 	}
 
@@ -1259,7 +1259,7 @@ void PM_WalkMove()
 	dest[2] = pmove->origin[2];
 
 	// first try moving directly to the next spot
-	VectorCopy(dest, start);
+	start = dest;
 	trace = pmove->PM_PlayerTrace(pmove->origin, dest, PM_NORMAL, -1);
 	// If we made it all the way, then copy trace end
 	//  as new player position.
@@ -1493,7 +1493,7 @@ void PM_WaterMove()
 		wishvel[2] += pmove->cmd.upmove;
 
 	// Copy it over and determine speed
-	VectorCopy(wishvel, wishdir);
+	wishdir = wishvel;
 	wishspeed = VectorNormalize(wishdir);
 
 	// Cap speed.
@@ -1544,7 +1544,7 @@ void PM_WaterMove()
 	// Now move
 	// assume it is a stair or a slope, so press down from stepheight above
 	VectorMA(pmove->origin, pmove->frametime, pmove->velocity, dest);
-	VectorCopy(dest, start);
+	start = dest;
 	start[2] += pmove->movevars->stepsize + 1;
 	trace = pmove->PM_PlayerTrace(start, dest, PM_NORMAL, -1);
 	if (0 == trace.startsolid && 0 == trace.allsolid) // FIXME: check steep slope?
@@ -1592,7 +1592,7 @@ void PM_AirMove()
 	wishvel[2] = 0;
 
 	// Determine maginitude of speed of move
-	VectorCopy(wishvel, wishdir);
+	wishdir = wishvel;
 	wishspeed = VectorNormalize(wishdir);
 
 	// Clamp to server defined max speed
@@ -1848,7 +1848,7 @@ bool PM_CheckStuck()
 			{
 				i = PM_GetRandomStuckOffsets(pmove->player_index, pmove->server, offset);
 
-				VectorAdd(base, offset, test);
+				test = base + offset;
 				if (pmove->PM_TestPlayerPosition(test, &traceresult) == -1)
 				{
 					PM_ResetStuckOffsets(pmove->player_index, pmove->server);
@@ -1881,7 +1881,7 @@ bool PM_CheckStuck()
 
 	i = PM_GetRandomStuckOffsets(pmove->player_index, pmove->server, offset);
 
-	VectorAdd(base, offset, test);
+	test = base + offset;
 	if ((hitent = pmove->PM_TestPlayerPosition(test, nullptr)) == -1)
 	{
 		//Con_DPrintf("Nudged\n");
@@ -1996,7 +1996,7 @@ void PM_SpectatorMove()
 		}
 		wishvel[2] += pmove->cmd.upmove;
 
-		VectorCopy(wishvel, wishdir);
+		wishdir = wishvel;
 		wishspeed = VectorNormalize(wishdir);
 
 		//
@@ -2245,9 +2245,9 @@ void PM_LadderMove(physent_t* pLadder)
 
 	pmove->PM_GetModelBounds(pLadder->model, modelmins, modelmaxs);
 
-	VectorAdd(modelmins, modelmaxs, ladderCenter);
+	ladderCenter = modelmins + modelmaxs;
 	VectorScale(ladderCenter, 0.5, ladderCenter);
-	VectorAdd(ladderCenter, pLadder->origin, ladderCenter); //LRC- allow for ladders moving around
+	ladderCenter = ladderCenter + pLadder->origin; //LRC- allow for ladders moving around
 
 	pmove->movetype = MOVETYPE_FLY;
 
@@ -2319,8 +2319,7 @@ void PM_LadderMove(physent_t* pLadder)
 				// Perpendicular in the ladder plane
 				//					Vector perp = CrossProduct( Vector(0,0,1), trace.vecPlaneNormal );
 				//					perp = perp.Normalize();
-				VectorClear(tmp);
-				tmp[2] = 1;
+				tmp = Vector(0, 0, 1);
 				CrossProduct(tmp, trace.plane.normal, perp);
 				VectorNormalize(perp);
 
@@ -2332,7 +2331,7 @@ void PM_LadderMove(physent_t* pLadder)
 
 
 				// This is the player's additional velocity
-				VectorSubtract(velocity, cross, lateral);
+				lateral = velocity - cross;
 
 				// This turns the velocity into the face of the ladder into velocity that
 				// is roughly vertically perpendicular to the face of the ladder.
@@ -2349,7 +2348,7 @@ void PM_LadderMove(physent_t* pLadder)
 			}
 			else
 			{
-				VectorClear(pmove->velocity);
+				pmove->velocity = Vector();
 			}
 		}
 	}
@@ -2374,7 +2373,7 @@ physent_t* PM_Ladder()
 			num = hull->firstclipnode;
 
 			// Offset the test point appropriately for this hull.
-			VectorSubtract(pmove->origin, test, test);
+			test = pmove->origin - test;
 
 			// Test the player's hull for intersection with this model
 			if (pmove->PM_HullPointContents(hull, num, test) == CONTENTS_EMPTY)
@@ -2444,7 +2443,7 @@ pmtrace_t PM_PushEntity(Vector push)
 	pmtrace_t trace;
 	Vector end;
 
-	VectorAdd(pmove->origin, push, end);
+	end = pmove->origin + push;
 
 	trace = pmove->PM_PlayerTrace(pmove->origin, end, PM_NORMAL, -1);
 
@@ -2537,7 +2536,7 @@ void PM_Physics_Toss()
 		float vel;
 		Vector base;
 
-		VectorClear(base);
+		base = Vector();
 		if (pmove->velocity[2] < pmove->movevars->gravity * pmove->frametime)
 		{
 			// we're rolling on the ground, add static friction.
@@ -2596,7 +2595,7 @@ void PM_NoClip()
 
 	// Zero out the velocity so that we don't accumulate a huge downward velocity from
 	//  gravity, etc.
-	VectorClear(pmove->velocity);
+	pmove->velocity = Vector();
 }
 
 // Only allow bunny jumping up to 1.7x server / player maxspeed setting
@@ -3066,7 +3065,7 @@ void PM_CheckParamters()
 	if (0 == pmove->dead)
 	{
 		VectorCopy(pmove->cmd.viewangles, v_angle);
-		VectorAdd(v_angle, pmove->punchangle, v_angle);
+		v_angle = v_angle + pmove->punchangle;
 
 		// Set up view angles.
 		pmove->angles[ROLL] = PM_CalcRoll(v_angle, pmove->velocity, pmove->movevars->rollangle, pmove->movevars->rollspeed) * 4;

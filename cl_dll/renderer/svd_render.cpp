@@ -96,7 +96,7 @@ void SVD_DrawBrushModel(cl_entity_t* pentity)
 	Vector vmins, vmaxs;
 
 	// set model-local view origin
-	VectorCopy(g_viewOrigin, vlocalview);
+	vlocalview = g_viewOrigin;
 
 	if ((pentity->angles[0] != 0.0f) || (pentity->angles[1] != 0.0f) || (pentity->angles[2] != 0.0f))
 	{
@@ -108,15 +108,15 @@ void SVD_DrawBrushModel(cl_entity_t* pentity)
 	}
 	else
 	{
-		VectorAdd(pentity->origin, pmodel->mins, vmins);
-		VectorAdd(pentity->origin, pmodel->maxs, vmaxs);
+		vmins = pentity->origin + pmodel->mins;
+		vmaxs = pentity->origin + pmodel->maxs;
 	}
-	VectorSubtract(vlocalview, pentity->origin, vlocalview);
+	vlocalview = vlocalview - pentity->origin;
 
 	if ((pentity->angles[0] != 0.0f) || (pentity->angles[1] != 0.0f) || (pentity->angles[2] != 0.0f))
 	{
 		Vector	vtemp, vforward, vright, vup;
-		VectorCopy(vlocalview, vtemp);
+		vtemp = vlocalview;
 		AngleVectors(pentity->angles, vforward, vright, vup);
 		vlocalview[0] = DotProduct(vtemp, vforward);
 		vlocalview[1] = -DotProduct(vtemp, vright);

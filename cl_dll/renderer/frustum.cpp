@@ -122,13 +122,13 @@ void FrustumCheck::SetFrustum(Vector vAngles, Vector vOrigin, float flFOV_x, flo
 		else
 		{
 			Vector vFarPoint;
-			VectorCopy(vVpn, vFarPoint);
+			vFarPoint = vVpn;
 
 			vFarPoint[0] *= flFarDist;
 			vFarPoint[1] *= flFarDist;
 			vFarPoint[2] *= flFarDist;
 
-			VectorAdd(vOrigin, vFarPoint, vFarPoint);
+			vFarPoint = vOrigin + vFarPoint;
 
 			m_sFrustum[4].vNormal[0] = vVpn[0] * (-1);
 			m_sFrustum[4].vNormal[1] = vVpn[1] * (-1);
@@ -152,8 +152,8 @@ SetExtraCullBox
 */
 void FrustumCheck::SetExtraCullBox(Vector vMins, Vector vMaxs)
 {
-	VectorCopy(vMins, m_vExtraCullMins);
-	VectorCopy(vMaxs, m_vExtraCullMaxs);
+	m_vExtraCullMins = vMins;
+	m_vExtraCullMaxs = vMaxs;
 	m_bExtraCull = true;
 }
 

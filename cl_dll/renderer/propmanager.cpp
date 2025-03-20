@@ -901,7 +901,7 @@ bool CPropManager::SetupCable(cabledata_t* cable, entity_t* entity)
 		return false;
 
 	// Calculate dropping point
-	VectorSubtract(vposition2, vposition1, vdirection);
+	vdirection = vposition2 - vposition1;
 	VectorMASSE(vposition1, 0.5, vdirection, vmidpoint);
 	vdroppoint = Vector(vmidpoint[0], vmidpoint[1], vmidpoint[2] - std::stoi(pValue));
 
@@ -1001,14 +1001,14 @@ void CPropManager::DrawCables()
 		{
 			if (j == 0)
 			{
-				VectorSubtract(m_pCables[i].vpoints[0], m_pCables[i].vpoints[1], vTangent);
+				vTangent = m_pCables[i].vpoints[0] - m_pCables[i].vpoints[1];
 			}
 			else
 			{
-				VectorSubtract(m_pCables[i].vpoints[0], m_pCables[i].vpoints[j], vTangent);
+				vTangent = m_pCables[i].vpoints[0] - m_pCables[i].vpoints[j];
 			}
 
-			VectorSubtract(m_pCables[i].vpoints[j], gBSPRenderer.m_vRenderOrigin, vDir);
+			vDir = m_pCables[i].vpoints[j] - gBSPRenderer.m_vRenderOrigin;
 			vRight = CrossProduct(vTangent, -vDir);
 			VectorNormalizeFast(vRight);
 

@@ -3046,10 +3046,10 @@ void CStudioModelRenderer::StudioEstimateGait(entity_state_t* pplayer)
 		return;
 	}
 
-	// VectorAdd( pplayer->velocity, pplayer->prediction_error, est_velocity );
+	// est_velocity = pplayer->velocity + pplayer->prediction_error;
 	if (m_fGaitEstimation != 0)
 	{
-		VectorSubtract(m_pCurrentEntity->origin, m_pPlayerInfo->prevgaitorigin, est_velocity);
+		est_velocity = m_pCurrentEntity->origin - m_pPlayerInfo->prevgaitorigin;
 		VectorCopy(m_pCurrentEntity->origin, m_pPlayerInfo->prevgaitorigin);
 		m_flGaitMovement = Length(est_velocity);
 		if (dt <= 0 || m_flGaitMovement / dt < 5)
@@ -3601,7 +3601,7 @@ void CStudioModelRenderer::StudioDrawWireframe()
 		tempDecal.vertexTransforms.resize(tempDecal.verts.size());
 		for (auto& vert : tempDecal.verts)
 		{
-			//tempVertexTransform = Vector(0);
+			//tempVertexTransform = Vector();
 			VectorTransformSSE(vert.position, (*m_pbonetransform)[vert.boneindex], tempDecal.vertexTransforms[iter]);
 			
 			iter++;
@@ -4310,7 +4310,7 @@ void CStudioModelRenderer::StudioEntityLight()
 	gEngfuncs.pEventAPI->EV_SetTraceHull(2);
 
 	Vector vCenter;
-	VectorAdd(m_vMins, m_vMaxs, vCenter);
+	vCenter = m_vMins + m_vMaxs;
 	VectorScale(vCenter, 0.5, vCenter);
 
 	m_iNumModelLights = NULL;
@@ -4779,8 +4779,8 @@ qboolean CStudioModelRenderer::StudioCheckBBox()
 	}
 
 	// Add in origin
-	VectorAdd(m_pCurrentEntity->origin, vMins, m_vMins);
-	VectorAdd(m_pCurrentEntity->origin, vMaxs, m_vMaxs);
+	m_vMins = m_pCurrentEntity->origin + vMins;
+	m_vMaxs = m_pCurrentEntity->origin + vMaxs;
 
 	// Copy it over to the entity
 	VectorCopy(vMins, m_pCurrentEntity->curstate.mins);
@@ -5914,7 +5914,7 @@ void CStudioModelRenderer::StudioDecalExternal(Vector vpos, Vector vnorm, const 
 		AngleMatrix(pEntity->angles, (*m_protationmatrix));
 		pEntity->angles[PITCH] = -pEntity->angles[PITCH];
 
-		VectorSubtract(vpos, pEntity->origin, vtemp);
+		vtemp = vpos - pEntity->origin;
 		VectorIRotate(vtemp, (*m_protationmatrix), vtranspos);
 		VectorIRotate(vnorm, (*m_protationmatrix), vtransnorm);
 
@@ -5971,8 +5971,8 @@ void CStudioModelRenderer::StudioDecalExternal(Vector vpos, Vector vnorm, const 
 					brushvertex_t* pv2 = &gPropManager.m_pVertexData[gPropManager.m_pIndexBuffer[(pmesh->start_vertex + l + 1)]];
 					brushvertex_t* pv3 = &gPropManager.m_pVertexData[gPropManager.m_pIndexBuffer[(pmesh->start_vertex + l + 2)]];
 
-					VectorSubtract(pv2->pos, pv1->pos, v1);
-					VectorSubtract(pv3->pos, pv2->pos, v2);
+					v1 = pv2->pos - pv1->pos;
+					v2 = pv3->pos - pv2->pos;
 					CrossProduct(v2, v1, norm);
 
 					if (DotProduct(vtransnorm, norm) < 0.0)
@@ -6667,7 +6667,7 @@ void CStudioModelRenderer::StudioDrawShadowVolume()
 	{
 		VectorTransform(psvdverts[i], (*m_pbonetransform)[pvertbone[i]], m_vertexTransform[j]);
 
-		VectorSubtract(m_vertexTransform[j], m_vShadowLightOrigin, lightdir);
+		lightdir = m_vertexTransform[j] - m_vShadowLightOrigin;
 		VectorNormalizeFast(lightdir);
 
 		VectorMA(m_vertexTransform[j], 4096, lightdir, m_vertexTransform[j + 1]);

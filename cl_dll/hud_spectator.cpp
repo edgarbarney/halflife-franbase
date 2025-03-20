@@ -102,7 +102,7 @@ void SpectatorSpray()
 
 	AngleVectors(v_angles, forward, nullptr, nullptr);
 	VectorScale(forward, 128, forward);
-	VectorAdd(forward, v_origin, forward);
+	forward = forward + v_origin;
 	pmtrace_t* trace = gEngfuncs.PM_TraceLine(v_origin, forward, PM_TRACELINE_PHYSENTSONLY, 2, -1);
 	if (trace->fraction != 1.0)
 	{
@@ -1660,7 +1660,7 @@ void CHudSpectator::DrawOverviewEntities()
 		offset[1] = YPROJECT(offset[1]);
 		offset[2] = 0.0f;
 
-		VectorSubtract(offset, screen, offset);
+		offset = offset - screen;
 
 		int playerNum = ent->index - 1;
 

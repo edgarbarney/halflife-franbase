@@ -539,7 +539,7 @@ void EV_HLDM_CheckTracer(int idx, float* vecSrc, float* end, float* forward, flo
 		}
 		else
 		{
-			VectorCopy(vecSrc, vecTracerSrc);
+			vecTracerSrc = vecSrc;
 		}
 
 		switch (iBulletType)
@@ -708,7 +708,7 @@ void EV_FireGlock1(event_args_t* args)
 
 	EV_GetGunPosition(args, vecSrc, origin);
 
-	VectorCopy(forward, vecAiming);
+	vecAiming = forward;
 
 	EV_HLDM_FireBullets(idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, &tracerCount[idx - 1], args->fparam1, args->fparam2);
 }
@@ -754,7 +754,7 @@ void EV_FireGlock2(event_args_t* args)
 
 	EV_GetGunPosition(args, vecSrc, origin);
 
-	VectorCopy(forward, vecAiming);
+	vecAiming = forward;
 
 	EV_HLDM_FireBullets(idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, &tracerCount[idx - 1], args->fparam1, args->fparam2);
 }
@@ -829,7 +829,7 @@ void EV_FireShotGunDouble(event_args_t* args)
 	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/dbarrel1.wav", gEngfuncs.pfnRandomFloat(0.98, 1.0), ATTN_NORM, 0, 85 + gEngfuncs.pfnRandomLong(0, 0x1f));
 
 	EV_GetGunPosition(args, vecSrc, origin);
-	VectorCopy(forward, vecAiming);
+	vecAiming = forward;
 
 	if (gEngfuncs.GetMaxClients() > 1)
 	{
@@ -879,7 +879,7 @@ void EV_FireShotGunSingle(event_args_t* args)
 	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/sbarrel1.wav", gEngfuncs.pfnRandomFloat(0.95, 1.0), ATTN_NORM, 0, 93 + gEngfuncs.pfnRandomLong(0, 0x1f));
 
 	EV_GetGunPosition(args, vecSrc, origin);
-	VectorCopy(forward, vecAiming);
+	vecAiming = forward;
 
 	if (gEngfuncs.GetMaxClients() > 1)
 	{
@@ -943,7 +943,7 @@ void EV_FireMP5(event_args_t* args)
 	}
 
 	EV_GetGunPosition(args, vecSrc, origin);
-	VectorCopy(forward, vecAiming);
+	vecAiming = forward;
 
 	EV_HLDM_FireBullets(idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 2, &tracerCount[idx - 1], args->fparam1, args->fparam2);
 }
@@ -1023,7 +1023,7 @@ void EV_FirePython(event_args_t* args)
 
 	EV_GetGunPosition(args, vecSrc, origin);
 
-	VectorCopy(forward, vecAiming);
+	vecAiming = forward;
 
 	EV_HLDM_FireBullets(idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, &tracerCount[idx - 1], args->fparam1, args->fparam2);
 }
@@ -1208,7 +1208,7 @@ void EV_FireGauss(event_args_t* args)
 
 				flMaxFrac = flMaxFrac - tr.fraction;
 
-				VectorCopy(r, forward);
+				forward = r;
 
 				VectorMA(tr.endpos, 8.0, forward, vecSrc);
 				VectorMA(vecSrc, 8192.0, forward, vecDest);
@@ -1216,7 +1216,7 @@ void EV_FireGauss(event_args_t* args)
 				gEngfuncs.pEfxAPI->R_TempSprite(tr.endpos, vec3_origin, 0.2, m_iGlow, kRenderGlow, kRenderFxNoDissipation, flDamage * n / 255.0, flDamage * n * 0.5 * 0.1, FTENT_FADEOUT);
 
 				Vector fwd;
-				VectorAdd(tr.endpos, tr.plane.normal, fwd);
+				fwd = tr.endpos + tr.plane.normal;
 
 				gEngfuncs.pEfxAPI->R_Sprite_Trail(TE_SPRITETRAIL, tr.endpos, fwd, m_iBalls, 3, 0.1, gEngfuncs.pfnRandomFloat(10, 20) / 100.0, 100,
 					255, 100);
@@ -1268,7 +1268,7 @@ void EV_FireGauss(event_args_t* args)
 
 						gEngfuncs.pEventAPI->EV_PlayerTrace(beam_tr.endpos, tr.endpos, PM_NORMAL, -1, &beam_tr);
 
-						VectorSubtract(beam_tr.endpos, tr.endpos, delta);
+						delta = beam_tr.endpos - tr.endpos;
 
 						n = Length(delta);
 
@@ -1281,7 +1281,7 @@ void EV_FireGauss(event_args_t* args)
 							// absorption balls
 							{
 								Vector fwd;
-								VectorSubtract(tr.endpos, forward, fwd);
+								fwd = tr.endpos - forward;
 								gEngfuncs.pEfxAPI->R_Sprite_Trail(TE_SPRITETRAIL, tr.endpos, fwd, m_iBalls, 3, 0.1, gEngfuncs.pfnRandomFloat(10, 20) / 100.0, 100,
 									255, 100);
 							}
@@ -1296,12 +1296,12 @@ void EV_FireGauss(event_args_t* args)
 							// balls
 							{
 								Vector fwd;
-								VectorSubtract(beam_tr.endpos, forward, fwd);
+								fwd = beam_tr.endpos - forward;
 								gEngfuncs.pEfxAPI->R_Sprite_Trail(TE_SPRITETRAIL, beam_tr.endpos, fwd, m_iBalls, (int)(flDamage * 0.3), 0.1, gEngfuncs.pfnRandomFloat(10, 20) / 100.0, 200,
 									255, 40);
 							}
 
-							VectorAdd(beam_tr.endpos, forward, vecSrc);
+							vecSrc = beam_tr.endpos + forward;
 						}
 					}
 					else
@@ -1321,7 +1321,7 @@ void EV_FireGauss(event_args_t* args)
 
 						{
 							Vector fwd;
-							VectorAdd(tr.endpos, tr.plane.normal, fwd);
+							fwd = tr.endpos + tr.plane.normal;
 							gEngfuncs.pEfxAPI->R_Sprite_Trail(TE_SPRITETRAIL, tr.endpos, fwd, m_iBalls, 8, 0.6, gEngfuncs.pfnRandomFloat(10, 20) / 100.0, 100,
 								255, 200);
 						}
@@ -1333,7 +1333,7 @@ void EV_FireGauss(event_args_t* args)
 		}
 		else
 		{
-			VectorAdd(tr.endpos, forward, vecSrc);
+			vecSrc = tr.endpos + forward;
 		}
 	}
 }
