@@ -4155,6 +4155,16 @@ std::string CBSPRenderer::FindGroupByDecalName(const std::string& name)
 		}
 	}
 
+	// We couldn'T find an exact match, so we'll try to find a group that contains the name
+	for (auto& group : m_mapDecalTexGroups)
+	{
+		for (auto& decal : group.second)
+		{
+			if (FranUtils::StringUtils::HasSubstring(decal.second.name, name))
+				return decal.second.group; // or group.first
+		}
+	}
+
 	return "";
 }
 
