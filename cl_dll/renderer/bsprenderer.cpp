@@ -2430,7 +2430,7 @@ void CBSPRenderer::RenderFirstPass(bool bSecond)
 			glAlphaFunc(GL_GREATER, 0.5);
 		}
 
-		if (((m_pCurrentEntity->curstate.effects & FL_CONVEYOR) != 0) && (FranUtils::StringUtils::HasInsentitiveSubstring(pTexture->name, "scroll")))
+		if (((m_pCurrentEntity->curstate.effects & FL_CONVEYOR) != 0) && (FranUtils::StringUtils::HasInsensitiveSubstring(pTexture->name, "scroll")))
 		{
 			while (psurface != nullptr)
 			{
@@ -2607,7 +2607,7 @@ void CBSPRenderer::RenderFinalPasses(bool bSecond)
 			Bind2DTexture(GL_TEXTURE0_ARB, pTexture->gl_texturenum);
 		}
 
-		if (((m_pCurrentEntity->curstate.effects & FL_CONVEYOR) != 0) && (FranUtils::StringUtils::HasInsentitiveSubstring(pTexture->name, "scroll")))
+		if (((m_pCurrentEntity->curstate.effects & FL_CONVEYOR) != 0) && (FranUtils::StringUtils::HasInsensitiveSubstring(pTexture->name, "scroll")))
 		{
 			while (psurface != nullptr)
 			{
@@ -4512,7 +4512,7 @@ void CBSPRenderer::DecalSurface(msurface_t* surf, DecalTexture& texture, cl_enti
 	if ((pEntity != nullptr) && surf->texinfo->texture->name[0] == '{' && pEntity->curstate.rendermode == kRenderTransAlpha)
 		return;
 
-	if ((FranUtils::StringUtils::HasInsentitiveSubstring(surf->texinfo->texture->name, "scroll")) && pEntity->curstate.eflags == EFLAG_CONVEYOR)
+	if ((FranUtils::StringUtils::HasInsensitiveSubstring(surf->texinfo->texture->name, "scroll")) && pEntity->curstate.eflags == EFLAG_CONVEYOR)
 		return;
 
 	if (((surf->flags & SURF_DRAWTURB) != 0) || ((surf->flags & SURF_DRAWSKY) != 0))

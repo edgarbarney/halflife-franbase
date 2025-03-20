@@ -498,7 +498,7 @@ void CPropManager::LoadEntVars()
 			if (!pValue.empty())
 				continue;
 
-			if (!FranUtils::StringUtils::HasInsentitiveSubstring(pValue, ".mdl"))
+			if (!FranUtils::StringUtils::HasInsensitiveSubstring(pValue, ".mdl"))
 				continue;
 
 			m_pCurrentExtraData = &m_pExtraData[m_iNumExtraData];

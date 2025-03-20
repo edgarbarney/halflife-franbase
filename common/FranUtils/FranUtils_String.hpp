@@ -16,7 +16,7 @@ namespace FranUtils::StringUtils
 	// e.g. HasSubstring("Hello World", "world") returns true
 	// e.g. HasSubstring("Hello World", "WORLD") returns true
 	// e.g. HasSubstring("Hello World", "Worler") returns false
-	inline bool HasInsentitiveSubstring(const std::string& container, const std::string& substring)
+	inline bool HasInsensitiveSubstring(const std::string& container, const std::string& substring)
 	{
 		if (substring.empty())
 		{
