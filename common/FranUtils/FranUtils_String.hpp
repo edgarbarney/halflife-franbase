@@ -11,36 +11,6 @@
 
 namespace FranUtils::StringUtils
 {
-	// Check if a string contains a substring
-	// Case insensitive
-	// e.g. HasSubstring("Hello World", "world") returns true
-	// e.g. HasSubstring("Hello World", "WORLD") returns true
-	// e.g. HasSubstring("Hello World", "Worler") returns false
-	inline bool HasInsensitiveSubstring(const std::string& container, const std::string& substring)
-	{
-		if (substring.empty())
-		{
-			return true;
-		}
-
-		container.find(LowerCase(substring)) != std::string::npos;
-	}
-
-	// Check if a string contains a substring
-	// Case sensitive
-	// e.g. HasSubstring("Hello World", "World") returns true
-	// e.g. HasSubstring("Hello World", "WORLD") returns false
-	// e.g. HasSubstring("Hello World", "Worler") returns false
-	inline bool HasSubstring(const std::string& container, const std::string& substring)
-	{
-		if (substring.empty())
-		{
-			return true;
-		}
-
-		return container.find(substring) != std::string::npos;
-	}
-
 	// Split quoted tokens into words
 	// e.g. 
 	// " \"Hello From The Other Side\" " 
@@ -141,6 +111,36 @@ namespace FranUtils::StringUtils
 	{
 		UpperCase_Ref(str);
 		return str;
+	}
+
+	// Check if a string contains a substring
+	// Case insensitive
+	// e.g. HasSubstring("Hello World", "world") returns true
+	// e.g. HasSubstring("Hello World", "WORLD") returns true
+	// e.g. HasSubstring("Hello World", "Worler") returns false
+	inline bool HasInsensitiveSubstring(const std::string& container, const std::string& substring)
+	{
+		if (substring.empty())
+		{
+			return true;
+		}
+
+		return container.find(LowerCase(substring)) != std::string::npos;
+	}
+
+	// Check if a string contains a substring
+	// Case sensitive
+	// e.g. HasSubstring("Hello World", "World") returns true
+	// e.g. HasSubstring("Hello World", "WORLD") returns false
+	// e.g. HasSubstring("Hello World", "Worler") returns false
+	inline bool HasSubstring(const std::string& container, const std::string& substring)
+	{
+		if (substring.empty())
+		{
+			return true;
+		}
+
+		return container.find(substring) != std::string::npos;
 	}
 }
 
