@@ -23,12 +23,7 @@ namespace FranUtils::StringUtils
 			return true;
 		}
 
-		auto it = std::search(container.begin(), container.end(),substring.begin(), substring.end(),[](char a, char b)
-		{ 
-				return std::tolower(a) == std::tolower(b); 
-		});
-
-		return it != container.end();
+		container.find(LowerCase(substring)) != std::string::npos;
 	}
 
 	// Check if a string contains a substring
@@ -43,12 +38,7 @@ namespace FranUtils::StringUtils
 			return true;
 		}
 
-		auto it = std::search(container.begin(), container.end(), substring.begin(), substring.end(), [](char a, char b)
-		{ 
-				return a == b;
-		});
-
-		return it != container.end();
+		return container.find(substring) != std::string::npos;
 	}
 
 	// Split quoted tokens into words
