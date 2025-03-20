@@ -31,6 +31,7 @@ Written by Andrew Lucas, Richard Rohac, BUzer, Laurie, Botman and Id Software
 
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <string>
 
 //==============================
@@ -259,17 +260,10 @@ struct cl_particle_t
 //
 //==============================
 #define MAX_DECALTEXTURES 128
-#define MAX_CUSTOMDECALS 4096
-#define MAX_STATICDECALS 1024
 #define MAX_GROUPENTRIES 64
-#define MAX_DECAL_MSG_CACHE 256
-#define MAX_DECAL_GROUPS 256
 #define MAX_LIGHTMAPS 64
-//#define MAX_LIGHTSTYLES 64
-//#define MAX_STYLESTRING 64
 #define MAX_DYNLIGHTS 64
 #define MAX_MAP_DETAILOBJECTS 512
-//#define MAX_DETAIL_TEXTURES 1024
 #define MAX_MAP_LEAFS 65534
 #define DEPTHMAP_RESOLUTION 256
 #define MAX_MAP_TEXTURES 512
@@ -364,57 +358,114 @@ struct DetailTexture
 	float xscale;
 	float yscale;
 
-	DetailTexture() : texindex(0), xscale(1.0f), yscale(1.0f) {}
-	DetailTexture(const std::string& tex, const std::string& detail, int index, float x, float y) : texname(tex), detailtexname(detail), texindex(index), xscale(x), yscale(y) {}
+	DetailTexture(const std::string& _texname = {}, const std::string& _detailtexname = {}, int _texindex = 0, float _xscale = 0.0f, float _yscale = 0.0f) : texname(_texname), detailtexname(_detailtexname), texindex(_texindex), xscale(_xscale), yscale(_yscale) {}
 };
 
-struct decalgroupentry_t
+struct DecalTexture
 {
-	std::string strName;
+	std::string name;
 	int gl_texid;
-	int xsize, ysize;
-	struct decalgroup_t* group;
-};
-struct decalgroup_t
-{
-	std::string strName;
-	int iSize;
-	decalgroupentry_t entries[MAX_GROUPENTRIES];
+	int xsize;
+	int ysize;
+	std::string group; // Parent group
+
+	DecalTexture(const std::string& _name = {}, int _gl_texid = 0, int _xsize = 0, int _ysize = 0, const std::string& _group = {}) : name(_name), gl_texid(_gl_texid), xsize(_xsize), ysize(_ysize), group(_group) {}
 };
 
-typedef struct customdecalvert_s
+using DecalTextureGroup = std::unordered_map<std::string, DecalTexture>;
+
+struct CustomDecalVert
 {
 	Vector position;
 	float texcoord[2];
-} customdecalvert_t;
 
-typedef struct customdecalpoly_s
+	CustomDecalVert(const Vector& _position = Vector()) : position(_position) {}
+};
+
+struct CustomDecalPoly
 {
-	customdecalvert_t* pverts;
-	int numverts;
+	std::vector<CustomDecalVert> verts;
 
 	msurface_t* surface;
 	cl_entity_t* entity;
-} customdecalpoly_t;
 
-typedef struct customdecal_s
+	CustomDecalPoly(msurface_t* _surface = nullptr, cl_entity_t* _entity = nullptr) : surface(_surface), entity(_entity) {}
+};
+
+struct DecalTextureBinding
 {
-	customdecalpoly_t* polys;
-	int inumpolys;
+	// Overengineering at its finest
 
-	const decalgroupentry_t* texinfo;
+	std::string decalGroup;
+	std::string decalGroupMember;
+
+	DecalTextureBinding(const std::string& _decalGroup = {}, const std::string& _decalGroupMember = {}) : decalGroup(_decalGroup), decalGroupMember(_decalGroupMember) {}
+
+	DecalTextureBinding(const DecalTexture& other) : decalGroup(other.group), decalGroupMember(other.name) {}
+
+	bool operator==(const DecalTextureBinding& other) const
+	{
+		return decalGroup == other.decalGroup && decalGroupMember == other.decalGroupMember;
+	}
+
+	bool operator!=(const DecalTextureBinding& other) const
+	{
+		return !(*this == other);
+	}
+
+	DecalTextureBinding& operator=(const DecalTextureBinding& other)
+	{
+		decalGroup = other.decalGroup;
+		decalGroupMember = other.decalGroupMember;
+
+		return *this;
+	}
+
+	bool operator==(const DecalTexture& other) const
+	{
+		return decalGroup == other.group && decalGroupMember == other.name;
+	}
+
+	bool operator!=(const DecalTexture& other) const
+	{
+		return !(*this == other);
+	}
+
+	DecalTextureBinding& operator=(const DecalTexture& other)
+	{
+		decalGroup = other.group;
+		decalGroupMember = other.name;
+
+		return *this;
+	}
+};
+
+struct CustomDecal
+{
+	std::vector<CustomDecalPoly> polys;
 
 	Vector normal;
 	Vector position;
 	float life;
-} customdecal_t;
 
-struct decal_msg_cache
+	DecalTextureBinding textureBinding;
+
+	CustomDecal(const Vector& _normal = Vector(), const Vector& _position = Vector(), float _life = 0.0f, const DecalTextureBinding& _textureBinding = DecalTextureBinding()) : normal(_normal), position(_position), life(_life), textureBinding(_textureBinding) {}
+
+	void SetTextureBinding(const DecalTextureBinding& newBinding)
+	{
+		textureBinding = newBinding;
+	}
+};
+
+struct DecalMessage
 {
+	std::string name;
 	Vector pos;
 	Vector normal;
-	std::string name;
-	int persistent;
+	bool persistent;
+
+	DecalMessage(const std::string& _name = {}, const Vector& _pos = Vector(), const Vector& _normal = Vector(), bool _persistent = false) : name(_name), pos(_pos), normal(_normal), persistent(_persistent) {}
 };
 
 struct clientsurfdata_t
@@ -542,38 +593,36 @@ struct cl_mirror_t
 //				STUDIO RENDERER STRUCTS
 //
 //========================================
-struct decalvert_t
+struct StudioDecalVert
 {
 	int vertindex;
 	float texcoord[2];
 };
 
-struct decalvertinfo_t
+struct StudioDecalVertInfo
 {
 	Vector position;
 	byte boneindex;
 };
 
-struct decalpoly_t
-{
-	decalvert_t* verts;
-	int numverts;
-};
+//struct StudioDecalPoly
+//{
+//	StudioDecalVert* verts;
+//	int numverts;
+//};
 
-struct studiodecal_t
+// Just a vector of vertices. 
+using StudioDecalPoly = std::vector<StudioDecalVert>;
+
+struct StudioDecal
 {
 	int entindex;
 
-	decalpoly_t* polys;
-	int numpolys;
+	std::vector<StudioDecalPoly> polys;
+	std::vector<StudioDecalVertInfo> verts;
+	std::vector<Vector> vertexTransforms;
 
-	decalvertinfo_t* verts;
-	int numverts;
-
-	const decalgroupentry_t* texture;
-
-	int totaldecals;
-	studiodecal_t* next; // linked list on this entity
+	DecalTextureBinding textureBinding;
 };
 
 struct studiovert_t

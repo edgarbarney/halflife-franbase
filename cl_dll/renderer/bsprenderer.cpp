@@ -478,7 +478,7 @@ void CBSPRenderer::VidInit()
 	ClearLightStyleValues();
 	memset(m_pDynLights, 0, sizeof(m_pDynLights));
 	m_vectorDetailTextures.clear();
-	memset(m_pDecalGroups, 0, sizeof(m_pDecalGroups));
+	m_mapDecalTexGroups.clear();
 	memset(m_pNormalTextureList, 0, sizeof(m_pNormalTextureList));
 	memset(m_pMultiPassTextureList, 0, sizeof(m_pMultiPassTextureList));
 	memset(&m_pFlashlightTextures, 0, sizeof(m_pFlashlightTextures));
@@ -538,7 +538,6 @@ void CBSPRenderer::VidInit()
 	m_pWorld = nullptr;
 	m_iFrameCount = NULL;
 	m_iVisFrame = NULL;
-	m_iNumDecalGroups = NULL;
 	m_iNumTextures = NULL;
 	m_bMirroring = false;
 	m_bSpecialFog = false;
@@ -3850,67 +3849,77 @@ FindIntersectionPoint
 
 ====================
 */
-void CBSPRenderer::FindIntersectionPoint(const Vector& p1, const Vector& p2, const Vector& normal, const Vector& planepoint, Vector& newpoint)
+Vector CBSPRenderer::FindIntersectionPoint(const Vector& p1, const Vector& p2, const Vector& normal, const Vector& planepoint)
 {
 	Vector planevec;
 	Vector linevec;
 	float planedist, linedist;
 
-	VectorSubtract(planepoint, p1, planevec);
-	VectorSubtract(p2, p1, linevec);
+	planevec = planepoint - p1;
+	linevec = p2 - p1;
 
 	DotProductSSE(&planedist, normal, planevec);
 	DotProductSSE(&linedist, normal, linevec);
 
 	if (linedist != 0)
 	{
-		VectorMASSE(p1, planedist / linedist, linevec, newpoint);
-		return;
+		Vector ret;
+		VectorMASSE(p1, planedist / linedist, linevec, ret);
+		return ret;
 	}
-	VectorClear(newpoint);
+	return Vector();
 };
 
+
+static void SetOutVectorIndex(const Vector& vector, size_t index, std::vector<Vector>& vecOut)
+{
+	if (vecOut.size() <= index)
+	{
+		vecOut.insert(vecOut.end(), vector);
+		return;
+	}
+
+	vecOut[index] = vector;
+}
 /*
 ====================
 ClipPolygonByPlane
 
 ====================
 */
-int CBSPRenderer::ClipPolygonByPlane(const Vector* arrIn, int numpoints, Vector normal, Vector planepoint, Vector* arrOut)
+int CBSPRenderer::ClipPolygonByPlane(const std::vector<Vector>& vecIn, Vector normal, Vector planepoint, std::vector<Vector>& vecOut)
 {
-	int i, cur, prev;
+	int cur, prev;
 	int first = -1;
 	int outCur = 0;
-	float dots[64];
-	for (i = 0; i < numpoints; i++)
+	std::vector<float> dots;
+	for (size_t i = 0; i < vecIn.size(); i++)
 	{
-		Vector vecDir;
-		VectorSubtract(arrIn[i], planepoint, vecDir);
-		DotProductSSE(&dots[i], vecDir, normal);
+		dots.push_back(DotProduct(vecIn[i] - planepoint, normal));
 
-		if (dots[i] > 0)
+		if (dots.back() > 0)
 			first = i;
 	}
 
 	if (first == -1)
 		return 0;
 
-	VectorCopy(arrIn[first], arrOut[outCur]);
+	SetOutVectorIndex(vecIn[first], outCur, vecOut);
 	outCur++;
 
 	cur = first + 1;
-	if (cur == numpoints)
+	if (cur == vecIn.size())
 		cur = 0;
 
 	while (cur != first)
 	{
 		if (dots[cur] > 0)
 		{
-			VectorCopy(arrIn[cur], arrOut[outCur]);
+			SetOutVectorIndex(vecIn[cur], outCur, vecOut);
 			cur++;
 			outCur++;
 
-			if (cur == numpoints)
+			if (cur == vecIn.size())
 				cur = 0;
 		}
 		else
@@ -3922,52 +3931,48 @@ int CBSPRenderer::ClipPolygonByPlane(const Vector* arrIn, int numpoints, Vector 
 
 	if (dots[cur] < 0)
 	{
-		Vector newpoint;
 		if (cur > 0)
 			prev = cur - 1;
 		else
-			prev = numpoints - 1;
+			prev = vecIn.size() - 1;
 
-		FindIntersectionPoint(arrIn[prev], arrIn[cur], normal, planepoint, newpoint);
-		VectorCopy(newpoint, arrOut[outCur]);
+		SetOutVectorIndex(FindIntersectionPoint(vecIn[prev], vecIn[cur], normal, planepoint), outCur, vecOut);
 	}
 	else
 	{
-		VectorCopy(arrIn[cur], arrOut[outCur]);
+		SetOutVectorIndex(vecIn[cur], outCur, vecOut);
 	}
 
 	outCur++;
 	cur++;
 
-	if (cur == numpoints)
+	if (cur == vecIn.size())
 		cur = 0;
 
 	while (dots[cur] < 0)
 	{
 		cur++;
-		if (cur == numpoints)
+		if (cur == vecIn.size())
 			cur = 0;
 	}
 
 	if (cur > 0)
 		prev = cur - 1;
 	else
-		prev = numpoints - 1;
+		prev = vecIn.size() - 1;
 
 	if (dots[cur] > 0 && dots[prev] < 0)
 	{
-		Vector newpoint;
-		FindIntersectionPoint(arrIn[prev], arrIn[cur], normal, planepoint, newpoint);
-		VectorCopy(newpoint, arrOut[outCur]);
+		SetOutVectorIndex(FindIntersectionPoint(vecIn[prev], vecIn[cur], normal, planepoint), outCur, vecOut);
 		outCur++;
 	}
 
 	while (cur != first)
 	{
-		VectorCopy(arrIn[cur], arrOut[outCur]);
+		SetOutVectorIndex(vecIn[cur], outCur, vecOut);
 		cur++;
 		outCur++;
-		if (cur == numpoints)
+		if (cur == vecIn.size())
 			cur = 0;
 	}
 	return outCur;
@@ -4001,16 +4006,13 @@ LoadDecalTexture
 
 ====================
 */
-cl_texture_t* CBSPRenderer::LoadDecalTexture(const char* texname)
+cl_texture_t* CBSPRenderer::LoadDecalTexture(const std::string& texname)
 {
-	char path[256];
-	sprintf(path, "gfx/textures/decals/%s.dds", texname);
-
-	cl_texture_t* pTexture = gTextureLoader.LoadTexture(path);
+	cl_texture_t* pTexture = gTextureLoader.LoadTexture("gfx/textures/decals/" + texname + ".dds");
 
 	if (pTexture == nullptr)
 	{
-		gEngfuncs.Con_Printf("BSP Renderer: Missing decal texture %s!\n", path);
+		gEngfuncs.Con_Printf("BSP Renderer: Missing decal texture %s!\n", std::string("gfx/textures/decals/" + texname + ".dds").c_str());
 		return nullptr;
 	}
 
@@ -4030,96 +4032,75 @@ LoadDecals
 */
 void CBSPRenderer::LoadDecals()
 {
-	// TODO: Properly convert to c++ string
-	// TODO: Get rid of COM_LoadFile and COM_ParseFile
+	std::ifstream decalInfoFile;
+	bool result = FranUtils::FileSystem::OpenInputFile("gfx/textures/decals/decalinfo.txt", decalInfoFile);
 
-	char* pfile = (char*)gEngfuncs.COM_LoadFile("gfx/textures/decals/decalinfo.txt", 5, nullptr);
-	if (pfile == nullptr)
+	if (!result)
 	{
-		gEngfuncs.Con_Printf("BSP Renderer: Cannot open file \"gfx/textures/decals/decalinfo.txt\"\n");
+		gEngfuncs.Con_Printf("BSP Renderer: Failed to load decal info file!\n");
 		return;
 	}
 
-	int counter = 0;
-	char* ptext = pfile;
-	while (true)
+	// Structure is like so:
+	// groupname
+	// {
+	// decaltexname xsize ysize
+	// decaltexname xsize ysize
+	// ...
+	// }
+	// groupname
+	// {
+	// decaltexname xsize ysize
+	// ...
+	// }
+
+	std::string line;
+	std::string groupName;
+	while (std::getline(decalInfoFile, line))
 	{
-		// store position where group names recorded
-		char* groupnames = ptext;
+		if (line.empty())
+			continue;
 
-		// loop until we'll find decal names
-		int numgroups = 0;
-		char token[256];
-		while (true)
+		if (line[0] == '{')
 		{
-			ptext = gEngfuncs.COM_ParseFile(ptext, token);
-			if (ptext == nullptr)
-				goto getout;
-
-			if (token[0] == '{')
-				break;
-
-			numgroups++;
-		}
-
-		decalgroupentry_t tempentries[MAX_GROUPENTRIES];
-		int numtemp = 0;
-		while (true)
-		{
-			char sz_xsize[64];
-			char sz_ysize[64];
-			ptext = gEngfuncs.COM_ParseFile(ptext, token);
-
-			if (ptext == nullptr)
-				goto getout;
-			if (token[0] == '}')
-				break;
-
-
-			ptext = gEngfuncs.COM_ParseFile(ptext, sz_xsize);
-
-			if (ptext == nullptr)
-				goto getout;
-
-			ptext = gEngfuncs.COM_ParseFile(ptext, sz_ysize);
-
-			if (ptext == nullptr)
-				goto getout;
-
-			cl_texture_t* pTexture = LoadDecalTexture(token);
-
-			if (pTexture == nullptr)
-				continue;
-
-			tempentries[numtemp].strName = token;
-			tempentries[numtemp].gl_texid = pTexture->iIndex;
-			tempentries[numtemp].xsize = atof(sz_xsize) / 2;
-			tempentries[numtemp].ysize = atof(sz_ysize) / 2;
-			numtemp++;
-		}
-
-		// get back to group names
-		for (int i = 0; i < numgroups; i++)
-		{
-			groupnames = gEngfuncs.COM_ParseFile(groupnames, token);
-			if (numtemp == 0)
+			if (groupName.empty())
 			{
-				gEngfuncs.Con_Printf("BSP Renderer: got empty decal group: %s\n", token);
+				gEngfuncs.Con_Printf("BSP Renderer: Warning while parsing decal info: group name is empty!\n");
 				continue;
 			}
 
-			m_pDecalGroups[m_iNumDecalGroups].iSize = numtemp;
-			m_pDecalGroups[m_iNumDecalGroups].strName = token;
-			memcpy(m_pDecalGroups[m_iNumDecalGroups].entries, tempentries, sizeof(tempentries));
+			while (std::getline(decalInfoFile, line))
+			{
+				if (line.empty())
+					continue;
 
-			m_iNumDecalGroups++;
-			counter++;
+				if (line[0] == '}')
+					break;
+
+				std::vector<std::string> tokens = FranUtils::StringUtils::SplitWords(line);
+				if (tokens.size() < 3)
+				{
+					gEngfuncs.Con_Printf("BSP Renderer: Error in decal info file: not enough values for decal texture!\n");
+					continue;
+				}
+
+				std::string texName = FranUtils::StringUtils::LowerCase(tokens[0]);
+				int xsize = std::stoi(tokens[1]);
+				int ysize = std::stoi(tokens[2]);
+
+				cl_texture_t* pTexture = LoadDecalTexture(texName);
+				if (!pTexture)
+					continue;
+
+				m_mapDecalTexGroups[groupName][texName] = DecalTexture(texName, pTexture->iIndex, xsize, ysize, groupName);
+			}
+		}
+		else
+		{
+			groupName = FranUtils::StringUtils::LowerCase(line);
 		}
 	}
 
-getout:
-	gEngfuncs.COM_FreeFile(pfile);
-	gEngfuncs.Con_Printf("BSP Renderer: %d decal groups created\n", counter);
 };
 
 /*
@@ -4128,27 +4109,22 @@ AllocDecal
 
 ====================
 */
-customdecal_t* CBSPRenderer::AllocDecal()
+size_t CBSPRenderer::AllocDecal()
 {
-	customdecal_t* ret = &m_pDecals[m_iCurDecal];
+	m_vectorDecals.push_back(CustomDecal());
 
-	if (m_iNumDecals < MAX_CUSTOMDECALS)
-		m_iNumDecals++;
+	// TODO: Should we make an adjustable max number
+	// of decals so we don't run out of memory?
+	//
+	// If we're gonna recycle decals, for example, we should clear the polys
+	// 
+	//	auto& ret = m_vectorDecals.back();
+	//  if (ret.polys.size() != 0)
+	//  {
+	//	  ret.polys.clear();
+	//  }
 
-	m_iCurDecal++;
-	if (m_iCurDecal == MAX_CUSTOMDECALS)
-		m_iCurDecal = 0; // get decals from root again
-
-	if (ret->inumpolys != 0)
-	{
-		for (int i = 0; i < ret->inumpolys; i++)
-			delete[] ret->polys[i].pverts;
-
-		delete[] ret->polys;
-	}
-
-	memset(ret, 0, sizeof(customdecal_t));
-	return ret;
+	return m_vectorDecals.size() - 1;
 }
 
 /*
@@ -4157,73 +4133,58 @@ AllocStaticDecal
 
 ====================
 */
-customdecal_t* CBSPRenderer::AllocStaticDecal()
+size_t CBSPRenderer::AllocStaticDecal()
 {
-	if (m_iNumStaticDecals < MAX_STATICDECALS)
-	{
-		customdecal_t* ret = &m_pStaticDecals[m_iNumStaticDecals];
-		m_iNumStaticDecals++;
-		return ret;
-	}
-	return nullptr;
+	m_vectorStaticDecals.push_back(CustomDecal());
+	return m_vectorStaticDecals.size() - 1;
 }
 
 /*
 ====================
-FindDecalByName
+FindGroupByDecalName
 
 ====================
 */
-decalgroupentry_t* CBSPRenderer::FindDecalByName(const std::string& szName)
+std::string CBSPRenderer::FindGroupByDecalName(const std::string& name)
 {
-	for (int i = 0; i < m_iNumDecalGroups; i++)
+	for (auto& group : m_mapDecalTexGroups)
 	{
-		if (m_pDecalGroups[i].iSize == 0)
-			continue;
-
-		for (int j = 0; j < m_pDecalGroups[i].iSize; j++)
+		for(auto& decal : group.second)
 		{
-			if (m_pDecalGroups[i].entries[j].strName == szName)
-				return &m_pDecalGroups[i].entries[j];
+			if (decal.second.name == name)
+				return decal.second.group; // or group.first
 		}
 	}
-	return nullptr;
+
+	return "";
 }
 
 /*
 ====================
-GetRandomDecal
+GetRandomDecalFromGroup
 
 ====================
 */
-decalgroupentry_t* CBSPRenderer::GetRandomDecal(decalgroup_t* group)
+std::string CBSPRenderer::GetRandomDecalFromGroup(const std::string& group)
 {
-	if (group->iSize == 0)
-		return nullptr;
+	const auto& groupRef = m_mapDecalTexGroups[group];
 
-	if (group->iSize == 1)
-		return &group->entries[0];
+	if (groupRef.size() == 0)
+		return "";
 
-	int idx = gEngfuncs.pfnRandomLong(0, group->iSize - 1);
+	if (groupRef.size() == 1)
+		return groupRef.begin()->second.name;
 
-	return &group->entries[idx];
-}
+	auto randm = gEngfuncs.pfnRandomLong(0, groupRef.size() - 1);
 
-/*
-====================
-FindGroup
-
-====================
-*/
-decalgroup_t* CBSPRenderer::FindGroup(const std::string& _name)
-{
-	for (int i = 0; i < m_iNumDecalGroups; i++)
+	for (const auto& item : groupRef)
 	{
-		if (m_pDecalGroups[i].strName == _name)
-			return &m_pDecalGroups[i];
+		if (randm == 0)
+			return item.second.name;
+		randm--;
 	}
 
-	return nullptr; // nothing found
+	return "";
 }
 
 /*
@@ -4261,45 +4222,33 @@ CreateDecal
 
 ====================
 */
-void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const std::string& name, int persistent)
+void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const std::string& name, bool persistent)
 {
 	Vector mins, maxs;
 	Vector decalpos, decalnormal;
-	decalgroupentry_t* pDecalTex;
 
 	m_pWorld = IEngineStudio.GetModelByIndex(1);
 	if (m_pWorld == nullptr)
 	{
-		if (m_iCacheDecals >= MAX_DECAL_MSG_CACHE)
-			return;
+		m_vectorMsgCache.push_back(DecalMessage(name, endpos, pnormal, false));
 
-		m_pMsgCache[m_iCacheDecals].name = name;
-		m_pMsgCache[m_iCacheDecals].normal = pnormal;
-		m_pMsgCache[m_iCacheDecals].pos = endpos;
-		m_pMsgCache[m_iCacheDecals].persistent = persistent;
-		m_iCacheDecals++;
 		return;
 	}
 
-	if (persistent == 0)
-	{
-		decalgroup_t* pGroup = FindGroup(name);
+	const std::string decalTexGroup = FindGroupByDecalName(name);
 
-		if (pGroup == nullptr)
-			return;
-
-		pDecalTex = GetRandomDecal(pGroup);
-	}
-	else
-	{
-		pDecalTex = FindDecalByName(name);
-	}
-
-	if (pDecalTex == nullptr)
+	if (decalTexGroup.empty())
 		return;
 
-	int xsize = pDecalTex->xsize;
-	int ysize = pDecalTex->ysize;
+	const std::string decalTexName = GetRandomDecalFromGroup(decalTexGroup);
+
+	if (decalTexName.empty())
+		return;
+
+	DecalTexture& decalTex = m_mapDecalTexGroups[decalTexGroup][decalTexName];
+
+	int xsize = decalTex.xsize;
+	int ysize = decalTex.ysize;
 
 	float radius = (xsize > ysize) ? xsize : ysize;
 
@@ -4310,56 +4259,64 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const std::string&
 	m_vDecalMaxs[1] = endpos[1] + radius;
 	m_vDecalMaxs[2] = endpos[2] + radius;
 
-	customdecal_t* pDecal = nullptr;
-	if (persistent != 0)
+	CustomDecal* newDecal = nullptr;
+	if (persistent)
 	{
-		pDecal = AllocStaticDecal();
+		size_t decalIndex = AllocStaticDecal();
 
-		if (pDecal == nullptr)
+		if (decalIndex == SIZE_MAX || decalIndex >= m_vectorStaticDecals.size())
 			return;
+
+		newDecal = &m_vectorStaticDecals[decalIndex];
 	}
 	else
 	{
-		for (int i = 0; i < m_iNumDecals; i++)
+		// TODO: Add CVAR to disable removing overlapping decals
+
+		for (auto& decal : m_vectorDecals)
 		{
-			if (m_pDecals[i].texinfo->group != pDecalTex->group)
+			if (decal.textureBinding.decalGroup != decalTex.group)
 				continue;
 
-			xsize = m_pDecals[i].texinfo->xsize;
-			ysize = m_pDecals[i].texinfo->ysize;
+			DecalTexture& tempDecalTex = m_mapDecalTexGroups[decal.textureBinding.decalGroup][decal.textureBinding.decalGroupMember];
+			xsize = tempDecalTex.xsize;
+			ysize = tempDecalTex.ysize;
 			radius = (xsize > ysize) ? xsize : ysize;
 
-			mins[0] = m_pDecals[i].position[0] - radius;
-			mins[1] = m_pDecals[i].position[1] - radius;
-			mins[2] = m_pDecals[i].position[2] - radius;
-			maxs[0] = m_pDecals[i].position[0] + radius;
-			maxs[1] = m_pDecals[i].position[1] + radius;
-			maxs[2] = m_pDecals[i].position[2] + radius;
+			mins[0] = decal.position[0] - radius;
+			mins[1] = decal.position[1] - radius;
+			mins[2] = decal.position[2] - radius;
+			maxs[0] = decal.position[0] + radius;
+			maxs[1] = decal.position[1] + radius;
+			maxs[2] = decal.position[2] + radius;
 
 			if (!CullDecalBBox(mins, maxs))
 			{
-				for (int j = 0; j < m_pDecals[i].inumpolys; j++)
-					delete[] m_pDecals[i].polys[j].pverts;
-
-				delete[] m_pDecals[i].polys;
-				memset(&m_pDecals[i], 0, sizeof(customdecal_t));
-				pDecal = &m_pDecals[i];
+				decal = CustomDecal();
+				newDecal = &decal;
 				break;
 			}
 		}
 
-		if (pDecal == nullptr)
-			pDecal = AllocDecal();
+		if (newDecal == nullptr)
+		{
+			size_t decalIndex = AllocDecal();
+
+			if (decalIndex == SIZE_MAX || decalIndex >= m_vectorDecals.size())
+				return;
+
+			newDecal = &m_vectorDecals[decalIndex];
+		}
 	}
 
-	if (pDecal == nullptr)
+	if (newDecal == nullptr)
 		return;
 
-	pDecal->texinfo = pDecalTex;
-	VectorCopy(endpos, pDecal->position);
-	VectorCopy(pnormal, pDecal->normal);
+	newDecal->textureBinding = decalTex;
+	VectorCopy(endpos, newDecal->position);
+	VectorCopy(pnormal, newDecal->normal);
 
-	RecursiveCreateDecal(m_pWorld->nodes, pDecalTex, pDecal, endpos, pnormal);
+	RecursiveCreateDecal(m_pWorld->nodes, decalTex, newDecal, endpos, pnormal);
 
 	for (int i = 1; i < MAXRENDERENTS; i++)
 	{
@@ -4445,7 +4402,7 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const std::string&
 				if (DotProduct(normal, decalnormal) < 0.01)
 					continue;
 
-				DecalSurface(surf, pDecalTex, pEntity, pDecal, decalpos, decalnormal);
+				DecalSurface(surf, decalTex, pEntity, newDecal, decalpos, decalnormal);
 			}
 		}
 	}
@@ -4457,7 +4414,7 @@ RecursiveCreateDecal
 
 ====================
 */
-void CBSPRenderer::RecursiveCreateDecal(mnode_t* node, decalgroupentry_t* texptr, customdecal_t* pDecal, Vector endpos, Vector pnormal)
+void CBSPRenderer::RecursiveCreateDecal(mnode_t* node, DecalTexture& texture, CustomDecal* pDecal, Vector endpos, Vector pnormal)
 {
 	if (node->contents == CONTENTS_SOLID)
 		return; // solid
@@ -4468,8 +4425,8 @@ void CBSPRenderer::RecursiveCreateDecal(mnode_t* node, decalgroupentry_t* texptr
 	if (CullDecalBBox(node->minmaxs, (node->minmaxs + 3)))
 		return;
 
-	int xsize = texptr->xsize;
-	int ysize = texptr->ysize;
+	int xsize = texture.xsize;
+	int ysize = texture.ysize;
 
 	float radius = (xsize > ysize) ? xsize : ysize;
 
@@ -4499,7 +4456,7 @@ void CBSPRenderer::RecursiveCreateDecal(mnode_t* node, decalgroupentry_t* texptr
 		side = 1;
 
 	// recurse down the children, front side first
-	RecursiveCreateDecal(node->children[side], texptr, pDecal, endpos, pnormal);
+	RecursiveCreateDecal(node->children[side], texture, pDecal, endpos, pnormal);
 
 	// draw stuff
 	int c = node->numsurfaces;
@@ -4531,12 +4488,12 @@ void CBSPRenderer::RecursiveCreateDecal(mnode_t* node, decalgroupentry_t* texptr
 				if (DotProduct(normal, pnormal) < 0.01)
 					continue;
 
-				DecalSurface(surf, texptr, nullptr, pDecal, endpos, pnormal);
+				DecalSurface(surf, texture, nullptr, pDecal, endpos, pnormal);
 			}
 		}
 	}
 
-	RecursiveCreateDecal(node->children[side == 0], texptr, pDecal, endpos, pnormal);
+	RecursiveCreateDecal(node->children[side == 0], texture, pDecal, endpos, pnormal);
 }
 
 /*
@@ -4545,13 +4502,13 @@ DecalSurface
 
 ====================
 */
-void CBSPRenderer::DecalSurface(msurface_t* surf, decalgroupentry_t* texptr, cl_entity_t* pEntity, customdecal_t* pDecal, Vector endpos, Vector pnormal)
+void CBSPRenderer::DecalSurface(msurface_t* surf, DecalTexture& texture, cl_entity_t* pEntity, CustomDecal* pDecal, Vector endpos, Vector pnormal)
 {
 	Vector norm;
 	Vector right, up;
 
-	Vector dverts1[64];
-	Vector dverts2[64];
+	std::vector<Vector> dverts1;
+	std::vector<Vector> dverts2;
 
 	if ((pEntity != nullptr) && surf->texinfo->texture->name[0] == '{' && pEntity->curstate.rendermode == kRenderTransAlpha)
 		return;
@@ -4564,8 +4521,8 @@ void CBSPRenderer::DecalSurface(msurface_t* surf, decalgroupentry_t* texptr, cl_
 
 	GetUpRight(pnormal, up, right);
 
-	int xsize = texptr->xsize;
-	int ysize = texptr->ysize;
+	int xsize = texture.xsize;
+	int ysize = texture.ysize;
 
 	float texc_orig_x = DotProduct(endpos, right);
 	float texc_orig_y = DotProduct(endpos, up);
@@ -4573,56 +4530,50 @@ void CBSPRenderer::DecalSurface(msurface_t* surf, decalgroupentry_t* texptr, cl_
 	glpoly_t* p = surf->polys;
 	float* v = p->verts[0];
 
+	dverts1.resize(p->numverts);
+	dverts2.resize(p->numverts);
+
 	for (int j = 0; j < p->numverts; j++, v += VERTEXSIZE)
-		VectorCopy(v, dverts1[j]);
+	{
+		dverts1[j] = v;
+	}
 
 	int nv;
 	Vector planepoint;
 	VectorMASSE(endpos, -xsize, right, planepoint);
-	nv = ClipPolygonByPlane(dverts1, p->numverts, right, planepoint, dverts2);
+	nv = ClipPolygonByPlane(dverts1, right, planepoint, dverts2);
 
 	VectorMASSE(endpos, xsize, right, planepoint);
-	nv = ClipPolygonByPlane(dverts2, nv, right * -1, planepoint, dverts1);
+	nv = ClipPolygonByPlane(dverts2, right * -1, planepoint, dverts1);
 
 	VectorMASSE(endpos, -ysize, up, planepoint);
-	nv = ClipPolygonByPlane(dverts1, nv, up, planepoint, dverts2);
+	nv = ClipPolygonByPlane(dverts1, up, planepoint, dverts2);
 
 	VectorMASSE(endpos, ysize, up, planepoint);
-	nv = ClipPolygonByPlane(dverts2, nv, up * -1, planepoint, dverts1);
+	nv = ClipPolygonByPlane(dverts2, up * -1, planepoint, dverts1);
 
 	if (nv == 0)
 		return;
 
-	if (pDecal->polys != nullptr)
-	{
-		customdecalpoly_t* ppolys = new customdecalpoly_t[(pDecal->inumpolys + 1)];
-		memcpy(ppolys, pDecal->polys, sizeof(customdecalpoly_t) * pDecal->inumpolys);
-		delete[] pDecal->polys;
-		pDecal->polys = ppolys;
-		pDecal->inumpolys++;
-	}
-	else
-	{
-		pDecal->polys = new customdecalpoly_t;
-		pDecal->inumpolys++;
-	}
+	pDecal->polys.clear();
+	pDecal->polys.push_back(CustomDecalPoly());
 
-	customdecalpoly_t* pPoly = &pDecal->polys[(pDecal->inumpolys - 1)];
-	pPoly->pverts = new customdecalvert_t[nv];
-	pPoly->numverts = nv;
+	CustomDecalPoly& poly = pDecal->polys.back();
 
 	for (int j = 0; j < nv; j++)
 	{
 		float texc_x = (DotProduct(dverts1[j], right) - texc_orig_x) / xsize;
 		float texc_y = (DotProduct(dverts1[j], up) - texc_orig_y) / ysize;
 
-		pPoly->pverts[j].texcoord[0] = (texc_x + 1) / 2;
-		pPoly->pverts[j].texcoord[1] = (texc_y + 1) / 2;
-		pPoly->pverts[j].position = dverts1[j];
+		poly.verts.push_back(CustomDecalVert());
+
+		poly.verts.back().texcoord[0] = (texc_x + 1) / 2;
+		poly.verts.back().texcoord[1] = (texc_y + 1) / 2;
+		poly.verts.back().position = dverts1[j];
 	}
 
-	pPoly->surface = surf;
-	pPoly->entity = pEntity;
+	poly.surface = surf;
+	poly.entity = pEntity;
 }
 
 /*
@@ -4633,44 +4584,43 @@ CreateCachedDecals
 */
 void CBSPRenderer::CreateCachedDecals()
 {
-	for (int i = 0; i < gPropManager.m_iNumDecals; i++)
+	for (auto& decal : gPropManager.m_vectorDecals)
 	{
 		pmtrace_t pTrace;
 		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
 
 		// Z Axis
-		gEngfuncs.pEventAPI->EV_PlayerTrace(gPropManager.m_pDecals[i].pos + Vector(0, 0, 2), gPropManager.m_pDecals[i].pos - Vector(0, 0, 2), PM_WORLD_ONLY, -2, &pTrace);
+		gEngfuncs.pEventAPI->EV_PlayerTrace(decal.pos + Vector(0, 0, 2), decal.pos - Vector(0, 0, 2), PM_WORLD_ONLY, -2, &pTrace);
 
 		if (pTrace.fraction == 1 || pTrace.fraction == 0)
-			gEngfuncs.pEventAPI->EV_PlayerTrace(gPropManager.m_pDecals[i].pos - Vector(0, 0, 2), gPropManager.m_pDecals[i].pos + Vector(0, 0, 2), PM_WORLD_ONLY, -2, &pTrace);
+			gEngfuncs.pEventAPI->EV_PlayerTrace(decal.pos - Vector(0, 0, 2), decal.pos + Vector(0, 0, 2), PM_WORLD_ONLY, -2, &pTrace);
 
 		// Y Axis
 		if (pTrace.fraction == 1 || pTrace.fraction == 0)
-			gEngfuncs.pEventAPI->EV_PlayerTrace(gPropManager.m_pDecals[i].pos + Vector(0, 2, 0), gPropManager.m_pDecals[i].pos - Vector(0, 2, 0), PM_WORLD_ONLY, -2, &pTrace);
+			gEngfuncs.pEventAPI->EV_PlayerTrace(decal.pos + Vector(0, 2, 0), decal.pos - Vector(0, 2, 0), PM_WORLD_ONLY, -2, &pTrace);
 
 		if (pTrace.fraction == 1 || pTrace.fraction == 0)
-			gEngfuncs.pEventAPI->EV_PlayerTrace(gPropManager.m_pDecals[i].pos - Vector(0, 2, 0), gPropManager.m_pDecals[i].pos + Vector(0, 2, 0), PM_WORLD_ONLY, -2, &pTrace);
+			gEngfuncs.pEventAPI->EV_PlayerTrace(decal.pos - Vector(0, 2, 0), decal.pos + Vector(0, 2, 0), PM_WORLD_ONLY, -2, &pTrace);
 
 		// X Axis
 		if (pTrace.fraction == 1 || pTrace.fraction == 0)
-			gEngfuncs.pEventAPI->EV_PlayerTrace(gPropManager.m_pDecals[i].pos + Vector(2, 0, 0), gPropManager.m_pDecals[i].pos - Vector(2, 0, 0), PM_WORLD_ONLY, -2, &pTrace);
+			gEngfuncs.pEventAPI->EV_PlayerTrace(decal.pos + Vector(2, 0, 0), decal.pos - Vector(2, 0, 0), PM_WORLD_ONLY, -2, &pTrace);
 
 		if (pTrace.fraction == 1 || pTrace.fraction == 0)
-			gEngfuncs.pEventAPI->EV_PlayerTrace(gPropManager.m_pDecals[i].pos - Vector(2, 0, 0), gPropManager.m_pDecals[i].pos + Vector(2, 0, 0), PM_WORLD_ONLY, -2, &pTrace);
+			gEngfuncs.pEventAPI->EV_PlayerTrace(decal.pos - Vector(2, 0, 0), decal.pos + Vector(2, 0, 0), PM_WORLD_ONLY, -2, &pTrace);
 
 		if (pTrace.fraction == 1 || pTrace.fraction == 0)
 			pTrace.plane.normal = Vector(0, 0, 1);
 
-		CreateDecal(gPropManager.m_pDecals[i].pos, pTrace.plane.normal, gPropManager.m_pDecals[i].name, gPropManager.m_pDecals[i].persistent);
+		CreateDecal(decal.pos, pTrace.plane.normal, decal.name, decal.persistent);
 	}
 
-	for (int i = 0; i < m_iCacheDecals; i++)
+	for (const auto& cachedElem : m_vectorMsgCache)
 	{
-		CreateDecal(m_pMsgCache[i].pos, m_pMsgCache[i].normal, m_pMsgCache[i].name, m_pMsgCache[i].persistent);
+		CreateDecal(cachedElem.pos, cachedElem.normal, cachedElem.name, cachedElem.persistent);
 	}
 
-	m_iCacheDecals = 0;
-	gPropManager.m_iNumDecals = 0;
+	gPropManager.m_vectorDecals.clear();
 }
 
 /*
@@ -4679,33 +4629,31 @@ DrawSingleDecal
 
 ====================
 */
-void CBSPRenderer::DrawSingleDecal(customdecal_t* decal)
+void CBSPRenderer::DrawSingleDecal(const CustomDecal& decal)
 {
-	Bind2DTexture(GL_TEXTURE0_ARB, decal->texinfo->gl_texid);
+	Bind2DTexture(GL_TEXTURE0_ARB, m_mapDecalTexGroups[decal.textureBinding.decalGroup][decal.textureBinding.decalGroupMember].gl_texid);
 
-	for (int i = 0; i < decal->inumpolys; i++)
+	for (auto& poly : decal.polys)
 	{
-		customdecalpoly_t* ppoly = &decal->polys[i];
-
-		if (ppoly->surface->visframe != m_iFrameCount)
+		if (poly.surface->visframe != m_iFrameCount)
 			continue;
 
-		if (ppoly->entity != nullptr)
+		if (poly.entity != nullptr)
 		{
-			if (IsEntityMoved(ppoly->entity) != 0)
+			if (IsEntityMoved(poly.entity) != 0)
 			{
 				glPushMatrix();
-				ppoly->entity->angles[0] = -ppoly->entity->angles[0]; // stupid quake bug
-				R_RotateForEntity(ppoly->entity);
-				ppoly->entity->angles[0] = -ppoly->entity->angles[0]; // stupid quake bug
+				poly.entity->angles[0] = -poly.entity->angles[0]; // stupid quake bug
+				R_RotateForEntity(poly.entity);
+				poly.entity->angles[0] = -poly.entity->angles[0]; // stupid quake bug
 			}
 		}
 
 		glBegin(GL_POLYGON);
-		for (int k = 0; k < ppoly->numverts; k++)
+		for (auto& vert : poly.verts)
 		{
-			glTexCoord2f(ppoly->pverts[k].texcoord[0], ppoly->pverts[k].texcoord[1]);
-			glVertex3fv(ppoly->pverts[k].position);
+			glTexCoord2f(vert.texcoord[0], vert.texcoord[1]);
+			glVertex3fv(vert.position);
 		}
 		glEnd();
 
@@ -4723,13 +4671,13 @@ void CBSPRenderer::DrawSingleDecal(customdecal_t* decal)
 					glDisable(GL_FOG);
 			}
 
-			for (int j = 2; j < ppoly->numverts; j++)
+			for (size_t j = 2; j < poly.verts.size(); j++)
 			{
 				glBegin(GL_LINE_STRIP);
-				glVertex3fv(ppoly->pverts[0].position);
-				glVertex3fv(ppoly->pverts[j - 1].position);
-				glVertex3fv(ppoly->pverts[j].position);
-				glVertex3fv(ppoly->pverts[0].position);
+				glVertex3fv(poly.verts[0].position);
+				glVertex3fv(poly.verts[j - 1].position);
+				glVertex3fv(poly.verts[j].position);
+				glVertex3fv(poly.verts[0].position);
 				glEnd();
 			}
 
@@ -4743,7 +4691,7 @@ void CBSPRenderer::DrawSingleDecal(customdecal_t* decal)
 			glColor4f(GL_ONE, GL_ZERO, GL_ONE, GL_ONE);
 		}
 
-		if ((ppoly->entity != nullptr) && (IsEntityMoved(ppoly->entity) != 0))
+		if ((poly.entity != nullptr) && (IsEntityMoved(poly.entity) != 0))
 			glPopMatrix();
 	}
 }
@@ -4758,7 +4706,7 @@ void CBSPRenderer::DrawDecals()
 {
 	CreateCachedDecals();
 
-	if ((m_iNumDecals == 0) && (m_iNumStaticDecals == 0))
+	if (m_vectorDecals.empty() && m_vectorStaticDecals.empty())
 		return;
 
 	ResetCache();
@@ -4791,11 +4739,11 @@ void CBSPRenderer::DrawDecals()
 		glDisable(GL_FOG);
 	}
 
-	for (int i = 0; i < m_iNumDecals; i++)
-		DrawSingleDecal(&m_pDecals[i]);
+	for (const auto& decal : m_vectorDecals)
+		DrawSingleDecal(decal);
 
-	for (int i = 0; i < m_iNumStaticDecals; i++)
-		DrawSingleDecal(&m_pStaticDecals[i]);
+	for (const auto& decalStatic : m_vectorStaticDecals)
+		DrawSingleDecal(decalStatic);
 
 	glDisable(GL_ALPHA_TEST);
 	glAlphaFunc(GL_GREATER, 0);
@@ -4846,37 +4794,8 @@ DeleteDecals
 */
 void CBSPRenderer::DeleteDecals()
 {
-	m_iCurDecal = 0;
-
-	if (m_iNumDecals != 0)
-	{
-		for (int i = 0; i < m_iNumDecals; i++)
-		{
-			for (int j = 0; j < m_pDecals[i].inumpolys; j++)
-				delete[] m_pDecals[i].polys[j].pverts;
-
-			delete[] m_pDecals[i].polys;
-		}
-
-		// Clear array completely
-		memset(m_pDecals, 0, sizeof(m_pDecals));
-		m_iNumDecals = NULL;
-	}
-
-	if (m_iNumStaticDecals != 0)
-	{
-		for (int i = 0; i < m_iNumStaticDecals; i++)
-		{
-			for (int j = 0; j < m_pStaticDecals[i].inumpolys; j++)
-				delete[] m_pStaticDecals[i].polys[j].pverts;
-
-			delete[] m_pStaticDecals[i].polys;
-		}
-
-		// Clear array completely
-		memset(m_pStaticDecals, 0, sizeof(m_pStaticDecals));
-		m_iNumStaticDecals = NULL;
-	}
+	m_vectorDecals.clear();
+	m_vectorStaticDecals.clear();
 }
 
 /*

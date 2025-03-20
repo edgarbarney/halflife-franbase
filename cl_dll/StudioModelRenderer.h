@@ -312,16 +312,16 @@ public:
 
 public:
 	virtual void StudioDrawDecals();
-	virtual studiodecal_t* StudioAllocDecal();
-	virtual studiodecal_t* StudioAllocDecalSlot();
+	virtual size_t StudioAllocDecal();
 
-	virtual void StudioDecalExternal(Vector vpos, Vector vnorm, const char* name);
-	virtual void StudioDecalForEntity(Vector position, Vector normal, const char* szName, cl_entity_t* pEntity);
-	virtual void StudioDecalForSubModel(Vector position, Vector normal, studiodecal_t* decal);
-	virtual void StudioDecalTriangle(studiotri_t* tri, Vector position, Vector normal, studiodecal_t* decal);
+	virtual void StudioDecalExternal(Vector vpos, Vector vnorm, const std::string& name);
+	virtual void StudioDecalForEntity(Vector position, Vector normal, const std::string& name, cl_entity_t* pEntity);
+	virtual void StudioDecalForSubModel(Vector position, Vector normal, StudioDecal& decal);
+	virtual void StudioDecalTriangle(studiotri_t* tri, Vector position, Vector normal, StudioDecal& decal);
 
-	studiodecal_t m_pStudioDecals[MAX_CUSTOMDECALS];
-	int m_iNumStudioDecals;
+	std::vector<StudioDecal> m_vectorStudioDecals;
+	// Contains vector of the decal indices for each entity
+	std::unordered_map<cl_entity_t*, std::vector<int>> m_mapEntityStudioDecals;
 
 	// Sets up bodypart pointers
 	virtual void StudioSetupModelSVD(int bodypart);

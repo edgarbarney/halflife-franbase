@@ -147,27 +147,26 @@ public:
 	void LoadDecals();
 	void DeleteDecals();
 
-	decalgroup_t* FindGroup(const std::string& _name);
-	cl_texture_t* LoadDecalTexture(const char* texname);
-	decalgroupentry_t* GetRandomDecal(decalgroup_t* group);
-	decalgroupentry_t* FindDecalByName(const std::string& szName);
+	cl_texture_t* LoadDecalTexture(const std::string& texname);
+	std::string GetRandomDecalFromGroup(const std::string& group);
+	std::string FindGroupByDecalName(const std::string& name);
 
 	bool CullDecalBBox(Vector mins, Vector maxs);
-	void CreateDecal(Vector endpos, Vector pnormal, const std::string& name, int persistent = 0);
-	void RecursiveCreateDecal(mnode_t* node, decalgroupentry_t* texptr, customdecal_t* pDecal, Vector endpos, Vector pnormal);
-	void DecalSurface(msurface_t* surf, decalgroupentry_t* texptr, cl_entity_t* pEntity, customdecal_t* pDecal, Vector endpos, Vector pnormal);
+	void CreateDecal(Vector endpos, Vector pnormal, const std::string& name, bool persistent = false);
+	void RecursiveCreateDecal(mnode_t* node, DecalTexture& texture, CustomDecal* pDecal, Vector endpos, Vector pnormal);
+	void DecalSurface(msurface_t* surf, DecalTexture& texture, cl_entity_t* pEntity, CustomDecal* pDecal, Vector endpos, Vector pnormal);
 
 	int MsgCustomDecal(const char* pszName, int iSize, void* pbuf);
 
 	void CreateCachedDecals();
-	void DrawSingleDecal(customdecal_t* decal);
+	void DrawSingleDecal(const CustomDecal& decal);
 
-	customdecal_t* AllocDecal();
-	customdecal_t* AllocStaticDecal();
+	size_t AllocDecal();
+	size_t AllocStaticDecal();
 
 	void GetUpRight(Vector forward, Vector& up, Vector& right);
-	int ClipPolygonByPlane(const Vector* arrIn, int numpoints, Vector normal, Vector planepoint, Vector* arrOut);
-	void FindIntersectionPoint(const Vector& p1, const Vector& p2, const Vector& normal, const Vector& planepoint, Vector& newpoint);
+	int ClipPolygonByPlane(const std::vector<Vector>& vecIn, Vector normal, Vector planepoint, std::vector<Vector>& vecOut);
+	Vector FindIntersectionPoint(const Vector& p1, const Vector& p2, const Vector& normal, const Vector& planepoint);
 
 public:
 	GLuint m_uiBufferIndex;
@@ -328,16 +327,10 @@ public:
 #endif
 
 public:
-	customdecal_t m_pDecals[MAX_CUSTOMDECALS];
-	customdecal_t m_pStaticDecals[MAX_STATICDECALS];
-	decal_msg_cache m_pMsgCache[MAX_DECAL_MSG_CACHE];
-	decalgroup_t m_pDecalGroups[MAX_DECAL_GROUPS];
-
-	int m_iNumDecals;
-	int m_iNumStaticDecals;
-	int m_iCurDecal;
-	int m_iCacheDecals;
-	int m_iNumDecalGroups;
+	std::vector<CustomDecal> m_vectorDecals;
+	std::vector<CustomDecal> m_vectorStaticDecals;
+	std::vector<DecalMessage> m_vectorMsgCache;
+	std::unordered_map<std::string, DecalTextureGroup> m_mapDecalTexGroups;
 
 	Vector m_vDecalMins;
 	Vector m_vDecalMaxs;

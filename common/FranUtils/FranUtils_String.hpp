@@ -97,14 +97,19 @@ namespace FranUtils::StringUtils
 		std::string tempStr;
 
 		size_t spacePos = 0;
-
+		
 		do
 		{
 			spacePos = str.find(" ");
 
 			if (spacePos == std::string::npos)
 			{
-				break;
+				spacePos = str.find("\t"); // Check for tabs, too.
+
+				if (spacePos == std::string::npos)
+				{
+					break;
+				}
 			}
 			tempStr = str.substr(0, spacePos);
 			out.push_back(tempStr);
@@ -114,6 +119,12 @@ namespace FranUtils::StringUtils
 		while (spacePos != std::string::npos);
 
 		out.push_back(str);
+
+		// Remove any whitespace from the words
+		std::erase_if(out, [](auto&& str)
+		{ 
+			return str.empty();
+		});
 
 		return out;
 	}

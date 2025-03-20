@@ -76,11 +76,7 @@ void CPropManager::Reset()
 		m_iNumModelLights = 0;
 	}
 
-	if (m_iNumDecals != 0)
-	{
-		memset(m_pDecals, 0, sizeof(m_pDecals));
-		m_iNumDecals = 0;
-	}
+	m_vectorDecals.clear();
 
 	if (m_iNumExtraData != 0)
 	{
@@ -190,7 +186,11 @@ void CPropManager::ClearEntityData()
 
 			delete pFree;
 		}
+		m_pBSPEntities[i].epairs = nullptr;
 	}
+	//delete[] m_pBSPEntities;
+	//m_pBSPEntities = nullptr;
+
 	memset(m_pBSPEntities, 0, sizeof(m_pBSPEntities));
 	m_iNumBSPEntities = 0;
 }
@@ -470,13 +470,13 @@ void CPropManager::LoadEntVars()
 				continue;
 
 			// Always TRUE
-			m_pDecals[m_iNumDecals].persistent = TRUE;
+			m_vectorDecals.back().persistent = true;
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "origin");
 			if (!pValue.empty())
 			{
 				strStream.str(pValue);
-				strStream >> m_pDecals[m_iNumDecals].pos[0] >> m_pDecals[m_iNumDecals].pos[1] >> m_pDecals[m_iNumDecals].pos[2];
+				strStream >> m_vectorDecals.back().pos[0] >> m_vectorDecals.back().pos[1] >> m_vectorDecals.back().pos[2];
 			}
 
 			pValue = ValueForKey(&m_pBSPEntities[i], "message");
@@ -484,8 +484,7 @@ void CPropManager::LoadEntVars()
 			if (pValue.empty())
 				continue;
 
-			m_pDecals[m_iNumDecals].name = pValue;
-			m_iNumDecals++;
+			m_vectorDecals.back().name = pValue;
 		}
 		else if (pValue == "item_generic")
 		{

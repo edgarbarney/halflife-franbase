@@ -1878,26 +1878,6 @@ void CStudioModelRenderer::VidInit()
 	int iCurrentBinding;
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &iCurrentBinding);
 
-	if (m_iNumStudioDecals != 0)
-	{
-		for (int i = 0; i < m_iNumStudioDecals; i++)
-		{
-			if (m_pStudioDecals[i].numpolys != 0)
-			{
-				for (int j = 0; j < m_pStudioDecals[i].numpolys; j++)
-					delete[] m_pStudioDecals[i].polys[j].verts;
-
-				delete[] m_pStudioDecals[i].polys;
-			}
-
-			if (m_pStudioDecals[i].numverts != 0)
-				delete[] m_pStudioDecals[i].verts;
-		}
-
-		memset(m_pStudioDecals, NULL, sizeof(m_pStudioDecals));
-		m_iNumStudioDecals = NULL;
-	}
-
 	if (m_iNumExtraInfo != 0)
 	{
 		memset(m_pExtraInfo, NULL, sizeof(m_pExtraInfo));
@@ -1972,26 +1952,6 @@ CStudioModelRenderer::~CStudioModelRenderer()
 	{
 		for (int i = 0; i < m_iNumStudioModels; i++)
 			delete m_pStudioModels[i].cache.data;
-	}
-
-	if (m_iNumStudioDecals != 0)
-	{
-		for (int i = 0; i < m_iNumStudioDecals; i++)
-		{
-			if (m_pStudioDecals[i].numpolys != 0)
-			{
-				for (int j = 0; j < m_pStudioDecals[i].numpolys; j++)
-					delete[] m_pStudioDecals[i].polys[j].verts;
-
-				delete[] m_pStudioDecals[i].polys;
-			}
-
-			if (m_pStudioDecals[i].numverts != 0)
-				delete[] m_pStudioDecals[i].verts;
-		}
-
-		memset(m_pStudioDecals, NULL, sizeof(m_pStudioDecals));
-		m_iNumStudioDecals = NULL;
 	}
 }
 
@@ -3632,26 +3592,31 @@ void CStudioModelRenderer::StudioDrawWireframe()
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	glColor4f(1.0, 0.0, 0.5, 1.0);
 
-	studiodecal_t* pnext = (studiodecal_t*)m_pCurrentEntity->efrag;
-	while (pnext != nullptr)
+	// Ugh... this is so ugly
+	// Should we find a better way to do this?
+	for (const auto& decalIndex : m_mapEntityStudioDecals[m_pCurrentEntity])
 	{
-		for (int i = 0; i < pnext->numverts; i++)
-			VectorTransformSSE(pnext->verts[i].position, (*m_pbonetransform)[pnext->verts[i].boneindex], m_vVertexTransform[i]);
-
-		for (int i = 0; i < pnext->numpolys; i++)
+		int iter = 0;
+		auto& tempDecal = m_vectorStudioDecals[decalIndex];
+		tempDecal.vertexTransforms.resize(tempDecal.verts.size());
+		for (auto& vert : tempDecal.verts)
 		{
-			decalvert_t* verts = &pnext->polys[i].verts[0];
+			//tempVertexTransform = Vector(0);
+			VectorTransformSSE(vert.position, (*m_pbonetransform)[vert.boneindex], tempDecal.vertexTransforms[iter]);
+			
+			iter++;
+		}
+
+		for (auto& poly : tempDecal.polys)
+		{
 			glBegin(GL_POLYGON);
-			for (int j = 0; j < pnext->polys[i].numverts; j++)
+			for (auto& vert : poly)
 			{
-				glTexCoord2f(verts[j].texcoord[0], verts[j].texcoord[1]);
-				glVertex3fv(m_pVertexTransform[verts[j].vertindex]);
+				glTexCoord2f(vert.texcoord[0], vert.texcoord[1]);
+				glVertex3fv(tempDecal.vertexTransforms[vert.vertindex]);
 			}
 			glEnd();
 		}
-
-		studiodecal_t* next = pnext->next;
-		pnext = next;
 	}
 
 	glDisable(GL_POLYGON_OFFSET_FILL);
@@ -5496,111 +5461,15 @@ void CStudioModelRenderer::StudioDrawWireframeEXT()
 
 /*
 ====================
-StudioAllocDecalSlot
-
-====================
-*/
-studiodecal_t* CStudioModelRenderer::StudioAllocDecalSlot()
-{
-	if (m_iNumStudioDecals == MAX_CUSTOMDECALS)
-		m_iNumStudioDecals = NULL;
-
-	studiodecal_t* pDecal = &m_pStudioDecals[m_iNumStudioDecals];
-	m_iNumStudioDecals++;
-
-	if (pDecal->numverts != 0)
-	{
-		delete[] pDecal->verts;
-		pDecal->verts = nullptr;
-		pDecal->numverts = 0;
-	}
-
-	if (pDecal->numpolys != 0)
-	{
-		for (int i = 0; i < pDecal->numpolys; i++)
-			delete[] pDecal->polys[i].verts;
-
-		delete[] pDecal->polys;
-		pDecal->polys = nullptr;
-		pDecal->numpolys = 0;
-	}
-
-	// Make sure nothing references this decal
-	for (int i = 0; i < m_iNumStudioDecals; i++)
-	{
-		if (m_pStudioDecals[i].next == pDecal)
-			m_pStudioDecals[i].next = pDecal->next;
-	}
-
-	memset(pDecal, 0, sizeof(studiodecal_t));
-	return pDecal;
-};
-
-/*
-====================
 StudioAllocDecal
 
 ====================
 */
-studiodecal_t* CStudioModelRenderer::StudioAllocDecal()
+size_t CStudioModelRenderer::StudioAllocDecal()
 {
-	if (m_pCurrentEntity->efrag == nullptr)
-	{
-		studiodecal_t* pDecal = StudioAllocDecalSlot();
-		pDecal->totaldecals = 1;
-
-		m_pCurrentEntity->efrag = (struct efrag_s*)pDecal;
-		return pDecal;
-	}
-
-	// What this code does is basically set up a linked list as long
-	// as it can, and once the max amount of decals have been reached
-	// it starts recursing again, replacing each original decal.
-	studiodecal_t* pfirst = (studiodecal_t*)m_pCurrentEntity->efrag;
-	studiodecal_t* pnext = pfirst;
-
-	if (pfirst->totaldecals == MAX_MODEL_DECALS)
-		pfirst->totaldecals = 0;
-
-	for (int i = 0; i < MAX_MODEL_DECALS; i++)
-	{
-		if (i == pfirst->totaldecals)
-		{
-			pfirst->totaldecals++;
-
-			if (pnext->numverts != 0)
-			{
-				delete[] pnext->verts;
-				pnext->verts = nullptr;
-				pnext->numverts = 0;
-			}
-
-			if (pnext->numpolys != 0)
-			{
-				for (int k = 0; k < pnext->numpolys; k++)
-					delete[] pnext->polys[k].verts;
-
-				delete[] pnext->polys;
-				pnext->polys = nullptr;
-				pnext->numpolys = 0;
-			}
-
-			return pnext;
-		}
-
-		if (pnext->next == nullptr)
-		{
-			studiodecal_t* pDecal = StudioAllocDecalSlot();
-			pnext->next = pDecal;
-			pfirst->totaldecals++;
-
-			return pDecal;
-		}
-
-		studiodecal_t* next = pnext->next;
-		pnext = next;
-	}
-	return nullptr;
+	m_vectorStudioDecals.push_back(StudioDecal());
+	m_mapEntityStudioDecals[m_pCurrentEntity].push_back(m_vectorStudioDecals.size() - 1);
+	return m_vectorStudioDecals.size() - 1;
 }
 
 /*
@@ -5609,7 +5478,7 @@ StudioDecalForEntity
 
 ====================
 */
-void CStudioModelRenderer::StudioDecalForEntity(Vector position, Vector normal, const char* szName, cl_entity_t* pEntity)
+void CStudioModelRenderer::StudioDecalForEntity(Vector position, Vector normal, const std::string& name, cl_entity_t* pEntity)
 {
 	if (pEntity->model == nullptr)
 		return;
@@ -5620,27 +5489,31 @@ void CStudioModelRenderer::StudioDecalForEntity(Vector position, Vector normal, 
 	if (pEntity == gEngfuncs.GetViewModel())
 		return;
 
-	decalgroup_t* group = gBSPRenderer.FindGroup(szName);
+	std::string decalGroup = gBSPRenderer.FindGroupByDecalName(name);
 
-	if (group == nullptr)
+	if (decalGroup.empty())
 		return;
 
-	const decalgroupentry_t* texptr = gBSPRenderer.GetRandomDecal(group);
+	std::string decalTex = gBSPRenderer.GetRandomDecalFromGroup(decalGroup);
 
-	if (texptr == nullptr)
+	if (decalTex.empty())
 		return;
 
 	m_pCurrentEntity = pEntity;
 	m_pRenderModel = pEntity->model;
 	m_pStudioHeader = (studiohdr_t*)IEngineStudio.Mod_Extradata(m_pRenderModel);
 
-	studiodecal_t* pDecal = StudioAllocDecal();
+	size_t decalIndex = StudioAllocDecal();
 
-	if (pDecal == nullptr)
+	if (decalIndex == SIZE_MAX || decalIndex >= m_vectorStudioDecals.size())
 		return;
 
-	pDecal->entindex = m_pCurrentEntity->index;
-	pDecal->texture = texptr;
+	StudioDecal& decalRef = m_vectorStudioDecals[decalIndex];
+
+	auto& decalTexRef = gBSPRenderer.m_mapDecalTexGroups[decalGroup][decalTex];
+
+	decalRef.entindex = m_pCurrentEntity->index;
+	decalRef.textureBinding = decalTexRef;
 
 	StudioSetupTextureHeader();
 	StudioSetUpTransform(0);
@@ -5649,7 +5522,7 @@ void CStudioModelRenderer::StudioDecalForEntity(Vector position, Vector normal, 
 	for (int i = 0; i < m_pStudioHeader->numbodyparts; i++)
 	{
 		StudioSetupModel(i);
-		StudioDecalForSubModel(position, normal, pDecal);
+		StudioDecalForSubModel(position, normal, decalRef);
 	}
 }
 
@@ -5659,14 +5532,15 @@ StudioDecalTriangle
 
 ====================
 */
-void CStudioModelRenderer::StudioDecalTriangle(studiotri_t* tri, Vector position, Vector normal, studiodecal_t* decal)
+void CStudioModelRenderer::StudioDecalTriangle(studiotri_t* tri, Vector position, Vector normal, StudioDecal& decal)
 {
-	Vector dverts1[10];
-	Vector dverts2[10];
+	std::vector<Vector> dverts1;
+	std::vector<Vector> dverts2;
+	DecalTexture& decalTex = gBSPRenderer.m_mapDecalTexGroups[decal.textureBinding.decalGroup][decal.textureBinding.decalGroupMember];
 
 	Vector norm, v1, v2, v3;
-	VectorSubtract(m_vVertexTransform[tri->verts[1].vertindex], m_vVertexTransform[tri->verts[0].vertindex], v1);
-	VectorSubtract(m_vVertexTransform[tri->verts[2].vertindex], m_vVertexTransform[tri->verts[1].vertindex], v2);
+	v1 = m_vVertexTransform[tri->verts[1].vertindex] - m_vVertexTransform[tri->verts[0].vertindex];
+	v2 = m_vVertexTransform[tri->verts[2].vertindex] - m_vVertexTransform[tri->verts[1].vertindex];
 	CrossProduct(v2, v1, norm);
 
 	if (DotProduct(normal, norm) < 0.0)
@@ -5677,34 +5551,34 @@ void CStudioModelRenderer::StudioDecalTriangle(studiotri_t* tri, Vector position
 	float texc_orig_x = DotProduct(position, right);
 	float texc_orig_y = DotProduct(position, up);
 
-	int xsize = decal->texture->xsize;
-	int ysize = decal->texture->ysize;
+	int xsize = decalTex.xsize;
+	int ysize = decalTex.ysize;
 
 	for (int i = 0; i < 3; i++)
-		VectorCopy(m_vVertexTransform[tri->verts[i].vertindex], dverts1[i]);
+		dverts1.push_back(m_vVertexTransform[tri->verts[i].vertindex]);
 
 	int nv;
 	Vector planepoint;
 	VectorMASSE(position, -xsize, right, planepoint);
-	nv = gBSPRenderer.ClipPolygonByPlane(dverts1, 3, right, planepoint, dverts2);
+	nv = gBSPRenderer.ClipPolygonByPlane(dverts1, right, planepoint, dverts2);
 
 	if (nv < 3)
 		return;
 
 	VectorMASSE(position, xsize, right, planepoint);
-	nv = gBSPRenderer.ClipPolygonByPlane(dverts2, nv, right * -1, planepoint, dverts1);
+	nv = gBSPRenderer.ClipPolygonByPlane(dverts2, right * -1, planepoint, dverts1);
 
 	if (nv < 3)
 		return;
 
 	VectorMASSE(position, -ysize, up, planepoint);
-	nv = gBSPRenderer.ClipPolygonByPlane(dverts1, nv, up, planepoint, dverts2);
+	nv = gBSPRenderer.ClipPolygonByPlane(dverts1, up, planepoint, dverts2);
 
 	if (nv < 3)
 		return;
 
 	VectorMASSE(position, ysize, up, planepoint);
-	nv = gBSPRenderer.ClipPolygonByPlane(dverts2, nv, up * -1, planepoint, dverts1);
+	nv = gBSPRenderer.ClipPolygonByPlane(dverts2, up * -1, planepoint, dverts1);
 
 	if (nv < 3)
 		return;
@@ -5730,19 +5604,14 @@ void CStudioModelRenderer::StudioDecalTriangle(studiotri_t* tri, Vector position
 			indexes[i] = tri->verts[0].boneindex;
 	}
 
-	decal->polys = (decalpoly_t*)ResizeArray((byte*)decal->polys, sizeof(decalpoly_t), decal->numpolys);
-	decalpoly_t* polygon = &decal->polys[decal->numpolys];
-	decal->numpolys++;
-
-	polygon->verts = new decalvert_t[nv];
-	polygon->numverts = nv;
-
-	for (int i = 0; i < nv; i++)
+	StudioDecalPoly& polygon = decal.polys.back();
+	polygon.resize(nv);
+	for (size_t i = 0; i < polygon.size(); i++)
 	{
 		float texc_x = (DotProduct(dverts1[i], right) - texc_orig_x) / xsize;
 		float texc_y = (DotProduct(dverts1[i], up) - texc_orig_y) / ysize;
-		polygon->verts[i].texcoord[0] = ((texc_x + 1) / 2);
-		polygon->verts[i].texcoord[1] = ((texc_y + 1) / 2);
+		polygon[i].texcoord[0] = ((texc_x + 1) / 2);
+		polygon[i].texcoord[1] = ((texc_y + 1) / 2);
 
 		Vector temp, fpos; // PINGAS
 		temp[0] = dverts1[i][0] - (*m_pbonetransform)[indexes[i]][0][3];
@@ -5750,24 +5619,23 @@ void CStudioModelRenderer::StudioDecalTriangle(studiotri_t* tri, Vector position
 		temp[2] = dverts1[i][2] - (*m_pbonetransform)[indexes[i]][2][3];
 		VectorIRotate(temp, (*m_pbonetransform)[indexes[i]], fpos);
 
-		int j = 0;
-		for (; j < decal->numverts; j++)
+		size_t j = 0;
+		for (; j < decal.verts.size(); j++)
 		{
-			if (decal->verts[j].position == fpos)
+			if (decal.verts[j].position == fpos)
 			{
-				polygon->verts[i].vertindex = j;
+				polygon[i].vertindex = j;
 				break;
 			}
 		}
 
-		if (j == decal->numverts)
+		if (j == decal.verts.size())
 		{
-			decal->verts = (decalvertinfo_t*)ResizeArray((byte*)decal->verts, sizeof(decalvertinfo_t), decal->numverts);
-			decal->verts[decal->numverts].boneindex = indexes[i];
-			decal->verts[decal->numverts].position = fpos;
+			decal.verts.back().boneindex = indexes[i];
+			decal.verts.back().position = fpos;
 
-			polygon->verts[i].vertindex = decal->numverts;
-			decal->numverts++;
+			polygon[i].vertindex = decal.verts.size();
+			decal.verts.resize(decal.verts.size() + 1);
 		}
 	}
 }
@@ -5778,7 +5646,7 @@ StudioDecalForSubModel
 
 ====================
 */
-void CStudioModelRenderer::StudioDecalForSubModel(Vector position, Vector normal, studiodecal_t* decal)
+void CStudioModelRenderer::StudioDecalForSubModel(Vector position, Vector normal, StudioDecal& decal)
 {
 	byte* pvertbone = ((byte*)m_pStudioHeader + m_pSubModel->vertinfoindex);
 	Vector* pstudioverts = (Vector*)((byte*)m_pStudioHeader + m_pSubModel->vertindex);
@@ -5882,8 +5750,8 @@ void CStudioModelRenderer::StudioDrawDecals()
 	if (m_pCvarModelDecals->value < 1)
 		return;
 
-	if (m_pCurrentEntity->efrag == nullptr)
-		return;
+	//if (m_pCurrentEntity->efrag == nullptr)
+	//	return;
 
 	if (gHUD.m_pFogSettings.active && (m_pCvarModelShaders->value != 0.0f) && gBSPRenderer.m_bShaderSupport)
 	{
@@ -5912,57 +5780,63 @@ void CStudioModelRenderer::StudioDrawDecals()
 	gBSPRenderer.glActiveTextureARB(GL_TEXTURE0_ARB);
 	glEnable(GL_TEXTURE_2D);
 
-	studiodecal_t* pnext = (studiodecal_t*)m_pCurrentEntity->efrag;
-	while (pnext != nullptr)
+	StudioDecal* pnext = (StudioDecal*)m_pCurrentEntity->efrag;
+
+	const auto& entDecals = m_mapEntityStudioDecals[m_pCurrentEntity];
+	DecalTexture* decalTexPtr = nullptr;
+	for (size_t i = 0; i < entDecals.size(); i++)
 	{
-		if (pnext->texture->gl_texid != m_iCurrentBinding)
+		StudioDecal& decal = m_vectorStudioDecals[entDecals[i]];
+		decalTexPtr = &gBSPRenderer.m_mapDecalTexGroups[decal.textureBinding.decalGroup][decal.textureBinding.decalGroupMember];
+
+		if (decalTexPtr == nullptr)
+			continue;
+
+		if (decalTexPtr->gl_texid != m_iCurrentBinding)
 		{
-			glBindTexture(GL_TEXTURE_2D, pnext->texture->gl_texid);
-			m_iCurrentBinding = pnext->texture->gl_texid;
+			glBindTexture(GL_TEXTURE_2D, decalTexPtr->gl_texid);
+			m_iCurrentBinding = decalTexPtr->gl_texid;
 		}
 
 		if (!m_bExternalEntity)
 		{
-			for (int i = 0; i < pnext->numverts; i++)
+			for (size_t i = 0; i < decal.verts.size(); i++)
 			{
-				if (pnext->verts[i].boneindex > m_pStudioHeader->numbones)
+				if (decal.verts[i].boneindex > m_pStudioHeader->numbones)
 				{
-					goto resetgl; // every time this happens, i shit bricks
+					goto resetgl; // every time this
 					return;
 				}
 
-				VectorTransformSSE(pnext->verts[i].position, (*m_pbonetransform)[pnext->verts[i].boneindex], m_vVertexTransform[i]);
+				VectorTransformSSE(decal.verts[i].position, (*m_pbonetransform)[decal.verts[i].boneindex], m_vVertexTransform[i]);
 			}
 
-			for (int i = 0; i < pnext->numpolys; i++)
+			for (size_t i = 0; i < decal.polys.size(); i++)
 			{
-				decalvert_t* verts = &pnext->polys[i].verts[0];
+				StudioDecalPoly& poly = decal.polys[i];
 				glBegin(GL_POLYGON);
-				for (int j = 0; j < pnext->polys[i].numverts; j++)
+				for (size_t j = 0; j < poly.size(); j++)
 				{
-					glTexCoord2f(verts[j].texcoord[0], verts[j].texcoord[1]);
-					glVertex3fv(m_pVertexTransform[verts[j].vertindex]);
+					glTexCoord2f(poly[j].texcoord[0], poly[j].texcoord[1]);
+					glVertex3fv(m_vVertexTransform[poly[j].vertindex]);
 				}
 				glEnd();
 			}
 		}
 		else
 		{
-			for (int i = 0; i < pnext->numpolys; i++)
+			for (size_t i = 0; i < decal.polys.size(); i++)
 			{
-				decalvert_t* verts = &pnext->polys[i].verts[0];
+				StudioDecalPoly& poly = decal.polys[i];
 				glBegin(GL_POLYGON);
-				for (int j = 0; j < pnext->polys[i].numverts; j++)
+				for (size_t j = 0; j < poly.size(); j++)
 				{
-					glTexCoord2f(verts[j].texcoord[0], verts[j].texcoord[1]);
-					glVertex3fv(pnext->verts[verts[j].vertindex].position);
+					glTexCoord2f(poly[j].texcoord[0], poly[j].texcoord[1]);
+					glVertex3fv(decal.verts[poly[j].vertindex].position);
 				}
 				glEnd();
 			}
 		}
-
-		studiodecal_t* next = pnext->next;
-		pnext = next;
 	}
 
 resetgl:
@@ -5989,7 +5863,7 @@ StudioDecalExternal
 
 ====================
 */
-void CStudioModelRenderer::StudioDecalExternal(Vector vpos, Vector vnorm, const char* name)
+void CStudioModelRenderer::StudioDecalExternal(Vector vpos, Vector vnorm, const std::string& name)
 {
 	int nv;
 
@@ -5999,20 +5873,22 @@ void CStudioModelRenderer::StudioDecalExternal(Vector vpos, Vector vnorm, const 
 	Vector vdecalmins, vdecalmaxs;
 	Vector vtranspos, vtransnorm;
 
-	Vector dverts1[10];
-	Vector dverts2[10];
+	std::vector<Vector> dverts1;
+	std::vector<Vector> dverts2;
 
-	decalgroup_t* group = gBSPRenderer.FindGroup(name);
+	std::string group = gBSPRenderer.FindGroupByDecalName(name);
 
-	if (group == nullptr)
+	if (group.empty())
 		return;
 
-	const decalgroupentry_t* texptr = gBSPRenderer.GetRandomDecal(group);
+	std::string randomDecal = gBSPRenderer.GetRandomDecalFromGroup(group);
 
-	if (texptr == nullptr)
+	if (randomDecal.empty())
 		return;
 
-	float radius = (texptr->xsize > texptr->ysize) ? texptr->xsize : texptr->ysize;
+	const auto& decalTex = gBSPRenderer.m_mapDecalTexGroups[group][randomDecal];
+
+	float radius = (decalTex.xsize > decalTex.ysize) ? decalTex.xsize : decalTex.ysize;
 
 	vdecalmins[0] = vpos[0] - radius;
 	vdecalmins[1] = vpos[1] - radius;
@@ -6043,13 +5919,15 @@ void CStudioModelRenderer::StudioDecalExternal(Vector vpos, Vector vnorm, const 
 		VectorIRotate(vnorm, (*m_protationmatrix), vtransnorm);
 
 		m_pCurrentEntity = pEntity;
-		studiodecal_t* pDecal = StudioAllocDecal();
+		size_t decalIndex = StudioAllocDecal();
 
-		if (pDecal == nullptr)
+		if (decalIndex == SIZE_MAX || decalIndex >= m_vectorStudioDecals.size())
 			continue;
 
-		pDecal->entindex = pEntity->index;
-		pDecal->texture = texptr;
+		StudioDecal& decal = m_vectorStudioDecals[decalIndex];
+
+		decal.entindex = pEntity->index;
+		decal.textureBinding = decalTex;
 
 		m_pStudioHeader = pInfo->pExtraData->pModelData->pHdr;
 		m_pVBOHeader = &pInfo->pExtraData->pModelData->pVBOHeader;
@@ -6104,68 +5982,73 @@ void CStudioModelRenderer::StudioDecalExternal(Vector vpos, Vector vnorm, const 
 					float texc_orig_x = DotProduct(vtranspos, right);
 					float texc_orig_y = DotProduct(vtranspos, up);
 
-					int xsize = texptr->xsize;
-					int ysize = texptr->ysize;
+					int xsize = decalTex.xsize;
+					int ysize = decalTex.ysize;
 
-					VectorCopy(&pv1->pos, &dverts1[0]);
-					VectorCopy(&pv2->pos, &dverts1[1]);
-					VectorCopy(&pv3->pos, &dverts1[2]);
+					dverts1.resize(3);
+
+					dverts1[0] = pv1->pos;
+					dverts1[1] = pv2->pos;
+					dverts1[2] = pv3->pos;
 
 					VectorMASSE(vtranspos, -xsize, right, planepoint);
-					nv = gBSPRenderer.ClipPolygonByPlane(dverts1, 3, right, planepoint, dverts2);
+					nv = gBSPRenderer.ClipPolygonByPlane(dverts1, right, planepoint, dverts2);
+					dverts2.resize(nv); // Just in case
 
 					if (nv < 3)
 						continue;
 
 					VectorMASSE(vtranspos, xsize, right, planepoint);
-					nv = gBSPRenderer.ClipPolygonByPlane(dverts2, nv, right * -1, planepoint, dverts1);
+					nv = gBSPRenderer.ClipPolygonByPlane(dverts2,  right * -1, planepoint, dverts1);
 
 					if (nv < 3)
 						continue;
 
 					VectorMASSE(vtranspos, -ysize, up, planepoint);
-					nv = gBSPRenderer.ClipPolygonByPlane(dverts1, nv, up, planepoint, dverts2);
+					nv = gBSPRenderer.ClipPolygonByPlane(dverts1, up, planepoint, dverts2);
 
 					if (nv < 3)
 						continue;
 
 					VectorMASSE(vtranspos, ysize, up, planepoint);
-					nv = gBSPRenderer.ClipPolygonByPlane(dverts2, nv, up * -1, planepoint, dverts1);
+					nv = gBSPRenderer.ClipPolygonByPlane(dverts2,  up * -1, planepoint, dverts1);
 
 					if (nv < 3)
 						continue;
 
-					pDecal->polys = (decalpoly_t*)ResizeArray((byte*)pDecal->polys, sizeof(decalpoly_t), pDecal->numpolys);
-					decalpoly_t* polygon = &pDecal->polys[pDecal->numpolys];
-					pDecal->numpolys++;
-					polygon->verts = new decalvert_t[nv];
-					polygon->numverts = nv;
+					//pDecal->polys = (StudioDecalPoly*)ResizeArray((byte*)pDecal->polys, sizeof(StudioDecalPoly), pDecal->numpolys);
+					//StudioDecalPoly* polygon = &pDecal->polys[pDecal->numpolys];
+					//pDecal->numpolys++;
+					//polygon->verts = new StudioDecalVert[nv];
+					//polygon->numverts = nv;
 
-					for (int m = 0; m < nv; m++)
+					StudioDecalPoly& polygon = decal.polys.back();
+					polygon.resize(nv);
+
+					for (size_t m = 0; m < polygon.size(); m++)
 					{
 						float texc_x = (DotProduct(dverts1[m], right) - texc_orig_x) / xsize;
 						float texc_y = (DotProduct(dverts1[m], up) - texc_orig_y) / ysize;
-						polygon->verts[m].texcoord[0] = ((texc_x + 1) / 2);
-						polygon->verts[m].texcoord[1] = ((texc_y + 1) / 2);
+						polygon[m].texcoord[0] = ((texc_x + 1) / 2);
+						polygon[m].texcoord[1] = ((texc_y + 1) / 2);
 
-						int n = 0;
-						for (; n < pDecal->numverts; n++)
+						size_t n = 0;
+						for (; n < decal.verts.size(); n++)
 						{
-							if (pDecal->verts[n].position == dverts1[m])
+							if (decal.verts[n].position == dverts1[m])
 							{
-								polygon->verts[m].vertindex = n;
+								polygon[m].vertindex = n;
 								break;
 							}
 						}
 
-						if (n == pDecal->numverts)
+						if (n == decal.verts.size())
 						{
-							pDecal->verts = (decalvertinfo_t*)ResizeArray((byte*)pDecal->verts, sizeof(decalvertinfo_t), pDecal->numverts);
-							pDecal->verts[pDecal->numverts].boneindex = NULL;
-							pDecal->verts[pDecal->numverts].position = dverts1[m];
+							decal.verts.back().boneindex = NULL;
+							decal.verts.back().position = dverts1[m];
 
-							polygon->verts[m].vertindex = pDecal->numverts;
-							pDecal->numverts++;
+							polygon[i].vertindex = decal.verts.size();
+							decal.verts.resize(decal.verts.size() + 1);
 						}
 					}
 				}

@@ -487,7 +487,7 @@ void EV_HLDM_GunshotDecalTrace(pmtrace_t* pTrace, char* decalName)
 		if ((pTrace->allsolid != 0) || pTrace->fraction == 1.0)
 			return;
 
-		gBSPRenderer.CreateDecal(pTrace->endpos, pTrace->plane.normal, decalName, FALSE);
+		gBSPRenderer.CreateDecal(pTrace->endpos, pTrace->plane.normal, decalName, false);
 	}
 //RENDERERS END
 }

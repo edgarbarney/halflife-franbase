@@ -80,8 +80,7 @@ public:
 	modeldata_t m_pHeaders[MAXRENDERENTS];
 
 	// Decals
-	decal_msg_cache m_pDecals[MAXRENDERENTS];
-	int m_iNumDecals;
+	std::vector<DecalMessage> m_vectorDecals;
 
 	cabledata_t m_pCables[MAXRENDERENTS];
 	int m_iNumCables;
