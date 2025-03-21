@@ -3860,6 +3860,12 @@ Vector CBSPRenderer::FindIntersectionPoint(const Vector& p1, const Vector& p2, c
 	return p1 + dir * t;
 };
 
+/*
+====================
+RemoveDuplicateVertices
+
+====================
+*/
 void CBSPRenderer::RemoveDuplicateVertices(std::vector<Vector>& vecOut, float epsilon)
 {
 	std::vector<Vector> cleaned;
@@ -3873,15 +3879,22 @@ void CBSPRenderer::RemoveDuplicateVertices(std::vector<Vector>& vecOut, float ep
 		vecOut = std::move(cleaned);
 }
 
-void CBSPRenderer::EnsureCounterClockwise(std::vector<Vector>& vecOut)
+/*
+====================
+EnsureCounterClockwise
+
+====================
+*/
+void CBSPRenderer::EnsureCounterClockwise(std::vector<Vector>& vecOut, const Vector& normal)
 {
 	if (vecOut.size() < 3)
 		return; // Not a polygon wtf
+	Vector computedNormal = CrossProduct(vecOut[1] - vecOut[0], vecOut[2] - vecOut[0]);
 
-	Vector normal = CrossProduct(vecOut[1] - vecOut[0], vecOut[2] - vecOut[0]);
-
-	if (DotProduct(normal, Vector(0, 0, 1)) < 0)
+	if (DotProduct(computedNormal, normal) < 0)
+	{
 		std::reverse(vecOut.begin(), vecOut.end());
+	}
 }
 
 
@@ -3899,81 +3912,44 @@ ClipPolygonByPlane
 */
 int CBSPRenderer::ClipPolygonByPlane(const std::vector<Vector>& vecIn, Vector normal, Vector planepoint, std::vector<Vector>& vecOut)
 {
-	int cur, prev;
-	int first = -1;
-	int outCur = 0;
-	std::vector<float> dots(vecIn.size());
+	vecOut.clear(); // Reset output polygon
 
-	// Compute dot products and find first positive point
-	for (size_t i = 0; i < vecIn.size(); i++)
+	if (vecIn.size() < 3)
+		return 0; // Not a valid polygon
+
+	std::vector<Vector> clippedPolygon;
+	size_t numPoints = vecIn.size();
+
+	for (size_t i = 0; i < numPoints; i++)
 	{
-		dots[i] = DotProduct(vecIn[i] - planepoint, normal);
-		if (dots[i] > 0 && first == -1)
-			first = i;
-	}
+		size_t next = (i + 1) % numPoints; // Wrap around to the first vertex
 
-	if (first == -1)
-		return 0; // All points are behind the plane
+		float d1 = DotProduct(vecIn[i] - planepoint, normal);
+		float d2 = DotProduct(vecIn[next] - planepoint, normal);
 
-	SetOutVectorIndex(vecIn[first], outCur++, vecOut);
+		bool inside1 = d1 >= 0;
+		bool inside2 = d2 >= 0;
 
-	cur = (first + 1) % vecIn.size();
+		if (inside1)
+			clippedPolygon.push_back(vecIn[i]); // Keep current vertex if it's inside
 
-	while (cur != first)
-	{
-		if (dots[cur] > 0)
+		if (inside1 != inside2) // Edge crosses the plane
 		{
-			SetOutVectorIndex(vecIn[cur], outCur++, vecOut);
-			cur = (cur + 1) % vecIn.size();
+			Vector intersection = FindIntersectionPoint(vecIn[i], vecIn[next], normal, planepoint);
+			clippedPolygon.push_back(intersection);
 		}
-		else
-			break;
 	}
 
-	if (cur == first)
-		return outCur;
+	if (clippedPolygon.size() < 3)
+		return 0; // Clipping resulted in an invalid polygon
 
-	if (dots[cur] < 0)
-	{
-		prev = (cur == 0) ? vecIn.size() - 1 : cur - 1;
-		SetOutVectorIndex(FindIntersectionPoint(vecIn[prev], vecIn[cur], normal, planepoint), outCur++, vecOut);
-	}
-	else
-	{
-		SetOutVectorIndex(vecIn[cur], outCur++, vecOut);
-	}
+	// Clean up the polygon
+	RemoveDuplicateVertices(clippedPolygon);
+	EnsureCounterClockwise(clippedPolygon, normal);
 
-	cur = (cur + 1) % vecIn.size();
-
-	size_t iteration = 0, maxIterations = vecIn.size();
-	while (dots[cur] < 0 && iteration < maxIterations)
-	{
-		cur = (cur + 1) % vecIn.size();
-		iteration++;
-	}
-	if (iteration == maxIterations)
-		return outCur; // Prevent infinite loops
-
-	prev = (cur == 0) ? vecIn.size() - 1 : cur - 1;
-
-	if (dots[cur] > 0 && dots[prev] < 0)
-	{
-		SetOutVectorIndex(FindIntersectionPoint(vecIn[prev], vecIn[cur], normal, planepoint), outCur++, vecOut);
-	}
-
-	while (cur != first)
-	{
-		SetOutVectorIndex(vecIn[cur], outCur++, vecOut);
-		cur = (cur + 1) % vecIn.size();
-	}
-
-	RemoveDuplicateVertices(vecOut);
-	EnsureCounterClockwise(vecOut);
-
-	//return outCur;
+	vecOut = std::move(clippedPolygon);
 	return vecOut.size();
 }
-
 
 /*
 ====================
