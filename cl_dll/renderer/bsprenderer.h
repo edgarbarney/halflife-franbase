@@ -166,7 +166,10 @@ public:
 
 	void GetUpRight(Vector forward, Vector& up, Vector& right);
 	int ClipPolygonByPlane(const std::vector<Vector>& vecIn, Vector normal, Vector planepoint, std::vector<Vector>& vecOut);
-	Vector FindIntersectionPoint(const Vector& p1, const Vector& p2, const Vector& normal, const Vector& planepoint);
+	Vector FindIntersectionPoint(const Vector& p1, const Vector& p2, const Vector& normal, const Vector& planepoint, float epsilon = 0.000001f);
+	void RemoveDuplicateVertices(std::vector<Vector>& vecOut, float epsilon = 0.01f);
+	void EnsureCounterClockwise(std::vector<Vector>& vecOut);
+
 
 public:
 	GLuint m_uiBufferIndex;

@@ -3848,42 +3848,53 @@ FindIntersectionPoint
 
 ====================
 */
-Vector CBSPRenderer::FindIntersectionPoint(const Vector& p1, const Vector& p2, const Vector& normal, const Vector& planepoint)
+Vector CBSPRenderer::FindIntersectionPoint(const Vector& p1, const Vector& p2, const Vector& normal, const Vector& planepoint, float epsilon)
 {
-	Vector planevec;
-	Vector linevec;
-	float planedist, linedist;
+	Vector dir = p2 - p1;
+	float denom = DotProduct(dir, normal);
 
-	planevec = planepoint - p1;
-	linevec = p2 - p1;
+	if (fabs(denom) < epsilon) // Avoid division by zero by very small epsilon
+		return p1;
 
-	DotProductSSE(&planedist, normal, planevec);
-	DotProductSSE(&linedist, normal, linevec);
-
-	if (linedist != 0)
-	{
-		Vector ret;
-		VectorMASSE(p1, planedist / linedist, linevec, ret);
-		return ret;
-	}
-	return Vector();
+	float t = DotProduct(planepoint - p1, normal) / denom;
+	return p1 + dir * t;
 };
+
+void CBSPRenderer::RemoveDuplicateVertices(std::vector<Vector>& vecOut, float epsilon)
+{
+	std::vector<Vector> cleaned;
+	for (size_t i = 0; i < vecOut.size(); i++)
+	{
+		if (cleaned.empty() || (cleaned.back() - vecOut[i]).Length() > epsilon)
+			cleaned.push_back(vecOut[i]);
+	}
+
+	if (cleaned.size() >= 3) // It's a poly, ffs. Ofc it needs at least 3 vertices.
+		vecOut = std::move(cleaned);
+}
+
+void CBSPRenderer::EnsureCounterClockwise(std::vector<Vector>& vecOut)
+{
+	if (vecOut.size() < 3)
+		return; // Not a polygon wtf
+
+	Vector normal = CrossProduct(vecOut[1] - vecOut[0], vecOut[2] - vecOut[0]);
+
+	if (DotProduct(normal, Vector(0, 0, 1)) < 0)
+		std::reverse(vecOut.begin(), vecOut.end());
+}
 
 
 static void SetOutVectorIndex(const Vector& vector, size_t index, std::vector<Vector>& vecOut)
 {
 	if (vecOut.size() <= index)
-	{
-		vecOut.insert(vecOut.end(), vector);
-		return;
-	}
-
+		vecOut.resize(index + 1);
 	vecOut[index] = vector;
 }
+
 /*
 ====================
 ClipPolygonByPlane
-
 ====================
 */
 int CBSPRenderer::ClipPolygonByPlane(const std::vector<Vector>& vecIn, Vector normal, Vector planepoint, std::vector<Vector>& vecOut)
@@ -3891,35 +3902,29 @@ int CBSPRenderer::ClipPolygonByPlane(const std::vector<Vector>& vecIn, Vector no
 	int cur, prev;
 	int first = -1;
 	int outCur = 0;
-	std::vector<float> dots;
+	std::vector<float> dots(vecIn.size());
+
+	// Compute dot products and find first positive point
 	for (size_t i = 0; i < vecIn.size(); i++)
 	{
-		dots.push_back(DotProduct(vecIn[i] - planepoint, normal));
-
-		if (dots.back() > 0)
+		dots[i] = DotProduct(vecIn[i] - planepoint, normal);
+		if (dots[i] > 0 && first == -1)
 			first = i;
 	}
 
 	if (first == -1)
-		return 0;
+		return 0; // All points are behind the plane
 
-	SetOutVectorIndex(vecIn[first], outCur, vecOut);
-	outCur++;
+	SetOutVectorIndex(vecIn[first], outCur++, vecOut);
 
-	cur = first + 1;
-	if (cur == vecIn.size())
-		cur = 0;
+	cur = (first + 1) % vecIn.size();
 
 	while (cur != first)
 	{
 		if (dots[cur] > 0)
 		{
-			SetOutVectorIndex(vecIn[cur], outCur, vecOut);
-			cur++;
-			outCur++;
-
-			if (cur == vecIn.size())
-				cur = 0;
+			SetOutVectorIndex(vecIn[cur], outCur++, vecOut);
+			cur = (cur + 1) % vecIn.size();
 		}
 		else
 			break;
@@ -3930,52 +3935,45 @@ int CBSPRenderer::ClipPolygonByPlane(const std::vector<Vector>& vecIn, Vector no
 
 	if (dots[cur] < 0)
 	{
-		if (cur > 0)
-			prev = cur - 1;
-		else
-			prev = vecIn.size() - 1;
-
-		SetOutVectorIndex(FindIntersectionPoint(vecIn[prev], vecIn[cur], normal, planepoint), outCur, vecOut);
+		prev = (cur == 0) ? vecIn.size() - 1 : cur - 1;
+		SetOutVectorIndex(FindIntersectionPoint(vecIn[prev], vecIn[cur], normal, planepoint), outCur++, vecOut);
 	}
 	else
 	{
-		SetOutVectorIndex(vecIn[cur], outCur, vecOut);
+		SetOutVectorIndex(vecIn[cur], outCur++, vecOut);
 	}
 
-	outCur++;
-	cur++;
+	cur = (cur + 1) % vecIn.size();
 
-	if (cur == vecIn.size())
-		cur = 0;
-
-	while (dots[cur] < 0)
+	size_t iteration = 0, maxIterations = vecIn.size();
+	while (dots[cur] < 0 && iteration < maxIterations)
 	{
-		cur++;
-		if (cur == vecIn.size())
-			cur = 0;
+		cur = (cur + 1) % vecIn.size();
+		iteration++;
 	}
+	if (iteration == maxIterations)
+		return outCur; // Prevent infinite loops
 
-	if (cur > 0)
-		prev = cur - 1;
-	else
-		prev = vecIn.size() - 1;
+	prev = (cur == 0) ? vecIn.size() - 1 : cur - 1;
 
 	if (dots[cur] > 0 && dots[prev] < 0)
 	{
-		SetOutVectorIndex(FindIntersectionPoint(vecIn[prev], vecIn[cur], normal, planepoint), outCur, vecOut);
-		outCur++;
+		SetOutVectorIndex(FindIntersectionPoint(vecIn[prev], vecIn[cur], normal, planepoint), outCur++, vecOut);
 	}
 
 	while (cur != first)
 	{
-		SetOutVectorIndex(vecIn[cur], outCur, vecOut);
-		cur++;
-		outCur++;
-		if (cur == vecIn.size())
-			cur = 0;
+		SetOutVectorIndex(vecIn[cur], outCur++, vecOut);
+		cur = (cur + 1) % vecIn.size();
 	}
-	return outCur;
+
+	RemoveDuplicateVertices(vecOut);
+	EnsureCounterClockwise(vecOut);
+
+	//return outCur;
+	return vecOut.size();
 }
+
 
 /*
 ====================
@@ -4244,15 +4242,21 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const std::string&
 		return;
 	}
 
-	const std::string decalTexGroup = FindGroupByDecalName(name);
-
-	if (decalTexGroup.empty())
-		return;
-
-	const std::string decalTexName = GetRandomDecalFromGroup(decalTexGroup);
+	std::string decalTexGroup = name;
+	std::string decalTexName = gBSPRenderer.GetRandomDecalFromGroup(name);
 
 	if (decalTexName.empty())
-		return;
+	{
+		decalTexGroup = gBSPRenderer.FindGroupByDecalName(name);
+
+		if (decalTexGroup.empty())
+			return;
+
+		decalTexName = gBSPRenderer.GetRandomDecalFromGroup(name);
+
+		if (decalTexName.empty())
+			return;
+	}
 
 	DecalTexture& decalTex = m_mapDecalTexGroups[decalTexGroup][decalTexName];
 
@@ -4281,7 +4285,7 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const std::string&
 	else
 	{
 		// TODO: Add CVAR to disable removing overlapping decals
-
+		/*
 		for (auto& decal : m_vectorDecals)
 		{
 			if (decal.textureBinding.decalGroup != decalTex.group)
@@ -4306,7 +4310,7 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const std::string&
 				break;
 			}
 		}
-
+		*/
 		if (newDecal == nullptr)
 		{
 			size_t decalIndex = AllocDecal();
@@ -4575,6 +4579,7 @@ void CBSPRenderer::DecalSurface(msurface_t* surf, DecalTexture& texture, cl_enti
 		float texc_y = (DotProduct(dverts1[j], up) - texc_orig_y) / ysize;
 
 		poly.verts.push_back(CustomDecalVert());
+		gEngfuncs.Con_Printf("texc_x: %f, texc_y: %f\n", texc_x, texc_y);
 
 		poly.verts.back().texcoord[0] = (texc_x + 1) / 2;
 		poly.verts.back().texcoord[1] = (texc_y + 1) / 2;
@@ -4642,7 +4647,7 @@ void CBSPRenderer::DrawSingleDecal(const CustomDecal& decal)
 {
 	Bind2DTexture(GL_TEXTURE0_ARB, m_mapDecalTexGroups[decal.textureBinding.decalGroup][decal.textureBinding.decalGroupMember].gl_texid);
 
-	for (auto& poly : decal.polys)
+	for (const auto& poly : decal.polys)
 	{
 		if (poly.surface->visframe != m_iFrameCount)
 			continue;
@@ -4659,7 +4664,7 @@ void CBSPRenderer::DrawSingleDecal(const CustomDecal& decal)
 		}
 
 		glBegin(GL_POLYGON);
-		for (auto& vert : poly.verts)
+		for (const auto& vert : poly.verts)
 		{
 			glTexCoord2f(vert.texcoord[0], vert.texcoord[1]);
 			glVertex3fv(vert.position);

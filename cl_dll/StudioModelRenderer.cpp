@@ -5489,15 +5489,21 @@ void CStudioModelRenderer::StudioDecalForEntity(Vector position, Vector normal, 
 	if (pEntity == gEngfuncs.GetViewModel())
 		return;
 
-	std::string decalGroup = gBSPRenderer.FindGroupByDecalName(name);
-
-	if (decalGroup.empty())
-		return;
-
-	std::string decalTex = gBSPRenderer.GetRandomDecalFromGroup(decalGroup);
+	std::string decalGroup = name;
+	std::string decalTex = gBSPRenderer.GetRandomDecalFromGroup(name);
 
 	if (decalTex.empty())
-		return;
+	{
+		decalGroup = gBSPRenderer.FindGroupByDecalName(name);
+
+		if (decalGroup.empty())
+			return;
+
+		decalTex = gBSPRenderer.GetRandomDecalFromGroup(name);
+
+		if (decalTex.empty())
+			return;
+	}
 
 	m_pCurrentEntity = pEntity;
 	m_pRenderModel = pEntity->model;
@@ -5603,6 +5609,9 @@ void CStudioModelRenderer::StudioDecalTriangle(studiotri_t* tri, Vector position
 		for (int i = 0; i < nv; i++)
 			indexes[i] = tri->verts[0].boneindex;
 	}
+
+	if (decal.polys.empty())
+		return;
 
 	StudioDecalPoly& polygon = decal.polys.back();
 	polygon.resize(nv);
@@ -5876,15 +5885,21 @@ void CStudioModelRenderer::StudioDecalExternal(Vector vpos, Vector vnorm, const 
 	std::vector<Vector> dverts1;
 	std::vector<Vector> dverts2;
 
-	std::string group = gBSPRenderer.FindGroupByDecalName(name);
-
-	if (group.empty())
-		return;
-
-	std::string randomDecal = gBSPRenderer.GetRandomDecalFromGroup(group);
+	std::string group = name;
+	std::string randomDecal = gBSPRenderer.GetRandomDecalFromGroup(name);
 
 	if (randomDecal.empty())
-		return;
+	{
+		group = gBSPRenderer.FindGroupByDecalName(name);
+
+		if (group.empty())
+			return;
+
+		randomDecal = gBSPRenderer.GetRandomDecalFromGroup(name);
+
+		if (randomDecal.empty())
+			return;
+	}
 
 	const auto& decalTex = gBSPRenderer.m_mapDecalTexGroups[group][randomDecal];
 
