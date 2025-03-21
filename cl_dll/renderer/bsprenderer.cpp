@@ -4285,7 +4285,7 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const std::string&
 	else
 	{
 		// TODO: Add CVAR to disable removing overlapping decals
-		/*
+		
 		for (auto& decal : m_vectorDecals)
 		{
 			if (decal.textureBinding.decalGroup != decalTex.group)
@@ -4310,7 +4310,7 @@ void CBSPRenderer::CreateDecal(Vector endpos, Vector pnormal, const std::string&
 				break;
 			}
 		}
-		*/
+		
 		if (newDecal == nullptr)
 		{
 			size_t decalIndex = AllocDecal();
@@ -4579,7 +4579,6 @@ void CBSPRenderer::DecalSurface(msurface_t* surf, DecalTexture& texture, cl_enti
 		float texc_y = (DotProduct(dverts1[j], up) - texc_orig_y) / ysize;
 
 		poly.verts.push_back(CustomDecalVert());
-		gEngfuncs.Con_Printf("texc_x: %f, texc_y: %f\n", texc_x, texc_y);
 
 		poly.verts.back().texcoord[0] = (texc_x + 1) / 2;
 		poly.verts.back().texcoord[1] = (texc_y + 1) / 2;
