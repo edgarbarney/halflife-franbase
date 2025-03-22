@@ -63,7 +63,8 @@ cvar_t* te_render_distance = nullptr;
 struct cl_stored_light
 {
 	int index = 0;
-	Vector color = Vector(0, 0, 0);
+	Vector color = Vector();
+	Vector color2 = Vector();
 };
 
 std::vector<cl_stored_light> StoredLightBuffer;
@@ -4226,6 +4227,7 @@ int CStudioModelRenderer::StudioRecursiveLightPoint(entextrainfo_t* ext, mnode_t
 					cl_stored_light local;
 					local.index = m_pCurrentEntity->index;
 					local.color = Vector((float)(lightmap->r * flScale) / 255, (float)(lightmap->g * flScale) / 255, (float)(lightmap->b * flScale) / 255);
+					local.color2 = Vector((float)(lightmap->r * flScale) / 255, (float)(lightmap->g * flScale) / 255, (float)(lightmap->b * flScale) / 255);
 					StoredLightBuffer.push_back(local);
 				}
 			}
@@ -4233,7 +4235,7 @@ int CStudioModelRenderer::StudioRecursiveLightPoint(entextrainfo_t* ext, mnode_t
 
 			if (bFoundStoredLight)
 			{
-				StoredLightBuffer[iFoundIndex].color.x = FranUtils::Maths::FastLerp(gHUD.m_flTimeDelta * 2.0f, StoredLightBuffer [iFoundIndex].color.x, (float)(lightmap->r * flScale) / 255);
+				StoredLightBuffer[iFoundIndex].color.x = FranUtils::Maths::FastLerp(gHUD.m_flTimeDelta * 2.0f, StoredLightBuffer[iFoundIndex].color.x, (float)(lightmap->r * flScale) / 255);
 				StoredLightBuffer[iFoundIndex].color.y = FranUtils::Maths::FastLerp(gHUD.m_flTimeDelta * 2.0f, StoredLightBuffer[iFoundIndex].color.y, (float)(lightmap->g * flScale) / 255);
 				StoredLightBuffer[iFoundIndex].color.z = FranUtils::Maths::FastLerp(gHUD.m_flTimeDelta * 2.0f, StoredLightBuffer[iFoundIndex].color.z, (float)(lightmap->b * flScale) / 255);
 
@@ -4254,6 +4256,36 @@ int CStudioModelRenderer::StudioRecursiveLightPoint(entextrainfo_t* ext, mnode_t
 
 			if (ext != nullptr)
 				ext->lightstyles[0] = gBSPRenderer.GetLightStyleValue(surf->styles[0]);
+
+			// bacontsu - this is the shit that handles switchable lightmap
+			for (int style = 1; style < MAXLIGHTMAPS && surf->styles[style] != 255; style++)
+			{
+				lightmap += size; // skip to next lightmap
+				float scale = (float)gBSPRenderer.GetLightStyleValue(surf->styles[style]) / 255;
+
+				if (bFoundStoredLight)
+				{
+					// gEngfuncs.Con_Printf("FOUND BALLS\n"); // im at the edge of insanity
+
+
+					StoredLightBuffer[iFoundIndex].color2.x = FranUtils::Maths::FastLerp(gHUD.m_flTimeDelta * 2.0f, StoredLightBuffer[iFoundIndex].color2.x, ((float)lightmap->r / 255) * scale);
+					StoredLightBuffer[iFoundIndex].color2.y = FranUtils::Maths::FastLerp(gHUD.m_flTimeDelta * 2.0f, StoredLightBuffer[iFoundIndex].color2.y, ((float)lightmap->g / 255) * scale);
+					StoredLightBuffer[iFoundIndex].color2.z = FranUtils::Maths::FastLerp(gHUD.m_flTimeDelta * 2.0f, StoredLightBuffer[iFoundIndex].color2.z, ((float)lightmap->b / 255) * scale);
+
+					color.x += StoredLightBuffer[iFoundIndex].color2.x;
+					color.y += StoredLightBuffer[iFoundIndex].color2.y;
+					color.z += StoredLightBuffer[iFoundIndex].color2.z;
+				}
+				else
+				{
+					color.x += ((float)lightmap->r / 255) * scale;
+					color.y += ((float)lightmap->g / 255) * scale;
+					color.z += ((float)lightmap->b / 255) * scale;
+				}
+
+				if (ext)
+					ext->lightstyles[style] = gBSPRenderer.GetLightStyleValue(surf->styles[style]);
+			}
 
 			if (ext != nullptr)
 				ext->surfindex = node->firstsurface + i;
